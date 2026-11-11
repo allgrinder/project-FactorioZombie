@@ -33,7 +33,7 @@ export interface RecipeDef {
   readonly results: readonly ItemAmount[];
 }
 
-const list: RecipeDef[] = [
+const ORIGINAL: RecipeDef[] = [
   { id: 'iron-plate', category: 'smelting', time: 3.2, ingredients: [{ item: 'iron-ore', amount: 1 }], results: [{ item: 'iron-plate', amount: 1 }] },
   { id: 'copper-plate', category: 'smelting', time: 3.2, ingredients: [{ item: 'copper-ore', amount: 1 }], results: [{ item: 'copper-plate', amount: 1 }] },
   { id: 'stone-brick', category: 'smelting', time: 3.2, ingredients: [{ item: 'stone', amount: 2 }], results: [{ item: 'stone-brick', amount: 1 }] },
@@ -532,6 +532,54 @@ const list: RecipeDef[] = [
   },
 ];
 
+/**
+ * „Letzte Schicht“ behält nur eine schlanke Produktion: Rezepte des Vorgängers außerhalb dieser Liste sind gestrichen
+ * (Öl/Chemie, Module, Roboter, Züge, Kernkraft, Rakete, höhere Band- und Maschinenstufen).
+ */
+const KEPT: ReadonlySet<string> = new Set([
+  'iron-plate', 'copper-plate', 'stone-brick', 'copper-cable', 'iron-stick', 'stone-furnace', 'iron-gear-wheel', 'burner-inserter',
+  'burner-mining-drill', 'transport-belt', 'underground-belt', 'splitter', 'steel-plate', 'steel-chest', 'steel-furnace', 'fast-inserter',
+  'military-science-pack', 'medium-electric-pole', 'firearm-magazine', 'piercing-rounds-magazine', 'pistol', 'submachine-gun', 'gun-turret',
+  'repair-pack', 'grenade', 'stone-wall', 'lamp', 'landfill', 'pipe-to-ground', 'solar-panel', 'wooden-chest', 'electronic-circuit', 'pipe',
+  'offshore-pump', 'boiler', 'steam-engine', 'small-electric-pole', 'electric-mining-drill', 'inserter', 'long-handed-inserter',
+  'assembling-machine-1', 'lab', 'automation-science-pack', 'logistic-science-pack', 'iron-chest', 'heavy-armor', 'radar',
+]);
+
+const I = (item: string, amount: number): ItemAmount => ({ item, amount });
+const craft = (id: string, time: number, ingredients: ItemAmount[], amount = 1): RecipeDef => ({ id, category: 'crafting', time, ingredients, results: [I(id, amount)] });
+
+/** Neue Rezepte (eigene Werte, docs/GAME_DATA.md Abschnitt „Überleben“ und „Verteidigung“). */
+const SURVIVAL: RecipeDef[] = [
+  // Schrott einschmelzen (Ofen): 2 Schrott → 1 Eisenplatte
+  { id: 'scrap-smelting', category: 'smelting', time: 3.2, ingredients: [I('scrap', 2)], results: [I('iron-plate', 1)] },
+  // Akku ohne Chemie (das Batterie-Rezept des Vorgängers entfällt)
+  craft('accumulator', 10, [I('iron-plate', 4), I('copper-cable', 20), I('electronic-circuit', 5)]),
+  // Nahkampf
+  craft('spear', 1, [I('wood', 2), I('iron-plate', 1)]),
+  craft('knife', 1, [I('iron-plate', 2), I('wood', 1)]),
+  craft('baseball-bat', 2, [I('wood', 4)]),
+  craft('axe', 2, [I('wood', 2), I('iron-plate', 3)]),
+  craft('crowbar', 2, [I('iron-plate', 4)]),
+  // Verteidigung
+  craft('wooden-barricade', 0.5, [I('wood', 3)]),
+  craft('gate', 1, [I('wood', 4), I('iron-plate', 2), I('iron-gear-wheel', 1)]),
+  craft('barbed-wire', 0.5, [I('iron-stick', 2), I('iron-plate', 1)], 2),
+  craft('spike-trap', 1, [I('wood', 2), I('iron-stick', 4)]),
+  craft('noise-lure', 2, [I('electronic-circuit', 1), I('iron-plate', 1)]),
+  // Versorgung
+  craft('bandage', 1, [I('cloth', 2)]),
+  craft('first-aid-kit', 3, [I('bandage', 3), I('iron-plate', 1)]),
+  craft('antibiotics', 12, [I('vegetables', 6), I('water-bottle', 1), I('coal', 2)]),
+  craft('empty-bottle', 1, [I('iron-plate', 2)]),
+  { id: 'stew', category: 'crafting', time: 4, ingredients: [I('vegetables', 2), I('water-bottle', 1)], results: [I('stew', 1), I('empty-bottle', 1)] },
+  craft('bed', 2, [I('wood', 6), I('cloth', 3)]),
+  craft('garden', 3, [I('wood', 8), I('vegetables', 2)]),
+  craft('rain-barrel', 2, [I('wood', 6), I('iron-plate', 4)]),
+  craft('radio-tower', 20, [I('steel-plate', 50), I('electronic-circuit', 50), I('copper-cable', 100), I('radio-parts', 5)]),
+];
+
+const list: RecipeDef[] = [...ORIGINAL.filter((r) => KEPT.has(r.id)), ...SURVIVAL];
+
 export const RECIPES: Readonly<Record<string, RecipeDef>> = Object.freeze(Object.fromEntries(list.map((r) => [r.id, r])));
 export const RECIPE_LIST: readonly RecipeDef[] = list;
 
@@ -557,6 +605,11 @@ export function isFluidBarrelRecipe(id: string): boolean {
 export function barrelFluid(item: string): string | null {
   const m = /^(.+)-barrel$/.exec(item);
   return m && m[1] !== 'empty' && RECIPES[`empty-${m[1]}-barrel`] ? m[1] : null;
+}
+
+/** Lässt sich das Item in diesem Spiel herstellen (Rezept vorhanden)? Gestrichene Inhalte des Vorgängers nicht. */
+export function isCraftable(itemId: string): boolean {
+  return list.some((r) => r.results.some((x) => x.item === itemId));
 }
 
 /** Schmelzrezept zu einer Zutat (z. B. Eisenerz -> Eisenplatte). */

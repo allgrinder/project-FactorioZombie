@@ -10,6 +10,8 @@ export const PLAYER = {
   reachDistance: 10,
   /** Reichweite für Handabbau von Ressourcen (Felder). */
   resourceReachDistance: 2.7,
+  /** Fundorte durchsuchen und ausschlachten: Abstand zur Grundfläche (Felder, eigener Wert). */
+  searchDistance: 2.2,
   inventorySlots: 80,
   quickbarSlots: 10,
   /** Kollisionsradius in Feldern. */
@@ -36,13 +38,16 @@ export const GOD = {
   researchFactor: 20,
 } as const;
 
-/** Freeplay-Startausrüstung. */
+/** Startausrüstung: das Nötigste für die ersten Tage (eigene Festlegung). */
 export const START_INVENTORY: readonly { item: string; amount: number }[] = [
   { item: 'iron-plate', amount: 8 },
-  { item: 'wood', amount: 1 },
+  { item: 'wood', amount: 6 },
   { item: 'burner-mining-drill', amount: 1 },
   { item: 'stone-furnace', amount: 1 },
-  // Wie im Original: Pistole und 10 Magazine
+  { item: 'baseball-bat', amount: 1 },
   { item: 'pistol', amount: 1 },
-  { item: 'firearm-magazine', amount: 10 },
+  { item: 'firearm-magazine', amount: 3 },
+  { item: 'canned-food', amount: 2 },
+  { item: 'water-bottle', amount: 2 },
+  { item: 'bandage', amount: 2 },
 ];

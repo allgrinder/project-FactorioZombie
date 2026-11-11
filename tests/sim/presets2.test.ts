@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { PRESETS, drillField, mall, plasticBlock, smelterColumn, solarTile, steamBlock, steamBlockDouble } from '../../src/data/blueprints';
+import { PRESETS, drillField, mall, smelterColumn, solarTile, steamBlock, steamBlockDouble } from '../../src/data/blueprints';
 import { resourceById } from '../../src/data/resources';
-import { FLUID_UNIT } from '../../src/data/fluids';
 import { type Blueprint, applySettings, placed } from '../../src/sim/blueprint';
 import type { ElectricSource } from '../../src/sim/energy';
 import type { Generator } from '../../src/sim/power';
@@ -183,27 +182,5 @@ describe('Abgestimmte Baupläne (Vorlagen)', () => {
     for (const it of ['underground-belt', 'transport-belt', 'splitter', 'pipe', 'pipe-to-ground', 'inserter', 'long-handed-inserter', 'electric-mining-drill', 'assembling-machine-1', 'iron-chest']) {
       expect(got.has(it), it).toBe(true);
     }
-  }, 60_000);
-
-  it('Plastik: 2 Raffinerien → 1 Chemiefabrik, ≈1,8 Plastik/s', () => {
-    const bp = plasticBlock();
-    const { w, ents } = build(bp);
-    onePowerNet(w, ents);
-    const tank = ents.find((e) => e.kind === 'tank') as Entity & { box: { net: { add: (f: string, n: number) => number } | null } };
-    const coalChest = ents.find((e) => e.name === 'iron-chest' && e.x === 4 && e.y === 2) as Entity & { inventory: { add: (i: string, n: number) => number } };
-    expect(coalChest).toBeTruthy();
-    coalChest.inventory.add('coal', 400);
-    let before = 0;
-    const out = ents.find((e) => e.name === 'iron-chest' && e.y === 0) as Entity & { inventory: { count: (i: string) => number } };
-    for (let t = 0; t < 60 * 150; t++) {
-      w.fluids.ensure(w);
-      tank.box.net?.add('crude-oil', Math.round((40 / 60) * FLUID_UNIT));
-      powered(w);
-      w.step();
-      if (t === 60 * 90) before = out.inventory.count('plastic-bar');
-    }
-    const rate = (out.inventory.count('plastic-bar') - before) / 60;
-    expect(rate).toBeGreaterThan(1.6);
-    expect(rate).toBeLessThan(2.01);
   }, 60_000);
 });

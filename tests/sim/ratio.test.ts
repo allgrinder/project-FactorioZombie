@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { RECIPE_LIST } from '../../src/data/recipes';
 import {
-  DEFAULT_MACHINES, beltRates, idealMultiple, intRatio, ratePerMachine, ratioRules, recipesFor, solve, totals,
+  DEFAULT_MACHINES, beltRates, idealMultiple, intRatio, ratePerMachine, ratioRules, recipesFor, solve,
 } from '../../src/sim/ratio';
 
 const AM1 = { ...DEFAULT_MACHINES, assembler: 'assembling-machine-1' as const };
@@ -24,25 +24,12 @@ describe('Verhältnis-Rechner (Handbuch)', () => {
     expect(idealMultiple('automation-science-pack', AM1)).toBe(10);
   });
 
-  it('Dampfkraft 1 : 20 : 40 und Plastik 20 Raffinerien : 9 Chemiefabriken', () => {
+  it('Dampfkraft 1 : 20 : 40; gestrichene Ketten (Öl, Plastik) fehlen', () => {
     const rules = ratioRules();
     const steam = rules.find((r) => r.title.startsWith('Dampfkraft'))!;
     expect(steam.parts.map((p) => p.count)).toEqual([1, 20, 40]);
-    const pl = rules.find((r) => r.item === 'plastic-bar')!;
-    expect(pl.parts.slice(1).map((p) => p.count)).toEqual([20, 9]);
-  });
-
-  it('Nebenprodukte, Summen und Flüssigkeitsrezepte', () => {
-    const fuel = solve('rocket-fuel', 1);
-    const light = fuel.children.find((c) => c.item === 'light-oil')!;
-    expect(light.recipe?.id).toBe('advanced-oil-processing');
-    expect(light.byproducts.map((b) => b.item).sort()).toEqual(['heavy-oil', 'petroleum-gas']);
-    // Schmiermittel braucht Flüssigkeit → mindestens Montagemaschine 2, auch wenn 1 gewählt
-    const lub = solve('electric-engine-unit', 1, AM1);
-    expect(lub.machine).toBe('assembling-machine-2');
-    const t = totals(solve('plastic-bar', 2));
-    expect(t.raw.get('crude-oil')).toBeCloseTo(44.44, 1);
-    expect(t.machines.get('chemical-plant')).toBeCloseTo(1);
+    expect(rules.find((r) => r.item === 'plastic-bar')).toBeUndefined();
+    expect(rules.find((r) => r.item === 'chemical-science-pack')).toBeUndefined();
   });
 
   it('jedes Produkt lässt sich ohne Fehler und ohne Endlosschleife auflösen', () => {
@@ -51,7 +38,7 @@ describe('Verhältnis-Rechner (Handbuch)', () => {
       const n = solve(id, 1);
       expect(Number.isFinite(n.count)).toBe(true);
     }
-    expect(recipesFor('petroleum-gas')[0].id).toBe('basic-oil-processing');
-    expect(recipesFor('empty-barrel').length).toBeGreaterThan(0);
+    expect(recipesFor('petroleum-gas').length).toBe(0);
+    expect(recipesFor('iron-plate').map((r) => r.id).sort()).toEqual(['iron-plate', 'scrap-smelting']);
   });
 });

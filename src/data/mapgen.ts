@@ -4,7 +4,9 @@
  * enemies: Gegner (siehe src/data/enemies.ts).
  */
 export type ResourceSetting = 'leicht' | 'mittel' | 'schwer';
-export type EnemySetting = 'aus' | 'friedlich' | 'normal' | 'stark';
+export type EnemySetting = 'aus' | 'wenig' | 'normal' | 'viele';
+/** Tod der Spielfigur: endgültig (Runde vorbei) oder Wiedereinstieg am Lager (Inventar bleibt in der Leiche). */
+export type DeathSetting = 'endgueltig' | 'wiedereinstieg';
 export type CliffSetting = 'aus' | 'wenig' | 'normal';
 export type FrequencySetting = 'normal' | 'viel' | 'sehr-viel';
 export interface MapSettings {
@@ -15,6 +17,12 @@ export interface MapSettings {
   readonly cliffs?: CliffSetting;
   /** Häufigkeit der Rohstofffelder (fehlt bei älteren Spielständen: normal, damit die Karte gleich bleibt). */
   readonly frequency?: FrequencySetting;
+  /** Hunger, Durst, Müdigkeit (fehlt: aus – Tests und alte Szenen). */
+  readonly needs?: boolean;
+  /** Tod (fehlt: Wiedereinstieg). */
+  readonly death?: DeathSetting;
+  /** Fundorte (Häuser, Wracks) auf der Karte (fehlt: keine). */
+  readonly sites?: boolean;
 }
 
 export const RESOURCE_SETTINGS: Readonly<Record<ResourceSetting, { label: string; richness: number; hint: string }>> = {
@@ -24,10 +32,15 @@ export const RESOURCE_SETTINGS: Readonly<Record<ResourceSetting, { label: string
 };
 
 export const ENEMY_SETTINGS: Readonly<Record<EnemySetting, { label: string; hint: string }>> = {
-  aus: { label: 'Aus', hint: 'keine Gegner auf der Karte' },
-  friedlich: { label: 'Friedlich', hint: 'Gegner wehren sich nur, wenn man sie angreift' },
-  normal: { label: 'Normal', hint: 'Verschmutzung lockt Angriffe an (wie im Original)' },
-  stark: { label: 'Stark', hint: 'mehr Nester, schnellere Entwicklung' },
+  aus: { label: 'Aus', hint: 'keine Zombies (Aufbau in Ruhe)' },
+  wenig: { label: 'Wenige', hint: 'dünn besiedelt, kleine Horden' },
+  normal: { label: 'Normal', hint: 'Lärm lockt Zombies an, jede Nacht kommt eine Horde' },
+  viele: { label: 'Viele', hint: 'dicht besiedelt, große Horden' },
+};
+
+export const DEATH_SETTINGS: Readonly<Record<DeathSetting, { label: string; hint: string }>> = {
+  endgueltig: { label: 'Endgültig', hint: 'wer stirbt, beginnt eine neue Runde' },
+  wiedereinstieg: { label: 'Wiedereinstieg', hint: 'Neustart am Lager, das Inventar liegt bei der Leiche' },
 };
 
 /**
@@ -47,7 +60,9 @@ export const CLIFF_SETTINGS: Readonly<Record<CliffSetting, { label: string; hint
 };
 
 /** Neue Runden: deutlich größere Felder als die Grundwerte (Wunsch). Alte Spielstände ohne Einstellung: Größe 1. */
-export const DEFAULT_MAP_SETTINGS: MapSettings = { resources: 'mittel', size: 2, enemies: 'normal', cliffs: 'normal', frequency: 'viel' };
+export const DEFAULT_MAP_SETTINGS: MapSettings = {
+  resources: 'mittel', size: 2, enemies: 'normal', cliffs: 'normal', frequency: 'viel', needs: true, death: 'endgueltig', sites: true,
+};
 export const LEGACY_MAP_SETTINGS: MapSettings = { resources: 'schwer', size: 1, enemies: 'aus', cliffs: 'aus' };
 
 /** Parameter der Kartengenerierung (eigene Werte, keine Vorlage). */

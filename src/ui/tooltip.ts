@@ -1,6 +1,7 @@
 import { FLUIDS } from '../data/fluids';
 import { ITEMS } from '../data/items';
-import { AMMO, CAPSULES, POLLUTION_PER_MINUTE } from '../data/enemies';
+import { AMMO, CAPSULES, MELEE, NOISE_BY_ENTITY } from '../data/enemies';
+import { CONSUMABLES } from '../data/survival';
 import { FLOOR_BY_ITEM } from '../data/floors';
 import { entityDef } from '../data/entities';
 import { TECHS } from '../data/tech';
@@ -89,9 +90,31 @@ export class Tooltip {
     }
     const cap = CAPSULES[id];
     if (cap) {
-      section('Wurf', [`Reichweite ${cap.range} · Wirkradius ${String(cap.radius).replace('.', ',')}`,
-        cap.damage ? `Schaden ${cap.damage} (Explosion)` : 'Entfernt Klippen', 'In der Hand: Klick wirft auf die Mausposition']);
+      section('Wurf', [`Reichweite ${cap.range}${cap.radius ? ` · Wirkradius ${String(cap.radius).replace('.', ',')}` : ''}`,
+        cap.damage ? `Schaden ${cap.damage} (Explosion, sehr laut)` : id === 'noise-lure' ? 'Lärmt am Zielort und lockt Zombies dorthin' : 'Entfernt Klippen',
+        'In der Hand: Klick wirft auf die Mausposition']);
     }
+    const use = CONSUMABLES[id];
+    if (use) {
+      const ln: string[] = [];
+      if (use.hunger) ln.push(`Hunger ${use.hunger > 0 ? '+' : ''}${use.hunger}`);
+      if (use.thirst) ln.push(`Durst ${use.thirst > 0 ? '+' : ''}${use.thirst}`);
+      if (use.heal) ln.push(`Heilt ${use.heal} Lebenspunkte`);
+      if (use.bandage) ln.push(`Stoppt ${use.bandage === 1 ? 'eine Blutung' : `${use.bandage} Blutungen`}`);
+      if (use.cure) ln.push('Heilt die Infektion nach einem Biss');
+      if (use.rest) ln.push(`Macht wach (Ausdauer +${use.rest})`);
+      ln.push('Benutzen: Rechtsklick im Inventar oder in die Hand nehmen und ins Freie klicken');
+      section('Benutzen', ln);
+    }
+    const melee = MELEE[id];
+    if (melee) {
+      const ln = [`Schaden ${melee.damage} · ${(60 / melee.cooldown).toFixed(1).replace('.', ',')} Schläge/s · Reichweite ${String(melee.reach).replace('.', ',')}`,
+        `Haltbarkeit: ${melee.durability} Schläge`, 'Leise – lockt kaum Zombies an (Leertaste halten)'];
+      if (melee.chop) ln.push(`Bäume fällen ${melee.chop}× so schnell`);
+      if (melee.dismantle) ln.push(`Wracks und Ruinen ausschlachten ${melee.dismantle}× so schnell`);
+      section('Nahkampfwaffe', ln);
+    }
+    if (id === 'empty-bottle') section('Benutzen', ['Am Wasser füllen: in die Hand nehmen und auf ein Wasserfeld klicken', 'Oder in die Regentonne legen']);
     // Gebäudedaten (wie die Infobox im Original)
     if (def?.placeResult) {
       const e = entityDef(def.placeResult) as unknown as Record<string, unknown>;
@@ -108,8 +131,8 @@ export class Tooltip {
       }
       if (typeof e.slots === 'number') ln.push(`Plätze: ${e.slots}`);
       if (typeof e.moduleSlots === 'number' && e.moduleSlots) ln.push(`Modulplätze: ${e.moduleSlots}`);
-      const pol = POLLUTION_PER_MINUTE[def.placeResult];
-      if (pol) ln.push(`Verschmutzung: ${pol}/min`);
+      const noise = NOISE_BY_ENTITY[def.placeResult];
+      ln.push(noise ? `Lärm im Betrieb: lockt Zombies aus ${noise} Feldern an` : 'Leise: lockt keine Zombies an');
       section('Gebäude', ln);
     }
     // Verwendung: in welchen Rezepten es vorkommt (wie „Zutat für“)

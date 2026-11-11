@@ -4,6 +4,7 @@
  */
 import type { Blueprint, Settings } from '../sim/blueprint';
 import { entityDef, sizeOf } from './entities';
+import { isCraftable } from './recipes';
 
 export interface BlueprintPreset {
   readonly name: string;
@@ -209,7 +210,7 @@ export function plasticBlock(): Blueprint {
   return make(parts);
 }
 
-export const PRESETS: readonly BlueprintPreset[] = [
+const ALL_PRESETS: readonly BlueprintPreset[] = [
   {
     name: 'Dampfkraft 1:2 (1,8 MW)',
     hint: 'Uferpumpe ans Ufer (oberstes Feld auf Wasser, R dreht), dann Kohle oder Holz in den Kessel legen.',
@@ -257,3 +258,6 @@ export const PRESETS: readonly BlueprintPreset[] = [
     bp: plasticBlock(),
   },
 ];
+
+/** Nur Vorlagen, deren Gebäude es in diesem Spiel gibt (gestrichene Anlagen des Vorgängers fallen weg). */
+export const PRESETS: readonly BlueprintPreset[] = ALL_PRESETS.filter((p) => p.bp.entities.every((e) => isCraftable(entityDef(e.name).item)));

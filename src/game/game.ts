@@ -1,5 +1,6 @@
 import { FLOOR, FLOOR_BY_ITEM } from '../data/floors';
-import { CAPSULES } from '../data/enemies';
+import { CAPSULES, UNITS } from '../data/enemies';
+import { SURVIVAL, isConsumable } from '../data/survival';
 import { SoundSystem } from '../audio/sound';
 import { entityDef, sizeOf } from '../data/entities';
 import { ITEMS } from '../data/items';
@@ -64,6 +65,8 @@ export class Game {
   alt = false;
   paused = false;
   private acc = 0;
+  /** Fundort, dessen Fenster sich nach dem Durchsuchen öffnet. */
+  private searchOpen: number | null = null;
   private dragLast: { x: number; y: number } | null = null;
   private dragBelts: number[] = [];
   private dragStart: { x: number; y: number } | null = null;
@@ -128,17 +131,30 @@ export class Game {
 
   private frame(dt: number): void {
     this.handleInput();
-    if (!this.paused) {
-      this.acc += Math.min(dt, 250);
+    // Tod (endgültig) oder Rettung: die Welt bleibt stehen, das HUD zeigt den Abschluss
+    const ended = !!this.world.player?.dead;
+    if (!this.paused && !ended) {
+      // Schlaf: die Zeit läuft schneller
+      const sleeping = !!this.world.player?.sleeping;
+      this.acc += Math.min(dt, 250) * (sleeping ? SURVIVAL.sleepSpeed : 1);
+      const maxSteps = sleeping ? SURVIVAL.sleepSpeed + 2 : MAX_STEPS_PER_FRAME;
       let steps = 0;
-      while (this.acc >= STEP_MS && steps < MAX_STEPS_PER_FRAME) {
+      while (this.acc >= STEP_MS && steps < maxSteps) {
         this.applyPlayerInput();
         this.world.step();
         this.acc -= STEP_MS;
         steps++;
       }
-      if (steps === MAX_STEPS_PER_FRAME) this.acc = Math.min(this.acc, STEP_MS);
+      if (steps === maxSteps) this.acc = Math.min(this.acc, STEP_MS);
       const p = this.world.player;
+      if (this.searchOpen !== null) {
+        const e = this.world.entities.get(this.searchOpen);
+        if (!e || e.kind !== 'loot' || (p && p.searchTarget !== this.searchOpen && !e.searched)) this.searchOpen = null;
+        else if (e.searched) {
+          this.searchOpen = null;
+          this.hud.openEntity(e.id);
+        }
+      }
       if (p) {
         for (const r of p.minedLog.splice(0)) this.pushHistory({ type: 'remove', name: r.name, x: r.x, y: r.y, dir: r.dir as Dir });
         if (!this.creative && this.world.tick - this.lastAutosaveTick >= AUTOSAVE_TICKS) {
@@ -193,7 +209,7 @@ export class Game {
     p.moveX = (d.has('d') ? 1 : 0) - (d.has('a') ? 1 : 0);
     p.moveY = (d.has('s') ? 1 : 0) - (d.has('w') ? 1 : 0);
     p.pickingUp = d.has('f');
-    // Leertaste: auf den nächsten Gegner in Reichweite schießen (wie im Original)
+    // Leertaste: Nahkampf bzw. Schuss (X wechselt) auf den nächsten Zombie in Reichweite
     p.shooting = d.has(' ') || d.has('space');
   }
 
@@ -375,8 +391,26 @@ export class Game {
           this.world.player.dropItem(this.world, this.cursorItem, m.x, m.y);
         } else if (this.debug) this.debugItem('iron-ore');
         break;
-      case 'x': case 'c': case 'v':
-        if (this.debug) this.debugItem({ x: 'coal', c: 'stone', v: 'iron-plate' }[k]);
+      case 'x':
+        // X: zwischen Nahkampf- und Schusswaffe wechseln (im Sandkasten ohne Figur: Debug-Kohle)
+        if (this.world.player) {
+          const p = this.world.player;
+          p.useGun = !p.useGun;
+          const gun = p.weapon;
+          p.note(p.useGun
+            ? gun ? `Schusswaffe: ${ITEMS[gun].name}${p.hasAmmo ? '' : ' – keine Munition!'} (laut)` : 'Keine Schusswaffe im Inventar – weiter im Nahkampf'
+            : `Nahkampf: ${p.meleeWeapon ? ITEMS[p.meleeWeapon].name : 'Fäuste'} (leise)`);
+        } else if (this.debug) this.debugItem('coal');
+        break;
+      case 'n': {
+        // N: schlafen legen bzw. aufstehen
+        const p = this.world.player;
+        const err = p?.sleep(this.world);
+        if (err) p!.note(err);
+        break;
+      }
+      case 'c': case 'v':
+        if (this.debug) this.debugItem({ c: 'stone', v: 'iron-plate' }[k]);
         break;
       default:
         if (/^[0-9]$/.test(k)) {
@@ -642,8 +676,21 @@ export class Game {
       this.dragLast = { x: tx, y: ty };
       return;
     }
-    if (item === 'grenade' || item === 'cliff-explosives') {
-      // Wurf auf die Mausposition (Wiki: Reichweite 15 bzw. 10 Felder)
+    // Essen, Trinken, Verbinden: Klick ins Freie benutzt den Gegenstand in der Hand
+    if (item && p && isConsumable(item) && !target) {
+      const err = p.use(this.world, item);
+      if (err) p.note(err);
+      if (p.inventory.count(item) === 0 && !this.creative) this.cursorItem = null;
+      return;
+    }
+    // Leere Flaschen am Wasser füllen
+    if (item === 'empty-bottle' && p && this.world.map.isWater(tx, ty)) {
+      if (!p.fillBottles(this.world, tx, ty)) p.note('Zu weit vom Wasser entfernt');
+      else this.cursorItem = null;
+      return;
+    }
+    if (item === 'grenade' || item === 'cliff-explosives' || item === 'noise-lure') {
+      // Wurf auf die Mausposition
       const err = this.world.capsules.throw(this.world, item, at.x, at.y);
       if (err) p?.note(err);
       else if (item === 'cliff-explosives' && !this.world.map.isCliff(at.x, at.y)) p?.note('Klippensprengstoff wirkt nur auf Klippen');
@@ -688,7 +735,13 @@ export class Game {
     if (!item) {
       if (!target && this.buildGhost(tx, ty)) return;
       if (target && ctrl && p) this.takeAllFrom(target);
-      else if (target && hasWindow(target, this.world)) this.hud.openEntity(target.id);
+      else if (target && target.kind === 'loot' && !target.searched) {
+        // Fundort: erst durchsuchen, dann öffnet sich das Fenster von selbst
+        const err = p ? p.search(this.world, target.id) : null;
+        if (err) p!.note(err);
+        if (!p) target.searched = true;
+        this.searchOpen = target.id;
+      } else if (target && hasWindow(target, this.world)) this.hud.openEntity(target.id);
       return;
     }
     const g = this.ghostAt(at);
@@ -952,7 +1005,17 @@ export class Game {
   hoverInfo(): string {
     const m = this.mouseWorld();
     const e = this.world.entityAt(m.x, m.y);
+    if (e?.kind === 'loot') {
+      return `${e.def.name} – ${e.searched ? (e.inventory.isEmpty() ? 'leer' : 'durchsucht (Klick: öffnen)') : 'Klick: durchsuchen'} · Rechtsklick halten: ausschlachten`;
+    }
     if (e) return entityDef(e.name).name + this.fluidHover(e);
+    const z = this.world.enemies.nearestTarget(m.x, m.y, 0.6, this.world.tick);
+    if (z) {
+      const u = this.world.enemies.units.get(z.id)!;
+      return `${UNITS[u.kind].name} – ${Math.ceil(u.hp)}/${UNITS[u.kind].health}`;
+    }
+    const p = this.world.player;
+    if (p && this.world.map.isWater(Math.floor(m.x), Math.floor(m.y)) && p.inventory.count('empty-bottle') > 0) return 'Wasser – leere Flasche in die Hand nehmen und klicken: füllen';
     const tree = this.treeNear(m.x, m.y);
     if (tree) {
       const k = MAPGEN.trees.kinds[tree.kind];

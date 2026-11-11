@@ -1,4 +1,4 @@
-import { AMMO, TURRET } from '../../data/enemies';
+import { AMMO, NOISE, TURRET } from '../../data/enemies';
 import type { TurretDef, WallDef } from '../../data/entities';
 import { Status } from '../entity';
 import type { Dir } from '../geom';
@@ -64,6 +64,7 @@ export class TurretEntity extends EntityBase {
     this.shotX = target.x;
     this.shotY = target.y;
     w.events.push('turret', this.cx, this.cy);
+    w.noise.emit(this.cx, this.cy, NOISE.turret);
     const dmg = AMMO[this.roundsItem!].damage * (1 + w.research.bonus('bullet-damage')) * (1 + w.research.bonus('turret-damage'));
     w.enemies.damageTarget(w, target, dmg);
     if (this.rounds === 0) this.roundsItem = null;
@@ -97,7 +98,7 @@ export class TurretEntity extends EntityBase {
   }
 }
 
-/** Steinmauer: Hindernis mit Lebenspunkten. */
+/** Steinmauer, Holzbarrikade, Tor: Hindernis mit Lebenspunkten (das Tor lässt nur die Figur durch). */
 export class WallEntity extends EntityBase {
   readonly kind = 'wall' as const;
   declare readonly def: WallDef;

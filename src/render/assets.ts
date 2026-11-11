@@ -86,7 +86,7 @@ export function graphicsQuality(): Quality {
   if (p.has('hd')) return 'hd';
   if (p.has('sd')) return 'sd';
   try {
-    return localStorage.getItem('eisenwerk.grafik') === 'hd' ? 'hd' : 'sd';
+    return localStorage.getItem('letzteschicht.grafik') === 'hd' ? 'hd' : 'sd';
   } catch {
     return 'sd';
   }
@@ -94,7 +94,7 @@ export function graphicsQuality(): Quality {
 
 export function setGraphicsQuality(q: Quality): void {
   try {
-    localStorage.setItem('eisenwerk.grafik', q);
+    localStorage.setItem('letzteschicht.grafik', q);
   } catch {
     /* Speicher gesperrt: gilt nur für diese Sitzung über ?hd */
   }

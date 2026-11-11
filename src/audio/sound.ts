@@ -40,7 +40,7 @@ const AMBIENT: Partial<Record<string, string>> = {
   drill: 'drill', furnace: 'furnace', assembler: 'assembler', generator: 'engine', boiler: 'furnace', pumpjack: 'drill',
 };
 
-const VOL_KEY = 'eisenwerk.volume';
+const VOL_KEY = 'letzteschicht.volume';
 
 export class SoundSystem {
   private ctx: AudioContext | null = null;
@@ -152,7 +152,7 @@ export class SoundSystem {
     let krabbler = 0;
     for (const u of world.enemies.units.values()) {
       const a = atten(u.x, u.y);
-      if (a > 0.2 && u.mode !== 'guard') krabbler = Math.max(krabbler, a);
+      if (a > 0.2 && u.mode !== 'idle') krabbler = Math.max(krabbler, a);
     }
     near.sort((p, q) => q.a - p.a);
     const used = new Set<string>();

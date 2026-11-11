@@ -9,6 +9,7 @@ import { AssemblerEntity, BeaconEntity, LabEntity } from './production';
 import { RoboportEntity } from './robots';
 import { CombinatorEntity, RadarEntity, RailEntity, RocketSiloEntity, TrainStopEntity } from './rocket';
 import { TurretEntity, WallEntity } from './military';
+import { BedEntity, HazardEntity, LootEntity, ProducerEntity, RadioEntity } from './survival';
 import { HeatExchangerEntity, HeatPipeEntity, ReactorEntity } from './nuclear';
 import { AccumulatorEntity, BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity, SolarEntity } from './power';
 
@@ -49,4 +50,10 @@ export const ENTITY_CLASSES: Record<EntityDef['kind'], Ctor> = {
   reactor: ReactorEntity,
   'heat-pipe': HeatPipeEntity,
   'heat-exchanger': HeatExchangerEntity,
+  wire: HazardEntity,
+  trap: HazardEntity,
+  bed: BedEntity,
+  producer: ProducerEntity,
+  radio: RadioEntity,
+  loot: LootEntity,
 };

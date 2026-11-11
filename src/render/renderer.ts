@@ -18,7 +18,10 @@ import { DecorField } from './decor';
 import { LOOK } from '../data/look';
 import { AdvancedBloomFilter } from 'pixi-filters';
 import type { GameEvent } from '../sim/events';
-import { NEST, PLAYER_COMBAT, UNITS } from '../data/enemies';
+import { PLAYER_COMBAT, UNITS, type UnitKind } from '../data/enemies';
+
+/** Ersatzfarben der Zombies, solange die Sprites fehlen (Kreise in drawCombat). */
+const ZOMBIE_COLOR: Record<UnitKind, number> = { walker: 0x6f7f4a, runner: 0x9a6a3a, brute: 0x4a5a3a, screamer: 0x8a4a6a };
 import { CloudShadows } from './clouds';
 import { bloomEnabled, gradeFilter, lookEnabled } from './look';
 import { NightLayer } from './night';
@@ -1345,16 +1348,18 @@ export class GameRenderer {
     }
   }
 
-  /** Gegner: Nester, Kadaver/Ruinen, Krabbler (16 Richtungen, Laufbilder, Größe und Farbe je Art). */
+  /**
+   * Zombies: Kadaver, Wracks zerstörter Gebäude, Zombies (8 Richtungen, Laufbilder je Art; ohne Sprites zeichnet
+   * drawCombat Kreise). Sprite-Namen: zombie.<art>.<richtung>, zombie.<art>.dead, zombie.shadow.
+   */
   private drawEnemies(world: World, v: ReturnType<GameRenderer['viewRect']>, alpha: number): void {
     const s = this.sprites;
     const en = world.enemies;
-    const has = s.has('enemy.krabbler.0');
     for (const r of en.remnants) {
       if (r.x < v.x0 - 4 || r.x > v.x1 + 4 || r.y < v.y0 - 4 || r.y > v.y1 + 4) continue;
       const age = world.tick - r.tick;
       if (r.kind === 'building' && r.name) {
-        // Wrack: Gebäudebild verkohlt, eingesunken, leicht verdreht (wie die Trümmer im Original)
+        // Wrack: Gebäudebild verkohlt, eingesunken, leicht verdreht
         const base = s.has(`${r.name}.${r.dir}`) ? `${r.name}.${r.dir}` : s.has(r.name) ? r.name
           : r.name === 'burner-mining-drill' && s.has(`drill.${r.dir}`) ? `drill.${r.dir}` : s.has(`${r.name}.off`) ? `${r.name}.off` : null;
         const h = (Math.imul(Math.round(r.x * 7 + r.y * 13), 0x9e3779b1) >>> 0) / 4294967296;
@@ -1377,46 +1382,39 @@ export class GameRenderer {
         }
         continue;
       }
-      const key = r.kind === 'unit' ? 'enemy.krabbler.dead' : r.kind === 'nest' ? 'enemy.nest.ruin' : null;
-      if (!key || !s.has(key)) continue;
-      const sp = this.ents.get(s.frame(key));
+      const key = `zombie.${r.name ?? 'walker'}.dead`;
+      if (!s.has(key)) continue;
+      const sp = this.ents.get(s.frame(key, Math.floor(Math.abs(r.x * 3 + r.y * 5))));
       sp.position.set(r.x * TILE, r.y * TILE);
       sp.scale.set(r.size);
-      sp.alpha = Math.max(0, 1 - age / 3600);
-      sp.tint = 0x9a8f86;
+      sp.alpha = Math.max(0, Math.min(1, 1.5 - age / 4800));
       sp.zIndex = r.y * TILE - 64;
     }
-    for (const n of en.nests.values()) {
-      if (n.x + 5 < v.x0 - 2 || n.x > v.x1 + 2 || n.y + 5 < v.y0 - 2 || n.y > v.y1 + 4) continue;
-      const cx = (n.x + 2.5) * TILE;
-      const cy = (n.y + 2.5) * TILE;
-      if (s.has('enemy.nest.shadow')) {
-        const sh = this.shadows.get(s.frame('enemy.nest.shadow'));
-        sh.position.set(cx, cy);
-        sh.scale.set(s.info('enemy.nest.shadow')?.meta?.scale ?? 1);
-      }
-      const key = `enemy.nest.${n.id % 2}`;
-      if (s.has(key)) {
-        const sp = this.ents.get(s.frame(key));
-        sp.position.set(cx, cy);
-        sp.zIndex = cy + 40;
-      }
-    }
-    const TINT: Record<string, number> = { small: 0xffffff, medium: 0xd8c0b0, big: 0xb88a78 };
+    const t = world.tick + alpha;
     for (const u of en.units.values()) {
       if (u.x < v.x0 - 2 || u.x > v.x1 + 2 || u.y < v.y0 - 2 || u.y > v.y1 + 3) continue;
       const def = UNITS[u.kind];
-      const k = ((Math.round(((u.angle + Math.PI / 2) / (Math.PI * 2)) * 16) % 16) + 16) % 16;
-      if (!has) continue;
-      if (s.has('enemy.krabbler.shadow')) {
-        const sh = this.shadows.get(s.frame('enemy.krabbler.shadow'));
+      const base = `zombie.${u.kind}`;
+      if (!s.has(`${base}.0`)) continue;
+      const n = s.info(`${base}.0`)?.meta?.angles ?? 8;
+      const k = ((Math.round(((u.angle + Math.PI / 2) / (Math.PI * 2)) * n) % n) + n) % n;
+      if (s.has('zombie.shadow')) {
+        const sh = this.shadows.get(s.frame('zombie.shadow'));
         sh.position.set(u.x * TILE, u.y * TILE);
         sh.scale.set(def.scale);
       }
-      const sp = this.ents.get(s.frame(`enemy.krabbler.${k}`, Math.floor(u.phase * 6 + alpha * 0)));
+      // Laufbild aus der zurückgelegten Strecke; im Stand leichtes Schwanken (Bild 0/1)
+      const moving = u.phase > 0;
+      const frames = s.frames(`${base}.${k}`).length;
+      const f = moving ? Math.floor(u.phase * (frames / 1.1)) : 0;
+      const sp = this.ents.get(s.frame(`${base}.${k}`, f));
+      const sway = moving ? 0 : Math.sin(t / 22 + u.id) * 0.03;
       sp.position.set(u.x * TILE, u.y * TILE);
       sp.scale.set(def.scale);
-      sp.tint = TINT[u.kind];
+      sp.rotation = sway + (u.stun > 0 ? 0.12 : 0);
+      // leichte Farbabweichung je Zombie (Kleidung, Verwesung)
+      const v8 = 200 + ((u.id * 37) % 56);
+      sp.tint = (v8 << 16) | ((v8 - ((u.id * 13) % 24)) << 8) | (v8 - ((u.id * 7) % 30));
       sp.zIndex = u.y * TILE;
     }
   }
@@ -1698,25 +1696,28 @@ export class GameRenderer {
         shot(e.cx + Math.cos(e.angle) * 1.1, e.cy - 0.35 + Math.sin(e.angle) * 1.1, e.shotX, e.shotY);
       }
     }
-    const has = this.sprites.has('enemy.krabbler.0');
     for (const u of world.enemies.units.values()) {
       if (u.x < v.x0 || u.x > v.x1 || u.y < v.y0 || u.y > v.y1) continue;
       const def = UNITS[u.kind];
-      if (!has) g.circle(u.x * TILE, u.y * TILE, def.radius * TILE).fill({ color: 0x6a3a22 }).stroke({ width: 2 / z, color: 0x2a1a10 });
+      if (!this.sprites.has(`zombie.${u.kind}.0`)) g.circle(u.x * TILE, u.y * TILE, def.radius * TILE).fill({ color: ZOMBIE_COLOR[u.kind] }).stroke({ width: 2 / z, color: 0x1a2410 });
       if (u.hp < def.health) bar(u.x - 0.3, u.y + def.radius + 0.1, 0.6, u.hp / def.health);
-    }
-    for (const n of world.enemies.nests.values()) {
-      if (n.x + 5 < v.x0 || n.x > v.x1 || n.y + 5 < v.y0 || n.y > v.y1) continue;
-      if (!this.sprites.has('enemy.nest.0')) g.ellipse((n.x + 2.5) * TILE, (n.y + 2.5) * TILE, 2.3 * TILE, 2 * TILE).fill({ color: 0x4a2c22 });
-      if (n.hp < NEST.health) bar(n.x + 0.5, n.y + 5, 4, n.hp / NEST.health);
     }
     for (const r of world.enemies.remnants) {
       if (r.kind !== 'building' || this.sprites.has('decal.dirt.0')) continue;
       g.ellipse(r.x * TILE, r.y * TILE + 8, r.size * 0.6 * TILE, r.size * 0.42 * TILE).fill({ color: 0x15110d, alpha: 0.45 * Math.max(0, 1 - (t - r.tick) / (15 * 3600)) });
     }
     const p = world.player;
-    if (p) {
+    if (p && !p.dead) {
       if (t - p.lastShot < 3) shot(p.x, p.y - 0.5, p.shotX, p.shotY);
+      // Nahkampf: kurzer Schwungbogen in Schlagrichtung
+      if (t - p.lastMelee < 7) {
+        const a = p.meleeAngle;
+        const k = (t - p.lastMelee) / 7;
+        g.arc(p.x * TILE, (p.y - 0.3) * TILE, 0.9 * TILE, a - 0.9 + k * 0.6, a + 0.3 + k * 0.6).stroke({ width: 5 / z, color: 0xfff2d0, alpha: 0.75 * (1 - k) });
+      }
+      // Durchsuchen: Fortschrittsbalken am Fundort
+      const st = p.searchTarget !== null ? world.entities.get(p.searchTarget) : undefined;
+      if (st && st.kind === 'loot') bar(st.x + 0.2, st.y - 0.35, st.w - 0.4, st.searchProgress / st.searchTicks);
       if (p.hp < PLAYER_COMBAT.health) bar(p.x - 0.4, p.y + 0.35, 0.8, p.hp / PLAYER_COMBAT.health);
     }
   }

@@ -39,17 +39,17 @@ describe('Forschungswarteschlange', () => {
     r.complete('steam-power');
     r.complete('electronics');
     r.complete('automation-science-pack');
-    expect(r.enqueue('logistics-2')).toBe(true);
-    // logistics und logistic-science-pack vor logistics-2; erste startet sofort
-    expect(r.current).toBe('logistics');
-    expect(r.queue).toEqual(['logistic-science-pack', 'logistics-2']);
-    r.complete('logistics');
-    expect(r.current).toBe('logistic-science-pack');
-    r.dequeue('logistic-science-pack');
+    expect(r.enqueue('gun-turret')).toBe(true);
+    // Bewaffnung vor dem MG-Turm; erste startet sofort
+    expect(r.current).toBe('military');
+    expect(r.queue).toEqual(['gun-turret']);
+    r.complete('military');
+    expect(r.current).toBe('gun-turret');
+    r.dequeue('gun-turret');
     expect(r.current).toBeNull();
     expect(r.queue).toEqual([]);
     // Länge begrenzt
-    for (const t of ['automation', 'logistics', 'logistic-science-pack', 'fast-inserter', 'lamp', 'steel-processing', 'landfill', 'engine']) r.enqueue(t);
+    for (const t of ['automation', 'logistics', 'logistic-science-pack', 'fast-inserter', 'lamp', 'steel-processing', 'landfill', 'farming', 'radar']) r.enqueue(t);
     expect(r.queue.length + (r.current ? 1 : 0)).toBeLessThanOrEqual(RESEARCH_QUEUE_MAX + 1);
     const b = new ResearchSystem();
     b.load(r.serialize());

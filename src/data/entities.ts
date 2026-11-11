@@ -293,6 +293,52 @@ export interface TurretDef extends EntityBase {
 /** Mauer: nur Hindernis mit Lebenspunkten. */
 export interface WallDef extends EntityBase {
   readonly kind: 'wall';
+  /** Tor: die Figur geht hindurch (walkable), Zombies nicht. */
+  readonly gate?: boolean;
+}
+
+/** Stacheldraht / Nagelfalle: begehbar, bremst bzw. verletzt Zombies (Werte HAZARD in src/data/enemies.ts). */
+export interface HazardDef extends EntityBase {
+  readonly kind: 'wire' | 'trap';
+}
+
+/** Feldbett: hier schläft die Figur (schneller erholt als auf dem Boden). */
+export interface BedDef extends EntityBase {
+  readonly kind: 'bed';
+}
+
+/** Erzeuger ohne Strom: Gemüsebeet (Gemüse), Regentonne (füllt leere Flaschen). */
+export interface ProducerDef extends EntityBase {
+  readonly kind: 'producer';
+  readonly product: string;
+  /** Sekunden je Stück. */
+  readonly interval: number;
+  /** Höchstens so viele fertige Stücke im Ausgang. */
+  readonly capacity: number;
+  /** Verbraucht je Stück ein solches Item (Regentonne: leere Flasche). */
+  readonly consumes?: string;
+  /** Wächst nur bei Tageslicht (Beet). */
+  readonly daylight?: boolean;
+}
+
+/** Funkturm: sendet unter Strom den Notruf; nach callSeconds Sendezeit kommt die Rettung (Spielziel). Sehr laut. */
+export interface RadioDef extends EntityBase {
+  readonly kind: 'radio';
+  readonly energyUsage: number;
+  readonly callSeconds: number;
+}
+
+/**
+ * Fundort der alten Welt (Wrack, Haus, Kiste): nicht baubar, wird durchsucht (Beutetabelle in src/data/loot.ts)
+ * und kann ausgeschlachtet werden (item × itemCount plus salvage). Zombies greifen Fundorte nicht an.
+ */
+export interface LootDef extends EntityBase {
+  readonly kind: 'loot';
+  readonly slots: number;
+  readonly table: string;
+  /** Sekunden für das erste Durchsuchen. */
+  readonly searchTime: number;
+  readonly salvage: readonly { readonly item: string; readonly amount: number }[];
 }
 
 export interface LampDef extends EntityBase {
@@ -325,7 +371,7 @@ export interface AccumulatorDef extends EntityBase {
 
 export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef
   | PipeGroundDef | FluidPumpDef | TankDef | LampDef | PumpjackDef | SolarDef | AccumulatorDef | BeaconDef | RoboportDef | RocketSiloDef | RadarDef | CombinatorDef | RailDef | TrainStopDef
-  | TurretDef | WallDef | ReactorDef | HeatPipeDef | HeatExchangerDef;
+  | TurretDef | WallDef | ReactorDef | HeatPipeDef | HeatExchangerDef | HazardDef | BedDef | ProducerDef | RadioDef | LootDef;
 
 const list: EntityDef[] = [
   {
@@ -643,12 +689,82 @@ const list: EntityDef[] = [
     item: 'iron-chest', mineTime: 0.2, solid: true, rotatable: false, slots: 32,
   },
   {
-    kind: 'turret', id: 'gun-turret', name: 'Geschützturm', width: 2, height: 2, health: 400,
+    kind: 'turret', id: 'gun-turret', name: 'MG-Turm', width: 2, height: 2, health: 400,
     item: 'gun-turret', mineTime: 0.5, solid: true, rotatable: false, ammoFill: 10,
   },
   {
     kind: 'wall', id: 'stone-wall', name: 'Steinmauer', width: 1, height: 1, health: 350,
     item: 'stone-wall', mineTime: 0.2, solid: true, rotatable: false,
+  },
+  // ---- Letzte Schicht: Verteidigung, Überleben, Fundorte (eigene Werte, docs/GAME_DATA.md)
+  {
+    kind: 'wall', id: 'wooden-barricade', name: 'Holzbarrikade', width: 1, height: 1, health: 140,
+    item: 'wooden-barricade', mineTime: 0.2, solid: true, rotatable: false,
+  },
+  {
+    kind: 'wall', id: 'gate', name: 'Tor', width: 1, height: 1, health: 300,
+    item: 'gate', mineTime: 0.3, solid: true, walkable: true, rotatable: false, gate: true,
+  },
+  {
+    kind: 'wire', id: 'barbed-wire', name: 'Stacheldraht', width: 1, height: 1, health: 60,
+    item: 'barbed-wire', mineTime: 0.2, solid: false, rotatable: false,
+  },
+  {
+    kind: 'trap', id: 'spike-trap', name: 'Nagelfalle', width: 1, height: 1, health: 160,
+    item: 'spike-trap', mineTime: 0.2, solid: false, rotatable: false,
+  },
+  {
+    kind: 'bed', id: 'bed', name: 'Feldbett', width: 1, height: 2, health: 80,
+    item: 'bed', mineTime: 0.3, solid: true, walkable: true, rotatable: false,
+  },
+  {
+    kind: 'producer', id: 'garden', name: 'Gemüsebeet', width: 2, height: 2, health: 80,
+    item: 'garden', mineTime: 0.5, solid: true, rotatable: false, product: 'vegetables', interval: 150, capacity: 6, daylight: true,
+  },
+  {
+    kind: 'producer', id: 'rain-barrel', name: 'Regentonne', width: 1, height: 1, health: 100,
+    item: 'rain-barrel', mineTime: 0.3, solid: true, rotatable: false, product: 'water-bottle', interval: 75, capacity: 4, consumes: 'empty-bottle',
+  },
+  {
+    kind: 'radio', id: 'radio-tower', name: 'Funkturm', width: 3, height: 3, health: 600,
+    item: 'radio-tower', mineTime: 1, solid: true, rotatable: false, energyUsage: 400_000, callSeconds: 900,
+  },
+  {
+    kind: 'loot', id: 'car-wreck', name: 'Autowrack', width: 3, height: 2, health: 500,
+    item: 'scrap', itemCount: 10, mineTime: 5, solid: true, rotatable: false, slots: 6, table: 'car', searchTime: 2.5,
+    salvage: [{ item: 'iron-gear-wheel', amount: 3 }, { item: 'copper-cable', amount: 4 }],
+  },
+  {
+    kind: 'loot', id: 'ruin-house', name: 'Verlassenes Haus', width: 5, height: 4, health: 2000,
+    item: 'scrap', itemCount: 6, mineTime: 14, solid: true, rotatable: false, slots: 12, table: 'house', searchTime: 5,
+    salvage: [{ item: 'wood', amount: 24 }, { item: 'stone-brick', amount: 20 }, { item: 'cloth', amount: 4 }],
+  },
+  {
+    kind: 'loot', id: 'ruin-shed', name: 'Schuppen', width: 3, height: 3, health: 800,
+    item: 'scrap', itemCount: 6, mineTime: 8, solid: true, rotatable: false, slots: 8, table: 'shed', searchTime: 3,
+    salvage: [{ item: 'wood', amount: 14 }],
+  },
+  {
+    kind: 'loot', id: 'ruin-store', name: 'Geplünderter Laden', width: 6, height: 4, health: 2500,
+    item: 'scrap', itemCount: 12, mineTime: 16, solid: true, rotatable: false, slots: 16, table: 'store', searchTime: 6,
+    salvage: [{ item: 'stone-brick', amount: 30 }, { item: 'wood', amount: 10 }],
+  },
+  {
+    kind: 'loot', id: 'ruin-garage', name: 'Werkstatt', width: 4, height: 4, health: 2000,
+    item: 'scrap', itemCount: 20, mineTime: 14, solid: true, rotatable: false, slots: 12, table: 'garage', searchTime: 5,
+    salvage: [{ item: 'stone-brick', amount: 16 }, { item: 'iron-gear-wheel', amount: 6 }],
+  },
+  {
+    kind: 'loot', id: 'supply-crate', name: 'Vorratskiste', width: 1, height: 1, health: 100,
+    item: 'wood', itemCount: 2, mineTime: 0.5, solid: true, rotatable: false, slots: 4, table: 'crate', searchTime: 1.2, salvage: [],
+  },
+  {
+    kind: 'loot', id: 'military-crate', name: 'Militärkiste', width: 1, height: 1, health: 200,
+    item: 'scrap', itemCount: 3, mineTime: 0.8, solid: true, rotatable: false, slots: 6, table: 'military', searchTime: 2, salvage: [],
+  },
+  {
+    kind: 'loot', id: 'dumpster', name: 'Müllcontainer', width: 2, height: 1, health: 300,
+    item: 'scrap', itemCount: 6, mineTime: 3, solid: true, rotatable: false, slots: 6, table: 'trash', searchTime: 2, salvage: [],
   },
 ];
 

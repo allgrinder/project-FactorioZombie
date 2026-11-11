@@ -29,7 +29,8 @@ export class FlowField {
         if (world.map.isBlocked(tx, ty)) cost[k] = Infinity;
         else {
           const e = world.entityAt(tx, ty);
-          cost[k] = e && e.id !== ignore && e.kind !== 'rail' && entityDef(e.name).solid ? 1 + OBSTACLE_COST : 1;
+          // Fundorte der alten Welt (Häuser, Wracks) werden nie eingerissen: wie Fels
+          cost[k] = e && e.kind === 'loot' && e.id !== ignore ? Infinity : e && e.id !== ignore && e.kind !== 'rail' && entityDef(e.name).solid ? 1 + OBSTACLE_COST : 1;
         }
       }
     }

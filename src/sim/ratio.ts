@@ -17,7 +17,7 @@ export type MachineChoice = {
   drill: 'burner-mining-drill' | 'electric-mining-drill';
 };
 
-export const DEFAULT_MACHINES: MachineChoice = { assembler: 'assembling-machine-2', furnace: 'stone-furnace', drill: 'electric-mining-drill' };
+export const DEFAULT_MACHINES: MachineChoice = { assembler: 'assembling-machine-1', furnace: 'stone-furnace', drill: 'electric-mining-drill' };
 
 export interface RatioNode {
   item: string;
@@ -228,6 +228,7 @@ export function ratioRules(m: MachineChoice = DEFAULT_MACHINES): RatioRule[] {
     });
   }
   const chain = (title: string, item: string, note: string) => {
+    if (!recipesFor(item).length) return;
     const k = practicalMultiple(item, m);
     const root = solve(item, ratePerMachine(item, m) * k, m);
     const parts: RatioRule['parts'] = [];
@@ -249,7 +250,6 @@ export function ratioRules(m: MachineChoice = DEFAULT_MACHINES): RatioRule[] {
   chain('Rote Wissenschaft', 'automation-science-pack', 'Eine Zahnrad-Maschine reicht für viele Paket-Maschinen.');
   chain('Grüne Wissenschaft', 'logistic-science-pack', 'Bruchteile laufen nicht voll ausgelastet.');
   chain('Graue (Militär-)Wissenschaft', 'military-science-pack', '');
-  chain('Blaue Wissenschaft', 'chemical-science-pack', 'Plastik und Schwefel kommen aus der Chemieanlage.');
   {
     // Dampf: Kessel 1,8 MW → Dampf/s; Dampfmaschine verbraucht fluidPerTick × 60
     const boiler = ENTITIES.boiler as { energyUsage: number; steamPerWater: number };
@@ -278,7 +278,7 @@ export function ratioRules(m: MachineChoice = DEFAULT_MACHINES): RatioRule[] {
       note: `Panel ${fmt(panel.production / 1000)} kW Spitze, Akku ${fmt(acc.buffer / 1e6)} MJ: 25 : 21 trägt die Nacht (Wiki-Verhältnis 0,84).`,
     });
   }
-  {
+  if (RECIPES['plastic-bar']) {
     const crude = rawSource('crude-oil', m)!.perMachine;
     const gas = ratePerMachine('petroleum-gas', m);
     const plastic = solve('plastic-bar', 1, m);

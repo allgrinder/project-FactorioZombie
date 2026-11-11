@@ -1,4 +1,4 @@
-import { CAPSULES, CAPSULE_SPEED } from '../data/enemies';
+import { CAPSULES, CAPSULE_SPEED, NOISE } from '../data/enemies';
 import type { World } from './world';
 
 /** Fliegender Wurfgegenstand (Granate, Klippensprengstoff). Positionen in Feldern. */
@@ -13,7 +13,7 @@ export interface Capsule {
 }
 
 /**
- * Wurfgegenstände der Spielfigur (Wiki „Grenade“, „Cliff explosives“): Wurf auf einen Punkt in Reichweite,
+ * Wurfgegenstände der Spielfigur (Granate, Klippensprengstoff, Lockvogel): Wurf auf einen Punkt in Reichweite,
  * Flug, dann Wirkung im Radius – Granate: Explosionsschaden an Gegnern und Nestern; Klippensprengstoff:
  * entfernt Klippen.
  */
@@ -49,7 +49,8 @@ export class CapsuleSystem {
 
   private explode(w: World, c: Capsule): void {
     const def = CAPSULES[c.item];
-    w.events.push('explode', c.tx, c.ty);
+    if (c.item !== 'noise-lure') w.events.push('explode', c.tx, c.ty);
+    else w.events.push('lure', c.tx, c.ty);
     if (c.item === 'cliff-explosives') {
       const r = def.radius;
       let removed = 0;
@@ -61,16 +62,14 @@ export class CapsuleSystem {
       if (removed) w.structureVersion++;
       return;
     }
-    // Explosionsschaden im Radius (Gegner und Nester; Nester ab ihrem Rand gemessen)
+    if (c.item === 'noise-lure') {
+      w.noise.addLure(c.tx, c.ty, w.tick);
+      return;
+    }
+    // Explosionsschaden im Radius, laut
+    w.noise.emit(c.tx, c.ty, NOISE.explosion);
     const r = def.radius;
-    for (const u of [...w.enemies.units.values()]) {
-      if (Math.hypot(u.x - c.tx, u.y - c.ty) <= r) w.enemies.damageTarget(w, { kind: 'unit', id: u.id, x: u.x, y: u.y }, def.damage);
-    }
-    for (const n of [...w.enemies.nests.values()]) {
-      const nx = n.x + 2.5;
-      const ny = n.y + 2.5;
-      if (Math.hypot(nx - c.tx, ny - c.ty) <= r + 2) w.enemies.damageTarget(w, { kind: 'nest', id: n.id, x: nx, y: ny }, def.damage);
-    }
+    for (const u of w.enemies.near(c.tx, c.ty, r)) w.enemies.damageTarget(w, { kind: 'unit', id: u.id, x: u.x, y: u.y }, def.damage);
   }
 
   serialize(): { cd: number; f: Capsule[] } {

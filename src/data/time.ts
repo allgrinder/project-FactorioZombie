@@ -14,11 +14,16 @@ export const KJ = 1_000;
 export const MJ = 1_000_000;
 
 /**
- * Tag und Nacht (Wiki „Time“, Days): ein Tag dauert 25.200 Ticks (7 min). Tageszeit 0 = Mittag.
- * Tag 0,75–0,25 hell, Abend 0,25–0,45 dunkler werdend, Nacht 0,45–0,55 dunkel, Morgen 0,55–0,75 heller.
- * Lampen schalten sich nachts ein (lampOn: ab dieser Dunkelheit).
+ * Tag und Nacht: ein Tag dauert 36.000 Ticks (10 min; eigener Wert, länger als beim Vorgänger, damit Hunger, Durst
+ * und Schlaf Zeit haben). Tageszeit 0 = Mittag. Tag 0,72–0,28 hell, Abend 0,28–0,40 dunkler werdend,
+ * Nacht 0,40–0,60 dunkel, Morgen 0,60–0,72 heller. Lampen schalten sich nachts ein (lampOn: ab dieser Dunkelheit).
  */
-export const DAY = { ticks: 25_200, dusk: 0.25, evening: 0.45, morning: 0.55, dawn: 0.75, lampOn: 0.3 } as const;
+export const DAY = { ticks: 36_000, dusk: 0.28, evening: 0.4, morning: 0.6, dawn: 0.72, lampOn: 0.3 } as const;
+
+/** Laufender Tag (1 = erster Tag); der Tag beginnt am Mittag des Spielstarts. */
+export function dayNumber(tick: number): number {
+  return Math.floor(tick / DAY.ticks) + 1;
+}
 
 /** Dunkelheit 0 (Tag) … 1 (Nacht) zur Tageszeit t (0..1). */
 export function darknessAt(t: number): number {

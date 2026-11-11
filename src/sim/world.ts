@@ -4,7 +4,8 @@ import { FLOOR_BY_ID, FLOOR_BY_ITEM } from '../data/floors';
 import { CapsuleSystem } from './capsules';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import { EnemySystem } from './enemies';
-import { PollutionSystem } from './pollution';
+import { NoiseSystem } from './noise';
+import { SiteSystem } from './sites';
 import { ChartSystem } from './chart';
 import { EventQueue } from './events';
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
@@ -67,7 +68,10 @@ export class World {
   readonly circuit = new CircuitSystem();
   /** Gleise und Züge. */
   readonly trains = new TrainSystem();
-  readonly pollution = new PollutionSystem();
+  /** Lärm lockt Zombies an (Maschinen, Schüsse, Lockvögel). */
+  readonly noise = new NoiseSystem();
+  /** Fundorte der alten Welt (Dörfer, Wracks). */
+  readonly sites = new SiteSystem();
   /** Aufgedeckte Kartenabschnitte (Figur, Radar, Roboterhangar). */
   readonly chart = new ChartSystem();
   /** Ereignisse für Ton/Effekte (nicht gespeichert). */
@@ -101,8 +105,10 @@ export class World {
       p.onUsed = (item, n) => this.stats.used(item, n);
     }
   }
-  /** Gestartete Raketen (erste = Sieg). */
+  /** Gestartete Raketen (Vorgänger, ungenutzt). */
   rocketsLaunched = 0;
+  /** Tick, in dem der Funkturm die Rettung erreicht hat (Spielziel), sonst null. */
+  rescuedAt: number | null = null;
   /** Wird bei jeder Gebäudeänderung erhöht (Renderer). */
   structureVersion = 0;
 
@@ -141,7 +147,7 @@ export class World {
    * Item des ersetzten Belags (oder ''), bzw. null, wenn nicht möglich. */
   placeFloor(item: string, x: number, y: number): string | null {
     const def = FLOOR_BY_ITEM[item];
-    if (!def || this.map.isBlocked(x, y) || this.map.trees.treeAt(x, y) || this.enemies.nestAt(x, y)) return null;
+    if (!def || this.map.isBlocked(x, y) || this.map.trees.treeAt(x, y)) return null;
     const old = this.map.floorAt(x, y);
     if (old === def.id) return null;
     this.map.setFloor(x, y, def.id);
@@ -186,7 +192,6 @@ export class World {
       if (this.map.isWater(tx, ty)) return { ok: false, reason: 'Wasser' };
       if (this.map.isCliff(tx, ty)) return { ok: false, reason: 'Klippe im Weg' };
       if (this.map.trees.treeAt(tx, ty)) return { ok: false, reason: 'Baum im Weg' };
-      if (this.enemies.nestAt(tx, ty)) return { ok: false, reason: 'Gegnernest im Weg' };
     }
     const [w, h] = sizeOf(def, dir);
     if (def.solid && !def.walkable && this.player && this.player.overlapsRect(x, y, w, h)) {
@@ -307,10 +312,15 @@ export class World {
     for (const e of this.entities.values()) e.update(this);
     this.heat.update();
     this.robots.update(this);
+    // Fundorte vor den Zombies anlegen (Zombies lungern um Häuser und Wracks)
+    if (this.tick % 60 === 0 && this._player && this.settings.sites) {
+      const p = this._player;
+      this.sites.ensureArea(this, p.x - 130, p.y - 130, p.x + 130, p.y + 130);
+    }
     this.enemies.update(this);
     this.capsules.update(this);
     this.player?.update(this);
-    this.pollution.update(this);
+    this.noise.update(this);
     this.chart.update(this);
     this.tick++;
     if (this.tick % 60 === 0) {
@@ -320,12 +330,14 @@ export class World {
   }
 
   /** Schaden an einem Gebäude; bei 0 Lebenspunkten wird es zerstört (Inhalt geht verloren, wie im Original). */
-  damageEntity(e: Entity, dmg: number): void {
+  damageEntity(e: Entity, dmg: number, quiet = false): void {
     e.hp -= dmg;
-    this.events.push('hit', e.cx, e.cy);
+    if (!quiet) this.events.push('hit', e.cx, e.cy);
     if (e.hp > 0) return;
-    this.events.push('explode', e.cx, e.cy);
-    this.enemies.remnants.push({ x: e.cx, y: e.cy, kind: 'building', size: Math.max(e.w, e.h), tick: this.tick, name: e.name, dir: e.dir });
+    if (!quiet) {
+      this.events.push('explode', e.cx, e.cy);
+      this.enemies.remnants.push({ x: e.cx, y: e.cy, kind: 'building', size: Math.max(e.w, e.h), tick: this.tick, name: e.name, dir: e.dir });
+    }
     this.stats.used(`lost.${e.name}`, 1);
     this.remove(e.id);
   }

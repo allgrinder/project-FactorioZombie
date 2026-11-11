@@ -53,13 +53,13 @@ describe('Wurfgegenstände', () => {
     expect(w.capsules.flying.length).toBe(0);
   });
 
-  it('Granate: 35 Explosionsschaden im Radius 6,5', () => {
-    const w = new World(5, { ...DEFAULT_MAP_SETTINGS, cliffs: 'aus', enemies: 'friedlich' });
+  it('Granate: Explosionsschaden im Wirkradius, sehr laut', () => {
+    const w = new World(5, { ...DEFAULT_MAP_SETTINGS, cliffs: 'aus', enemies: 'aus', sites: false });
     const p = new Player(0.5, 0.5);
     w.player = p;
     p.inventory.add('grenade', 1);
-    const near = w.enemies.spawnAt(p.x + 8, p.y, 'small');
-    const far = w.enemies.spawnAt(p.x + 8, p.y + 9, 'small');
+    const near = w.enemies.spawnAt(p.x + 8, p.y, 'walker');
+    const far = w.enemies.spawnAt(p.x + 8, p.y + 9, 'walker');
     expect(w.capsules.throw(w, 'grenade', p.x + 8, p.y)).toBeNull();
     for (let i = 0; i < 40 && w.capsules.flying.length; i++) w.step();
     expect(w.enemies.units.has(near.id)).toBe(false);

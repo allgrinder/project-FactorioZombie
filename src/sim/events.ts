@@ -1,5 +1,6 @@
 /** Ereignisse für Ton und Effekte (nur Darstellung, nicht gespeichert). Höchstens MAX, älteste fallen weg. */
-export type GameEventType = 'build' | 'remove' | 'mine' | 'tree' | 'craft' | 'shot' | 'turret' | 'bite' | 'hit' | 'death' | 'explode' | 'nest' | 'research';
+export type GameEventType = 'build' | 'remove' | 'mine' | 'tree' | 'craft' | 'shot' | 'turret' | 'bite' | 'hit' | 'death' | 'explode' | 'research'
+  | 'horde' | 'scream' | 'trap' | 'lure' | 'rescue' | 'melee' | 'search' | 'use' | 'playerdeath';
 
 export interface GameEvent {
   type: GameEventType;

@@ -455,3 +455,28 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .hb-tog { width: 14px; flex: none; color: var(--accent); cursor: pointer; user-select: none; }
 /* Sammelrezepte Fass befüllen (+) / entleeren (−) */
 .slot .recipe-badge { position: absolute; right: 1px; top: -2px; font-size: 16px; font-weight: 800; color: #ffd27a; text-shadow: 0 0 2px #000, 0 0 3px #000; pointer-events: none; }
+
+/* ======================================================================
+   Letzte Schicht: Überlebensanzeige, Schlaf, Abschluss
+   ====================================================================== */
+.hud-survival { position: absolute; left: 10px; bottom: 112px; width: 236px; display: flex; flex-direction: column; gap: 3px; padding: 7px 9px;
+  background: #15120fd8; border: 1px solid #0c0b0a; box-shadow: inset 1px 1px 0 #ffffff14; font-size: 12px; pointer-events: auto; }
+.surv-head { color: var(--accent); font-weight: 700; margin-bottom: 2px; }
+.surv-row { display: flex; align-items: center; gap: 6px; }
+.surv-row .label { width: 70px; flex: none; color: var(--dim); }
+.surv-row .progress { flex: 1; height: 9px; }
+.surv-row.hp .fill { background: linear-gradient(#e86a5a, #b8382a); }
+.surv-row.hunger .fill { background: linear-gradient(#e0a24a, #b0742a); }
+.surv-row.thirst .fill { background: linear-gradient(#5aa8e0, #2a70b0); }
+.surv-row.rest .fill { background: linear-gradient(#a58ae0, #6a4ab0); }
+.surv-row.low .label { color: #ff7a5a; font-weight: 700; }
+.surv-tags { color: #ff7a5a; font-weight: 700; }
+.surv-line { color: var(--dim); }
+.surv-line.warn { color: #f3b05a; font-weight: 600; }
+.sleep-veil { position: absolute; inset: 0; background: rgba(4, 6, 14, 0.72); display: grid; place-items: center; color: #cfd6ee; font-size: 20px;
+  font-weight: 600; text-shadow: 0 2px 6px #000; pointer-events: none; z-index: 30; }
+.sleep-veil.hidden { display: none; }
+.endscreen { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 460px; z-index: 60; }
+.end-body { display: flex; flex-direction: column; gap: 6px; }
+.end-body p { margin: 0; }
+.end-lead { font-size: 15px; font-weight: 600; color: #ffd27a; margin-bottom: 6px !important; }

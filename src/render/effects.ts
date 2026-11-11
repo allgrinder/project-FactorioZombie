@@ -189,13 +189,15 @@ export class Effects {
           this.burst('smoke', ev.x, ev.y, 10, 1.4, 0x3a3530, 0.7, 1.2);
           this.burst('dust', ev.x, ev.y, 8, 2, 0x6a5a48, 1, 1.2);
           break;
-        case 'nest':
-          this.burst('spark', ev.x, ev.y, 20, 4, 0xff8040, 0.9, 1.6);
-          this.burst('smoke', ev.x, ev.y, 16, 1.8, 0x2a201a, 0.8, 1.8);
-          this.burst('dust', ev.x, ev.y, 14, 2.5, 0x4a3022, 1, 1.5);
-          break;
         case 'death':
-          this.burst('dust', ev.x, ev.y, 5, 1.6, 0x4a3022, 0.6, 0.7);
+          this.burst('dust', ev.x, ev.y, 6, 1.6, 0x5a1a14, 0.7, 0.7);
+          break;
+        case 'melee':
+        case 'trap':
+          this.burst('dust', ev.x, ev.y, 3, 1.4, 0x6a1c16, 0.6, 0.5);
+          break;
+        case 'search':
+          this.burst('dust', ev.x, ev.y, 6, 1.2, 0x8a7a62, 0.7, 0.9);
           break;
         case 'hit':
           this.burst('spark', ev.x, ev.y, 2, 2, 0xffd080, 0.3, 0.5);

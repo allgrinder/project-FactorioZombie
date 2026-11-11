@@ -1,7 +1,7 @@
 import { ENTITIES } from '../data/entities';
 import { FLUIDS } from '../data/fluids';
 import { ITEMS } from '../data/items';
-import { RECIPE_LIST, type RecipeDef } from '../data/recipes';
+import { RECIPE_LIST, type RecipeDef, isCraftable } from '../data/recipes';
 import { TECHS } from '../data/tech';
 import {
   beltRates, DEFAULT_MACHINES, idealMultiple, type MachineChoice, practicalMultiple, ratePerMachine, ratioRules,
@@ -34,7 +34,7 @@ export function num(x: number, digits = 2): string {
   return (Math.round(x * f) / f).toLocaleString('de-DE');
 }
 
-const STORE = 'eisenwerk.handbook';
+const STORE = 'letzteschicht.handbook';
 interface Stored { m: MachineChoice; mode: Mode; amount: number; last?: string }
 
 function load(): Stored {
@@ -323,8 +323,8 @@ export class HandbookView {
       }
     };
     seg('drill', ['burner-mining-drill', 'electric-mining-drill']);
-    seg('furnace', ['stone-furnace', 'steel-furnace', 'electric-furnace']);
-    seg('assembler', ['assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3']);
+    seg('furnace', (['stone-furnace', 'steel-furnace', 'electric-furnace'] as const).filter(isCraftable));
+    seg('assembler', (['assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3'] as const).filter(isCraftable));
 
     const per = ratePerMachine(id, st.m, choice);
     const rate = st.mode === 'sec' ? st.amount : st.mode === 'min' ? st.amount / 60 : st.amount * per;
@@ -427,7 +427,7 @@ export class HandbookView {
     el('div', 'hb-rule-title', mbox, 'Geschwindigkeiten');
     const sp = (id: string) => (ENTITIES[id] as { craftingSpeed?: number; miningSpeed?: number });
     el('div', 'dim hb-note', mbox, [
-      ...['assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3', 'stone-furnace', 'steel-furnace', 'electric-furnace']
+      ...['assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3', 'stone-furnace', 'steel-furnace', 'electric-furnace'].filter(isCraftable)
         .map((id) => `${nameOf(id)} ${num(sp(id).craftingSpeed ?? 1)}`),
       ...['burner-mining-drill', 'electric-mining-drill'].map((id) => `${nameOf(id)} ${num(sp(id).miningSpeed ?? 0)} Erz/s`),
     ].join(' · ') + ' – Maschinen je Schritt = Menge/s × Zeit ÷ (Ergebnis × Geschwindigkeit).');

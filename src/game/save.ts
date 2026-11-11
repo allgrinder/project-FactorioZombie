@@ -2,7 +2,7 @@ import { type SaveData, deserializeWorld, serializeWorld } from '../sim/serializ
 import { pack, unpack } from './packing';
 import type { World } from '../sim/world';
 
-const DB_NAME = 'eisenwerk';
+const DB_NAME = 'letzteschicht';
 const STORE = 'saves';
 
 interface SaveRecord {

@@ -12,12 +12,12 @@ async function openScene(page: Page, query: string) {
   return errors;
 }
 
-type W = { eisenwerk: { world: { tick: number; entities: Map<number, { kind: string; result?: { count(i: string): number } }> } } };
+type W = { letzteschicht: { world: { tick: number; entities: Map<number, { kind: string; result?: { count(i: string): number } }> } } };
 
 test('Startszene lädt ohne Konsolenfehler', async ({ page }) => {
   const errors = await openScene(page, '');
   await page.screenshot({ path: 'test-results/start.png' });
-  const tick = await page.evaluate(() => (window as unknown as W).eisenwerk.world.tick);
+  const tick = await page.evaluate(() => (window as unknown as W).letzteschicht.world.tick);
   expect(tick).toBeGreaterThan(10);
   expect(errors).toEqual([]);
 });
@@ -30,19 +30,19 @@ test('Demo-Szene zeigt die laufende Produktionskette', async ({ page }) => {
   await page.screenshot({ path: 'test-results/demo.png' });
   const plates = await page.evaluate(() => {
     let n = 0;
-    for (const e of (window as unknown as W).eisenwerk.world.entities.values()) if (e.kind === 'furnace') n += e.result!.count('iron-plate');
+    for (const e of (window as unknown as W).letzteschicht.world.entities.values()) if (e.kind === 'furnace') n += e.result!.count('iron-plate');
     return n;
   });
   expect(errors).toEqual([]);
   // Nach 40 s: Platten in den Öfen oder bereits auf dem Ausgabeband
-  const belt = await page.evaluate(() => (window as unknown as { eisenwerk: { world: { belts: { itemCount: number } } } }).eisenwerk.world.belts.itemCount);
+  const belt = await page.evaluate(() => (window as unknown as { letzteschicht: { world: { belts: { itemCount: number } } } }).letzteschicht.world.belts.itemCount);
   expect(plates + belt).toBeGreaterThan(5);
 });
 
 test('Demo: Stromteil, Forschungsfenster und Übersichtskarte', async ({ page }) => {
   const errors = await openScene(page, '?scene=demo&warp=1800');
-  type R = { eisenwerk: { world: { research: { fraction(id: string): number }; renderer?: unknown } } };
-  const frac = await page.evaluate(() => (window as unknown as R).eisenwerk.world.research.fraction('automation'));
+  type R = { letzteschicht: { world: { research: { fraction(id: string): number }; renderer?: unknown } } };
+  const frac = await page.evaluate(() => (window as unknown as R).letzteschicht.world.research.fraction('automation'));
   expect(frac).toBeGreaterThan(0.2);
   await page.keyboard.press('t');
   await expect(page.locator('.window.tech')).toBeVisible();
@@ -55,7 +55,7 @@ test('Demo: Stromteil, Forschungsfenster und Übersichtskarte', async ({ page })
 test('Gottmodus-Link: neue Runde mit Gottmodus, ohne Weiterspielen-Dialog', async ({ page }) => {
   const errors = await openScene(page, '?god');
   await expect(page.locator('.hud-info')).toContainText('GOTTMODUS');
-  const god = await page.evaluate(() => (window as unknown as { eisenwerk: { world: { player: { god: boolean } } } }).eisenwerk.world.player.god);
+  const god = await page.evaluate(() => (window as unknown as { letzteschicht: { world: { player: { god: boolean } } } }).letzteschicht.world.player.god);
   expect(god).toBe(true);
   expect(errors).toEqual([]);
 });

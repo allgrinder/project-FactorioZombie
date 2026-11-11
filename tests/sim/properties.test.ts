@@ -69,8 +69,15 @@ describe('Eigenschaften', () => {
           if (e && (e.kind === 'drill' || e.kind === 'furnace')) e.insert('coal', 5, 'player');
         }
         if (enemies) {
-          w.enemies.spawnNest(w, 25, -2, 2).budget = 30;
-          w.pollution.add(0, 0, 100);
+          // Zombies: ruhend, als Horde zum Lager und einem Geräusch nachgehend
+          w.enemies.spawnAt(25.5, -2.5, 'walker');
+          w.enemies.spawnAt(-24.5, 6.5, 'runner');
+          for (let i = 0; i < 4; i++) {
+            const u = w.enemies.spawnAt(26.5 + i, 10.5, i === 3 ? 'brute' : 'walker', 'horde');
+            u.tx = 0.5;
+            u.ty = 0.5;
+          }
+          w.noise.emit(0, 0, 60);
         }
         w.run(t1);
         const b = deserializeWorld(JSON.parse(JSON.stringify(serializeWorld(w))));

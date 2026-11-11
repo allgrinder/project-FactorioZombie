@@ -1,7 +1,11 @@
 import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
-import { PLAYER_COMBAT } from '../data/enemies';
-import { CLIFF_SETTINGS, type CliffSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, FREQUENCY_SETTINGS, type FrequencySetting, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
+import { MELEE, PLAYER_COMBAT, UNITS } from '../data/enemies';
+import { SURVIVAL, isConsumable } from '../data/survival';
+import { PLAYER } from '../data/player';
+import { DAY, dayNumber } from '../data/time';
+import { compassName } from '../sim/enemies';
+import { CLIFF_SETTINGS, type CliffSetting, DEATH_SETTINGS, type DeathSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, FREQUENCY_SETTINGS, type FrequencySetting, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
 import { EMPTY_ANY_BARREL, FILL_ANY_BARREL, RECIPES, RECIPE_LIST, isFluidBarrelRecipe } from '../data/recipes';
 import { TECHS, TECH_BY_ID, type TechEffect } from '../data/tech';
 import type { Game } from '../game/game';
@@ -88,12 +92,17 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, parent?
 
 /** Schlankes DOM-Overlay für Schnellleiste, Inventar, Handwerk und Gebäudefenster. */
 /** Rezeptreiter wie im Original. */
-const CRAFT_GROUPS = ['Logistik', 'Produktion', 'Zwischenprodukte', 'Kampf'] as const;
+const CRAFT_GROUPS = ['Überleben', 'Kampf', 'Logistik', 'Produktion', 'Zwischenprodukte'] as const;
 type CraftGroup = (typeof CRAFT_GROUPS)[number];
 const LOGISTIK_KINDS = new Set(['belt', 'underground', 'splitter', 'inserter', 'container', 'pole', 'pipe', 'pipe-ground', 'pump', 'tank', 'rail', 'train-stop', 'roboport', 'lamp', 'combinator']);
-const KAMPF = new Set(['firearm-magazine', 'piercing-rounds-magazine', 'pistol', 'submachine-gun', 'gun-turret', 'stone-wall', 'repair-pack', 'radar']);
+const KAMPF = new Set([
+  'firearm-magazine', 'piercing-rounds-magazine', 'pistol', 'submachine-gun', 'gun-turret', 'stone-wall', 'repair-pack', 'radar', 'grenade', 'heavy-armor',
+  'spear', 'knife', 'baseball-bat', 'axe', 'crowbar', 'wooden-barricade', 'gate', 'barbed-wire', 'spike-trap', 'noise-lure',
+]);
+const UEBERLEBEN = new Set(['bandage', 'first-aid-kit', 'antibiotics', 'empty-bottle', 'stew', 'bed', 'garden', 'rain-barrel', 'radio-tower']);
 function recipeGroup(item: string): CraftGroup {
   if (KAMPF.has(item)) return 'Kampf';
+  if (UEBERLEBEN.has(item)) return 'Überleben';
   const place = ITEMS[item]?.placeResult;
   if (place) return LOGISTIK_KINDS.has(entityDef(place).kind) ? 'Logistik' : 'Produktion';
   if (item === 'locomotive' || item === 'cargo-wagon' || item.endsWith('-robot')) return 'Logistik';
@@ -139,8 +148,9 @@ export class Hud {
   constructor(root: HTMLElement, private readonly game: Game, private readonly sprites: SpriteLib) {
     this.layer = el('div', 'hud', root);
     this.info = el('div', 'hud-info', this.layer);
-    this.healthEl = el('div', 'hud-health', this.layer);
-    this.healthFill = el('div', 'fill', this.healthEl);
+    this.survEl = el('div', 'hud-survival', this.layer);
+    this.sleepEl = el('div', 'sleep-veil hidden', this.layer);
+    this.endWin = el('div', 'window endscreen hidden', this.layer);
     this.debugBox = el('div', 'hud-debug', this.layer);
     this.quickbar = el('div', 'quickbar', this.layer);
     this.craftQueueEl = el('div', 'craft-queue', this.layer);
@@ -189,9 +199,12 @@ export class Hud {
     this.refreshAll();
   }
 
-  private craftTab: CraftGroup = 'Logistik';
-  private healthEl!: HTMLElement;
-  private healthFill!: HTMLElement;
+  private craftTab: CraftGroup = 'Überleben';
+  private survEl!: HTMLElement;
+  private sleepEl!: HTMLElement;
+  private endWin!: HTMLElement;
+  private survKey = '';
+  private endKey = '';
 
   setTitle(t: string): void {
     this.title = t;
@@ -223,13 +236,10 @@ export class Hud {
       this.minimap.update(w, pl ? pl.px / 256 : c.x, pl ? pl.py / 256 : c.y, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
       this.mapView.update(w, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
     }
-    const evo = ` · Gegner: ${ENEMY_SETTINGS[w.settings.enemies].label}${w.settings.enemies !== 'aus' ? `, Entwicklung ${(w.enemies.evolution * 100).toFixed(1)} %` : ''}`;
-    this.info.textContent = `Eisenwerk – ${this.title}${evo} · H: Hilfe`;
-    const pl0 = w.player;
-    if (pl0) {
-      const f = pl0.hp / PLAYER_COMBAT.health;
-      this.healthEl.style.display = f < 1 ? 'block' : 'none';
-      this.healthFill.style.width = `${(f * 100).toFixed(1)}%`;
+    this.info.textContent = `Letzte Schicht – ${this.title} · H: Hilfe`;
+    if (this.frame % 6 === 0) {
+      this.updateSurvival();
+      this.updateEndScreen();
     }
     if (this.showDebug) {
       const st = g.renderer.stats;
@@ -276,6 +286,117 @@ export class Hud {
       }
     }
   }
+
+  // ---------------------------------------------------------- Überleben
+
+  /** Uhrzeit aus der Tageszeit (0 = Mittag). */
+  private clock(): string {
+    const w = this.game.world;
+    const h = (12 + w.daytime * 24) % 24;
+    return `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.floor((h % 1) * 6) * 10).padStart(2, '0')}`;
+  }
+
+  /** Anzeige links unten: Tag/Uhrzeit, Gesundheit, Hunger, Durst, Müdigkeit, Zustände, Waffe, Lärm, nächste Horde. */
+  private updateSurvival(): void {
+    const w = this.game.world;
+    const p = w.player;
+    if (!p) {
+      this.survEl.style.display = 'none';
+      return;
+    }
+    this.survEl.style.display = 'flex';
+    const needs = !!w.settings.needs && !p.god;
+    const day = dayNumber(w.tick);
+    const night = w.darkness > 0.6 ? 'Nacht' : w.darkness > 0.05 ? 'Dämmerung' : 'Tag';
+    const tags: string[] = [];
+    if (p.wounds.length) tags.push(`Blutung${p.wounds.length > 1 ? ` ×${p.wounds.length}` : ''}`);
+    if (p.infection !== null) tags.push(p.infection >= SURVIVAL.feverFrom ? 'Fieber' : 'Gebissen');
+    if (needs && p.fatigue >= SURVIVAL.tiredFrom) tags.push('Erschöpft');
+    if (p.sleeping) tags.push('Schläft');
+    const gun = p.weapon;
+    const weapon = p.useGun && gun && p.hasAmmo
+      ? `${ITEMS[gun].name} (${p.rounds + [...p.inventory.contents()].filter((c) => c.item.endsWith('magazine')).reduce((a, c) => a + c.count * 10, 0)} Schuss)`
+      : p.meleeWeapon ? `${ITEMS[p.meleeWeapon].name} (${Math.max(0, Math.round(100 * (1 - (p.meleeWear[p.meleeWeapon] ?? 0) / MELEE[p.meleeWeapon].durability)))} %)` : 'Fäuste';
+    const noise = w.noise.baseLevel;
+    const noiseTxt = noise <= 0 ? 'still' : noise < 12 ? 'leise' : noise < 24 ? 'hörbar' : noise < 40 ? 'laut' : 'sehr laut';
+    const near = w.enemies.near(p.x, p.y, 30, w.tick).length;
+    // nächste Horde: Größe heute Abend bzw. wann die erste kommt
+    const today = w.enemies.hordeSize(w, day);
+    const untilDusk = ((DAY.dusk * DAY.ticks - (w.tick % DAY.ticks)) + DAY.ticks) % DAY.ticks;
+    const horde = w.settings.enemies === 'aus' ? '' : w.daytime < DAY.dusk && today > 0
+      ? `Horde heute Abend: ~${today} (in ${Math.ceil(untilDusk / 3600)} min)`
+      : w.enemies.lastHorde && w.tick - w.enemies.lastHorde.tick < DAY.ticks * 0.45 ? `Horde aus ${compassName(w.enemies.lastHorde.angle)}: ${w.enemies.lastHorde.size}` : '';
+    const key = [day, this.clock(), night, Math.round(p.hp), Math.round(p.hunger), Math.round(p.thirst), Math.round(p.fatigue), tags.join(), weapon, noiseTxt, near, horde, needs].join('|');
+    if (key === this.survKey) return;
+    this.survKey = key;
+    this.survEl.replaceChildren();
+    const head = el('div', 'surv-head', this.survEl);
+    head.textContent = `Tag ${day} · ${this.clock()} · ${night}`;
+    const bar = (label: string, frac: number, cls: string, title: string) => {
+      const r = el('div', `surv-row ${cls}${frac < 0.25 ? ' low' : ''}`, this.survEl);
+      r.title = title;
+      el('span', 'label', r).textContent = label;
+      const b = el('div', 'progress', r);
+      el('div', 'fill', b).style.width = `${(Math.max(0, Math.min(1, frac)) * 100).toFixed(0)}%`;
+    };
+    bar('Gesundheit', p.hp / PLAYER_COMBAT.health, 'hp', 'Heilt langsam, wenn du satt bist, nicht durstig und nicht blutest');
+    if (needs) {
+      bar('Hunger', p.hunger / 100, 'hunger', 'Essen: Konserven, Gemüse, Eintopf (Rechtsklick im Inventar)');
+      bar('Durst', p.thirst / 100, 'thirst', 'Trinken: Wasserflasche; leere Flaschen am See oder in der Regentonne füllen');
+      bar('Ausdauer', 1 - p.fatigue / 100, 'rest', 'Schlafen: Taste N (im Feldbett erholsamer). Schlaf nur ohne Zombies in der Nähe');
+    }
+    if (tags.length) el('div', 'surv-tags', this.survEl).textContent = tags.join(' · ');
+    el('div', 'surv-line', this.survEl).textContent = `Waffe: ${weapon} · X wechselt`;
+    el('div', `surv-line${noise >= 24 ? ' warn' : ''}`, this.survEl).textContent = `Lärm im Lager: ${noiseTxt} · Zombies in der Nähe: ${near}`;
+    if (horde) el('div', 'surv-line warn', this.survEl).textContent = horde;
+    this.sleepEl.classList.toggle('hidden', !p.sleeping);
+    if (p.sleeping) this.sleepEl.textContent = 'Du schläfst … (WASD oder N: aufstehen)';
+  }
+
+  /** Abschluss: Tod (endgültig) oder Rettung durch den Funkturm. */
+  private updateEndScreen(): void {
+    const w = this.game.world;
+    const p = w.player;
+    const dead = !!p?.dead;
+    const rescued = w.rescuedAt !== null;
+    const key = dead ? `dead${p!.deathTick}` : rescued ? `rescued${w.rescuedAt}` : '';
+    if (key === this.endKey) return;
+    this.endKey = key;
+    if (!key || (rescued && !dead && this.rescueSeen === w.rescuedAt)) {
+      this.endWin.classList.add('hidden');
+      return;
+    }
+    this.endWin.classList.remove('hidden');
+    this.endWin.replaceChildren();
+    const tick = dead ? p!.deathTick : w.rescuedAt!;
+    const head = el('div', 'win-head', this.endWin);
+    head.textContent = dead ? 'Du bist tot' : 'Gerettet!';
+    const body = el('div', 'win-body end-body', this.endWin);
+    el('p', 'end-lead', body).textContent = dead
+      ? `Du wurdest ${p!.deathCause}.`
+      : 'Dein Funkspruch wurde gehört. Am Horizont tauchen die Scheinwerfer der Rettung auf – du hast durchgehalten.';
+    const days = (tick / DAY.ticks).toFixed(1).replace('.', ',');
+    const kills = (Object.keys(UNITS) as (keyof typeof UNITS)[]).map((k) => `${w.stats.totalMade.get(`kill.${k}`) ?? 0}× ${UNITS[k].name}`).join(', ');
+    el('p', '', body).textContent = `Überlebt: ${days} Tage (bis Tag ${dayNumber(tick)})`;
+    el('p', '', body).textContent = `Erlegte Zombies: ${w.enemies.kills} (${kills})`;
+    el('p', '', body).textContent = `Gebäude: ${[...w.entities.values()].filter((e) => e.kind !== 'loot').length} · Forschungen: ${w.research.done.size}`;
+    const btn = (label: string, fn: () => void, primary = false) => {
+      const b = el('button', `menu-btn${primary ? ' primary' : ''}`, body);
+      b.textContent = label;
+      b.onclick = fn;
+    };
+    if (dead) {
+      btn('Neue Runde …', () => { this.endWin.classList.add('hidden'); this.newGameDialog(); }, true);
+      btn('Menü (Spielstände)', () => { this.endWin.classList.add('hidden'); this.toggleMenu(); });
+    } else {
+      btn('Weiterspielen', () => {
+        this.rescueSeen = w.rescuedAt;
+        this.endWin.classList.add('hidden');
+      }, true);
+      btn('Neue Runde …', () => { this.endWin.classList.add('hidden'); this.newGameDialog(); });
+    }
+  }
+  private rescueSeen: number | null = null;
 
   // ---------------------------------------------------------- Schnellleiste
 
@@ -587,7 +708,15 @@ export class Hud {
       this.buildEntity();
       return;
     }
-    if (mode === 'half') return;
+    if (mode === 'half') {
+      // Rechtsklick ohne offenes Gebäude: essen, trinken, verbinden
+      if (isConsumable(st.item)) {
+        const err = p.use(g.world, st.item);
+        if (err) p.note(err);
+        this.updateInventory(true);
+      }
+      return;
+    }
     g.cursorItem = g.cursorItem === st.item ? null : st.item;
     this.updateInventory(true);
   }
@@ -600,8 +729,8 @@ export class Hud {
     if (!e) return;
     const p = g.world.player;
     if (p && !g.creative) {
-      if (!p.canReach(e.cx, e.cy)) {
-        p.note('Außer Reichweite');
+      if (e.kind === 'loot' ? p.distanceToRect(e.x, e.y, e.w, e.h) > PLAYER.searchDistance + 1 : !p.canReach(e.cx, e.cy)) {
+        p.note(e.kind === 'loot' ? 'Zu weit weg' : 'Außer Reichweite');
         return;
       }
     }
@@ -1031,7 +1160,7 @@ export class Hud {
   /** Gespeicherte Blaupausen dieses Browsers (wie die Bibliothek im Original spielstandübergreifend). */
   private loadLibrary(): { name: string; text: string }[] {
     try {
-      const raw = localStorage.getItem('eisenwerk.blueprints');
+      const raw = localStorage.getItem('letzteschicht.blueprints');
       const list = raw ? (JSON.parse(raw) as { name: string; text: string }[]) : [];
       return Array.isArray(list) ? list : [];
     } catch {
@@ -1040,7 +1169,7 @@ export class Hud {
   }
   private saveLibrary(list: { name: string; text: string }[]): void {
     try {
-      localStorage.setItem('eisenwerk.blueprints', JSON.stringify(list));
+      localStorage.setItem('letzteschicht.blueprints', JSON.stringify(list));
     } catch {
       this.flash('Speichern im Browser nicht möglich');
     }
@@ -1783,18 +1912,20 @@ export class Hud {
 
   private buildHelp(): void {
     this.help.innerHTML = `
-      <div class="win-head">Steuerung<button class="close">×</button></div>
+      <div class="win-head">Letzte Schicht – Steuerung<button class="close">×</button></div>
       <div class="win-body help-body">
-        <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen</p>
-        <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Cursor leeren</p>
-        <p><b>Rechtsklick halten</b> abbauen oder Gebäude aufnehmen</p>
-        <p>Schienen in der Hand: <b>Tab</b> Gleisform (gerade, Bogen, Diagonale, Übergang gerade↔diagonal) · <b>R</b> drehen · Diagonale: die Ecke folgt der Maus, Ziehen legt eine Treppe</p>
-        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung (Umschalt+Klick: Warteschlange) · <b>P</b> Produktion · <b>J</b> Handbuch (Rezepte, Verhältnisse, Rechner) · <b>O</b> Strom-Übersicht · <b>B</b> Blaupausen (<b>Strg+C</b> kopieren, <b>Strg+X</b> ausschneiden/abreißen – markiert auch Bäume zum Fällen, <b>Umschalt+Strg+X</b> hebt Markierungen auf, <b>Strg+V</b> einfügen) · <b>G</b> Draht rot/grün · <b>M</b> Kartenansicht (Umschalt+M: Minimap-Größe) · <b>Klick</b> auf Gebäude öffnet Slots (auf Mast: Stromnetz) · <b>Strg+Klick</b> überträgt ganzen Stapel</p>
-        <p><b>1–0</b> Schnellleiste – belegen: Gegenstand in die Hand nehmen und auf einen leeren Platz klicken (Rechtsklick: Platz neu belegen bzw. ohne Gegenstand leeren) · <b>Alt</b> Detailansicht</p>
-        <p><b>Z</b> Cursor-Item ablegen · <b>F</b> halten: Items vom Boden und von Bändern in der Nähe aufheben · <b>Leertaste</b> halten: auf Gegner schießen (Pistole/MP mit Magazinen) · <b>Granate/Klippensprengstoff</b> in der Hand: Klick wirft (Reichweite 15/10) · <b>Steinziegel/Beton</b> in der Hand: Klicken/Ziehen legt Belag (<b>+</b>/<b>−</b> Pinselgröße, Rechtsklick nimmt auf) · <b>Strg+Z</b> rückgängig · <b>Umschalt</b>+Ziehen: gerade Linie</p>
-        <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte. Gebäudeplatz: <b>Klick</b> nehmen · <b>Rechtsklick</b> Hälfte · <b>Strg+Klick</b> alle</p>
-        <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü (Autosave, Export, Import) · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
-        <p class="dim">Debug/Sandkasten: <b>Z/X/C/V</b> Eisenerz/Kohle/Stein/Platte auf Band unter dem Cursor · <b>F4</b> Pause</p>
+        <p><b>Ziel:</b> überleben. Plündere die Reste der alten Welt, baue ein befestigtes Lager mit einer kleinen Produktion (Munition, Mauern, Türme) und rufe am Ende mit dem <b>Funkturm</b> die Rettung.</p>
+        <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen · <b>Leertaste</b> halten: angreifen (Nahkampf leise, Schusswaffe laut) · <b>X</b> Waffe wechseln · <b>N</b> schlafen/aufstehen</p>
+        <p><b>Lärm</b> lockt Zombies an: Schüsse, Bohrer, Dampfmaschinen, Montagemaschinen. Solarstrom ist leise. Jede Nacht ab Tag 2 zieht eine <b>Horde</b> zum Lager – jede 7. Nacht eine große.</p>
+        <p><b>Fundorte</b> (Häuser, Wracks, Kisten): <b>Linksklick</b> durchsuchen und Beute nehmen · <b>Rechtsklick halten</b> ausschlachten (Schrott, Holz, Ziegel)</p>
+        <p><b>Essen, Trinken, Verbinden:</b> Rechtsklick im Inventar – oder Gegenstand in die Hand nehmen (Schnellleiste) und ins Freie klicken. Leere Flaschen am Wasser füllen (Flasche in die Hand, aufs Wasser klicken) oder in die Regentonne legen.</p>
+        <p><b>Bisse</b> können infizieren – nur Antibiotika heilen. <b>Blutungen</b> stoppt ein Verband.</p>
+        <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Hand leeren · <b>Rechtsklick halten</b> abbauen, Bäume fällen, Gebäude aufnehmen</p>
+        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung · <b>M</b> Karte · <b>P</b> Produktion · <b>J</b> Handbuch · <b>O</b> Strom-Übersicht · <b>Alt</b> Detailansicht</p>
+        <p><b>1–0</b> Schnellleiste – belegen: Gegenstand in die Hand nehmen und auf einen leeren Platz klicken (Rechtsklick: neu belegen bzw. leeren)</p>
+        <p><b>Z</b> Item aus der Hand ablegen · <b>F</b> halten: Items vom Boden und von Bändern aufheben · <b>Granate/Lockvogel</b> in der Hand: Klick wirft · <b>Reparaturset</b> in der Hand: Linksklick halten repariert</p>
+        <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte</p>
+        <p><b>Strg+S</b> speichern · <b>Strg+L</b> laden · <b>Esc</b> Menü · <b>F3</b> Debug · <b>H</b> diese Hilfe</p>
       </div>`;
     this.help.querySelector('.close')!.addEventListener('click', () => this.toggleHelp());
   }
@@ -1854,7 +1985,7 @@ export class Hud {
     {
       // Gegner im laufenden Spiel umstellen (wie die Karteneinstellung beim Start)
       const w = this.game.world;
-      el('div', 'sub-head', body).textContent = 'Gegner in diesem Spiel';
+      el('div', 'sub-head', body).textContent = 'Zombies in diesem Spiel';
       const row = el('div', 'choice-row', body);
       for (const k of Object.keys(ENEMY_SETTINGS) as EnemySetting[]) {
         const b = el('button', `choice${w.settings.enemies === k ? ' on' : ''}`, row);
@@ -1862,9 +1993,9 @@ export class Hud {
         b.title = ENEMY_SETTINGS[k].hint;
         b.onclick = () => {
           if (k === w.settings.enemies) return;
-          if (k === 'aus' && w.enemies.nests.size && !confirm('Alle Nester und Krabbler werden entfernt. Fortfahren?')) return;
+          if (k === 'aus' && w.enemies.units.size && !confirm('Alle Zombies werden entfernt. Fortfahren?')) return;
           w.enemies.applySetting(w, k);
-          this.flash(`Gegner: ${ENEMY_SETTINGS[k].label} – ${ENEMY_SETTINGS[k].hint}`);
+          this.flash(`Zombies: ${ENEMY_SETTINGS[k].label} – ${ENEMY_SETTINGS[k].hint}`);
           void this.buildMenu();
         };
       }
@@ -1891,13 +2022,15 @@ export class Hud {
   /** Neue Runde: Karteneinstellungen wählen (Rohstoffe, Gegner) und mit neuer Karte starten. */
   newGameDialog(): void {
     const cur = this.game.world.settings;
-    let res: ResourceSetting = (localStorage.getItem('eisenwerk.res') as ResourceSetting | null) ?? cur.resources;
-    let enemies: EnemySetting = (localStorage.getItem('eisenwerk.enemies') as EnemySetting | null) ?? DEFAULT_MAP_SETTINGS.enemies;
+    let res: ResourceSetting = (localStorage.getItem('letzteschicht.res') as ResourceSetting | null) ?? cur.resources;
+    let enemies: EnemySetting = (localStorage.getItem('letzteschicht.enemies') as EnemySetting | null) ?? DEFAULT_MAP_SETTINGS.enemies;
     if (!(res in RESOURCE_SETTINGS)) res = DEFAULT_MAP_SETTINGS.resources;
     if (!(enemies in ENEMY_SETTINGS)) enemies = DEFAULT_MAP_SETTINGS.enemies;
-    let cliffs: CliffSetting = (localStorage.getItem('eisenwerk.cliffs') as CliffSetting | null) ?? DEFAULT_MAP_SETTINGS.cliffs ?? 'normal';
+    let death: DeathSetting = (localStorage.getItem('letzteschicht.death') as DeathSetting | null) ?? DEFAULT_MAP_SETTINGS.death ?? 'endgueltig';
+    if (!(death in DEATH_SETTINGS)) death = 'endgueltig';
+    let cliffs: CliffSetting = (localStorage.getItem('letzteschicht.cliffs') as CliffSetting | null) ?? DEFAULT_MAP_SETTINGS.cliffs ?? 'normal';
     if (!(cliffs in CLIFF_SETTINGS)) cliffs = 'normal';
-    let freq: FrequencySetting = (localStorage.getItem('eisenwerk.freq') as FrequencySetting | null) ?? DEFAULT_MAP_SETTINGS.frequency ?? 'viel';
+    let freq: FrequencySetting = (localStorage.getItem('letzteschicht.freq') as FrequencySetting | null) ?? DEFAULT_MAP_SETTINGS.frequency ?? 'viel';
     if (!(freq in FREQUENCY_SETTINGS)) freq = 'viel';
     this.menu.replaceChildren();
     const head = el('div', 'win-head', this.menu);
@@ -1921,19 +2054,21 @@ export class Hud {
     };
     group('Rohstoffe: Häufigkeit', FREQUENCY_SETTINGS, () => freq, (k) => (freq = k));
     group('Rohstoffe: Menge je Feld', RESOURCE_SETTINGS, () => res, (k) => (res = k));
-    group('Gegner', ENEMY_SETTINGS, () => enemies, (k) => (enemies = k));
+    group('Zombies', ENEMY_SETTINGS, () => enemies, (k) => (enemies = k));
+    group('Tod', DEATH_SETTINGS, () => death, (k) => (death = k));
     group('Klippen', CLIFF_SETTINGS, () => cliffs, (k) => (cliffs = k));
-    el('div', 'hint', body).textContent = 'Rohstofffelder sind in neuen Runden größer und (Häufigkeit „Viel“) doppelt so zahlreich wie früher.';
+    el('div', 'hint', body).textContent = 'Ziel: überleben, ein Lager befestigen und mit dem Funkturm die Rettung rufen. Lärm lockt Zombies an.';
     const go = el('button', 'menu-btn primary', body);
     go.textContent = 'Starten (neue Karte)';
     go.onclick = () => {
       try {
-        localStorage.setItem('eisenwerk.res', res);
-        localStorage.setItem('eisenwerk.enemies', enemies);
-        localStorage.setItem('eisenwerk.cliffs', cliffs);
-        localStorage.setItem('eisenwerk.freq', freq);
+        localStorage.setItem('letzteschicht.res', res);
+        localStorage.setItem('letzteschicht.enemies', enemies);
+        localStorage.setItem('letzteschicht.cliffs', cliffs);
+        localStorage.setItem('letzteschicht.death', death);
+        localStorage.setItem('letzteschicht.freq', freq);
       } catch { /* privat */ }
-      location.search = `?new&res=${res}&freq=${freq}&enemies=${enemies}&cliffs=${cliffs}${this.game.world.player?.god ? '&god' : ''}`;
+      location.search = `?new&res=${res}&freq=${freq}&enemies=${enemies}&death=${death}&cliffs=${cliffs}${this.game.world.player?.god ? '&god' : ''}`;
     };
     const back = el('button', 'menu-btn', body);
     back.textContent = 'Zurück';
@@ -1993,30 +2128,30 @@ export class Hud {
     }
   }
 
-  /** Spielstand als komprimierte Datei (.eisenwerk, gzip-JSON) herunterladen. */
+  /** Spielstand als komprimierte Datei (.letzteschicht, gzip-JSON) herunterladen. */
   exportGame(): void {
-    const bytes = pack({ format: 'eisenwerk', creative: this.game.creative, data: serializeWorld(this.game.world) });
+    const bytes = pack({ format: 'letzteschicht', creative: this.game.creative, data: serializeWorld(this.game.world) });
     const blob = new Blob([bytes as BlobPart], { type: 'application/gzip' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `eisenwerk-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.eisenwerk`;
+    a.download = `letzteschicht-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.letzteschicht`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     this.flash('Exportiert');
   }
 
-  /** Spielstand aus einer Datei laden (.eisenwerk komprimiert oder ältere .json). */
+  /** Spielstand aus einer Datei laden (.letzteschicht komprimiert oder ältere .json). */
   importGame(): void {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.eisenwerk,application/gzip,application/json,.json';
+    input.accept = '.letzteschicht,application/gzip,application/json,.json';
     input.onchange = async () => {
       const f = input.files?.[0];
       if (!f) return;
       try {
         const bytes = new Uint8Array(await f.arrayBuffer());
         const j = isGzip(bytes) ? unpack<{ format: string; creative: boolean; data: SaveData }>(bytes) : JSON.parse(new TextDecoder().decode(bytes));
-        if (j.format !== 'eisenwerk') throw new Error('keine Eisenwerk-Datei');
+        if (j.format !== 'letzteschicht') throw new Error('keine Letzte-Schicht-Datei');
         this.closeWindows();
         this.game.setWorld(deserializeWorld(j.data), !!j.creative);
         this.flash('Importiert');

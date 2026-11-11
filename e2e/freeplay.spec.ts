@@ -7,7 +7,7 @@ const g = (page: Page) => page.evaluate.bind(page);
 
 async function find(page: Page, res: number): Promise<[number, number]> {
   return g(page)((res: number) => {
-    const w = (window as Any).eisenwerk.world;
+    const w = (window as Any).letzteschicht.world;
     let best: [number, number] = [0, 0];
     let bd = 1e9;
     for (let y = -30; y <= 30; y++)
@@ -23,7 +23,7 @@ async function find(page: Page, res: number): Promise<[number, number]> {
 
 async function toScreen(page: Page, x: number, y: number): Promise<[number, number]> {
   return g(page)(([x, y]: number[]) => {
-    const r = (window as Any).eisenwerk.renderer;
+    const r = (window as Any).letzteschicht.renderer;
     const c = r.camera;
     return [(x - c.x) * 64 * c.zoom + r.app.screen.width / 2, (y - c.y) * 64 * c.zoom + r.app.screen.height / 2];
   }, [x, y]);
@@ -31,7 +31,7 @@ async function toScreen(page: Page, x: number, y: number): Promise<[number, numb
 
 async function walk(page: Page, tx: number, ty: number) {
   for (let i = 0; i < 80; i++) {
-    const [px, py] = await g(page)(() => [(window as Any).eisenwerk.world.player.x, (window as Any).eisenwerk.world.player.y]);
+    const [px, py] = await g(page)(() => [(window as Any).letzteschicht.world.player.x, (window as Any).letzteschicht.world.player.y]);
     const dx = tx + 0.5 - px;
     const dy = ty + 0.5 - py;
     if (Math.hypot(dx, dy) < 1.0) return;
@@ -59,9 +59,9 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   let [sx, sy] = await toScreen(page, coal[0] + 0.5, coal[1] + 0.5);
   await page.mouse.move(sx, sy);
   await page.mouse.down({ button: 'right' });
-  await page.waitForFunction(() => (window as Any).eisenwerk.world.player.inventory.count('coal') >= 2, null, { timeout: 30_000 });
+  await page.waitForFunction(() => (window as Any).letzteschicht.world.player.inventory.count('coal') >= 2, null, { timeout: 30_000 });
   await page.mouse.up({ button: 'right' });
-  expect(await g(page)(() => (window as Any).eisenwerk.world.player.inventory.count('coal'))).toBeGreaterThanOrEqual(1);
+  expect(await g(page)(() => (window as Any).letzteschicht.world.player.inventory.count('coal'))).toBeGreaterThanOrEqual(1);
 
   // Bohrer (Schnellleiste 3, zweimal drehen = Süden) und Ofen (4) bauen
   const iron = await find(page, 1);
@@ -78,7 +78,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await page.mouse.click(sx, sy);
   await page.keyboard.press('q');
   await page.waitForTimeout(200);
-  const kinds = await g(page)(() => [...(window as Any).eisenwerk.world.entities.values()].map((e: Any) => e.kind).sort());
+  const kinds = await g(page)(() => [...(window as Any).letzteschicht.world.entities.values()].map((e: Any) => e.kind).filter((k: string) => k !== 'loot').sort());
   expect(kinds).toEqual(['drill', 'furnace']);
 
   // Bohrer öffnen, Kohle per Strg+Klick übertragen
@@ -87,24 +87,24 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await expect(page.locator('.window.entity')).toBeVisible();
   const slots = page.locator('.inventory .grid.inv .slot[data-item="coal"]');
   await slots.first().click({ modifiers: ['Control'] });
-  expect(await g(page)(() => (window as Any).eisenwerk.world.player.inventory.count('coal'))).toBe(0);
+  expect(await g(page)(() => (window as Any).letzteschicht.world.player.inventory.count('coal'))).toBe(0);
 
   // Zahnrad herstellen (wie im Original: Gebäudefenster schließen, dann ist das Handwerk wieder sichtbar)
   await page.locator('.window.entity .close').click();
   await page.locator('.inventory .craft-tab[title="Zwischenprodukte"]').click();
   await page.locator('.inventory .recipe[data-recipe="iron-gear-wheel"]').click();
-  await page.waitForFunction(() => (window as Any).eisenwerk.world.player.inventory.count('iron-gear-wheel') >= 1, null, { timeout: 15_000 });
-  expect(await g(page)(() => (window as Any).eisenwerk.world.player.inventory.count('iron-gear-wheel'))).toBe(1);
+  await page.waitForFunction(() => (window as Any).letzteschicht.world.player.inventory.count('iron-gear-wheel') >= 1, null, { timeout: 15_000 });
+  expect(await g(page)(() => (window as Any).letzteschicht.world.player.inventory.count('iron-gear-wheel'))).toBe(1);
   await page.keyboard.press('Escape');
 
   // Speichern, weiterspielen, laden
   await page.keyboard.press('Control+s');
   await expect(page.locator('.messages')).toHaveText('Gespeichert');
-  const saved = await g(page)(() => (window as Any).eisenwerk.world.tick);
+  const saved = await g(page)(() => (window as Any).letzteschicht.world.tick);
   await page.waitForTimeout(1000);
   await page.keyboard.press('Control+l');
   await expect(page.locator('.messages')).toHaveText('Geladen');
-  const after = await g(page)(() => ({ tick: (window as Any).eisenwerk.world.tick, n: (window as Any).eisenwerk.world.entities.size }));
+  const after = await g(page)(() => ({ tick: (window as Any).letzteschicht.world.tick, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => e.kind !== 'loot').length }));
   expect(after.n).toBe(2);
   expect(after.tick).toBeLessThan(saved + 45);
   await page.keyboard.press('Alt');
@@ -112,7 +112,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await page.screenshot({ path: 'test-results/freeplay.png' });
 
   // Neu laden: Startdialog bietet den Spielstand an, Weiterspielen stellt Karte und Gebäude wieder her
-  const seed = await g(page)(() => (window as Any).eisenwerk.world.seed);
+  const seed = await g(page)(() => (window as Any).letzteschicht.world.seed);
   await page.keyboard.press('Control+s');
   await expect(page.locator('.messages')).toHaveText('Gespeichert');
   await page.reload();
@@ -121,7 +121,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await expect(cont).toBeVisible();
   await cont.click();
   await expect(page.locator('.messages')).toHaveText('Geladen');
-  const restored = await g(page)(() => ({ seed: (window as Any).eisenwerk.world.seed, n: (window as Any).eisenwerk.world.entities.size }));
+  const restored = await g(page)(() => ({ seed: (window as Any).letzteschicht.world.seed, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => e.kind !== 'loot').length }));
   expect(restored).toEqual({ seed, n: 2 });
   expect(errors).toEqual([]);
 });

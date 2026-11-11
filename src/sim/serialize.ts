@@ -1,7 +1,8 @@
 import { EquipmentGrid } from './armor';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import type { EnemySystem } from './enemies';
-import type { PollutionSystem } from './pollution';
+import type { NoiseSystem } from './noise';
+import type { SiteSystem } from './sites';
 import type { GhostSystem } from './blueprint';
 import type { ResearchData } from './research';
 import type { ProductionStats } from './stats';
@@ -74,7 +75,10 @@ export interface SaveData {
   robots?: ReturnType<RobotSystem['serialize']>;
   rockets?: number;
   circuit?: ReturnType<CircuitSystem['serialize']>;
-  pollution?: ReturnType<PollutionSystem['serialize']>;
+  noise?: ReturnType<NoiseSystem['serialize']>;
+  sites?: ReturnType<SiteSystem['serialize']>;
+  /** Tick der Rettung (Funkturm), sonst nicht gesetzt. */
+  rescued?: number;
   /** Aufgedeckte Abschnitte: Paare (Schlüssel, Tick). */
   chart?: number[];
   enemies?: ReturnType<EnemySystem['serialize']>;
@@ -107,6 +111,8 @@ interface PlayerData {
   ar?: string | null;
   gr?: ReturnType<EquipmentGrid['serialize']> | null;
   pr?: boolean;
+  /** Überleben: Hunger, Durst, Müdigkeit, Wunden (Ablauf-Ticks), Infektion, Schlaf, Tod, Nahkampf-Abnutzung, Waffenwahl. */
+  sv?: ReturnType<Player['saveSurvival']>;
 }
 
 export function serializeWorld(w: World): SaveData {
@@ -140,9 +146,11 @@ export function serializeWorld(w: World): SaveData {
     stats: w.stats.serialize(),
     robots: w.robots.serialize(),
     rockets: w.rocketsLaunched,
-    pollution: w.pollution.serialize(),
+    noise: w.noise.serialize(),
+    sites: w.sites.serialize(),
+    ...(w.rescuedAt !== null ? { rescued: w.rescuedAt } : {}),
     chart: w.chart.serialize(),
-    enemies: w.enemies.serialize(),
+    enemies: w.enemies.serialize(w.structureVersion),
     circuit: w.circuit.serialize(),
     trains: w.trains.serialize(),
     ground: [...w.ground.entries()].sort((a, b) => a[0] - b[0]).map(([k, list]) => [k, list.map((g) => [g.item, g.x, g.y] as [string, number, number])]),
@@ -164,6 +172,7 @@ export function serializeWorld(w: World): SaveData {
         ar: p.armor,
         gr: p.grid?.serialize() ?? null,
         pr: p.personalRobots,
+        sv: p.saveSurvival(),
       }
       : null,
   };
@@ -198,7 +207,9 @@ export function deserializeWorld(d: SaveData): World {
   w.stats.load(d.stats);
   w.robots.load(w, d.robots);
   w.rocketsLaunched = d.rockets ?? 0;
-  w.pollution.load(d.pollution);
+  w.noise.load(d.noise);
+  w.sites.load(d.sites);
+  w.rescuedAt = d.rescued ?? null;
   w.chart.load(d.chart);
   w.enemies.load(w, d.enemies);
   w.trains.load(d.trains);
@@ -229,6 +240,7 @@ export function deserializeWorld(d: SaveData): World {
     p.grid = p.armor ? EquipmentGrid.forArmor(p.armor) : null;
     p.grid?.load(pd.gr ?? undefined);
     p.personalRobots = pd.pr ?? true;
+    p.loadSurvival(pd.sv);
     pd.quickbar.forEach((q, i) => (p.quickbar[i] = q));
     for (const j of pd.queue) p.craftQueue.push({ ...j });
     p.mineTarget = pd.mine;

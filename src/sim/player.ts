@@ -4,7 +4,10 @@ import { FLOOR, FLOOR_BY_ID } from '../data/floors';
 import { entityDef } from '../data/entities';
 import { ITEMS, ITEM_IDS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
-import { AMMO, PLAYER_COMBAT, REPAIR, WEAPONS } from '../data/enemies';
+import { AMMO, FISTS, HAZARD, MELEE, type MeleeDef, NOISE, PLAYER_COMBAT, REPAIR, type UnitDef, WEAPONS, ZOMBIE } from '../data/enemies';
+import { CONSUMABLES, SURVIVAL, perTick } from '../data/survival';
+import { DAY } from '../data/time';
+import { hash01 } from './rng';
 import { GOD, PLAYER, START_INVENTORY } from '../data/player';
 import { RECIPES, type RecipeDef, craftingRecipeFor } from '../data/recipes';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -55,13 +58,38 @@ export class Player {
   /** Schnellleiste: Item-IDs (Verweise, wie im Vorbild). */
   readonly quickbar: (string | null)[] = new Array(PLAYER.quickbarSlots).fill(null);
   readonly craftQueue: CraftJob[] = [];
-  /** Lebenspunkte, letzter Treffer (Heilung), Tod (Wiedereinstieg am Start). */
+  /** Lebenspunkte, letzter Treffer, Tod (endgültig oder Wiedereinstieg am Start, je nach Karteneinstellung). */
   hp: number = PLAYER_COMBAT.health;
   lastHit = -1e9;
   dead = false;
-  /** Schießen (Leertaste halten): Ziel automatisch im Umkreis der Waffe. */
+  deathTick = 0;
+  deathCause = '';
+  /** Überleben: Hunger und Durst 100 (gut) … 0, Müdigkeit 0 (ausgeruht) … 100. */
+  hunger: number = SURVIVAL.start.hunger;
+  thirst: number = SURVIVAL.start.thirst;
+  fatigue: number = SURVIVAL.start.fatigue;
+  /** Blutende Wunden: Tick, an dem jede von selbst aufhört. */
+  wounds: number[] = [];
+  /** Infektion 0…1 (null = gesund); bei 1 tödlich. */
+  infection: number | null = null;
+  sleeping = false;
+  /** Schläft im Bett (schnellere Erholung). */
+  private inBed = false;
+  /** Zuletzt gemeldete Warnstufen (Hunger, Durst, Müdigkeit, Fieber), damit Meldungen nicht wiederholt werden. */
+  private warned = [0, 0, 0, 0];
+  /** Angreifen (Leertaste halten): Nahkampf bzw. Schuss auf das nächste Ziel in Reichweite. */
   shooting = false;
+  /** Schusswaffe statt Nahkampfwaffe benutzen (Taste X). */
+  useGun = false;
   private gunCd = 0;
+  private meleeCd = 0;
+  /** Schläge je Nahkampfwaffe seit dem letzten Verschleiß. */
+  meleeWear: Record<string, number> = {};
+  /** Darstellung: letzter Schlag (Tick, Richtung). */
+  lastMelee = -100;
+  meleeAngle = 0;
+  /** Fundort, der gerade durchsucht wird (Entity-ID). */
+  searchTarget: number | null = null;
   /** Schuss im angebrochenen Magazin. */
   rounds = 0;
   roundsItem: string | null = null;
@@ -110,9 +138,11 @@ export class Player {
     this.quickbar[1] = 'burner-inserter';
     this.quickbar[2] = 'burner-mining-drill';
     this.quickbar[3] = 'stone-furnace';
-    this.quickbar[4] = 'iron-chest';
+    this.quickbar[4] = 'wooden-barricade';
     this.quickbar[5] = 'coal';
-    this.quickbar[6] = 'iron-plate';
+    this.quickbar[6] = 'canned-food';
+    this.quickbar[7] = 'water-bottle';
+    this.quickbar[8] = 'bandage';
   }
 
   overlapsRect(x: number, y: number, w: number, h: number): boolean {
@@ -129,12 +159,25 @@ export class Player {
   update(world: World): void {
     this.prevPx = this.px;
     this.prevPy = this.py;
+    if (this.dead) return;
     // Forschungs-Boni der Figur: Stahlaxt, Werkzeuggürtel (+10 Inventarplätze)
     this.miningBonus = world.research.bonus('hand-mining');
     const slots = this.inventorySize(world);
     if (this.inventory.size < slots) this.inventory.resize(slots);
     this.grid?.update(1 - world.darkness);
+    this.updateSurvival(world);
+    if (this.dead) return;
+    if (this.sleeping) {
+      // Schlaf: nichts tun außer Handwerk; jede Bewegungseingabe weckt
+      if (this.moveX !== 0 || this.moveY !== 0 || this.shooting) this.wake();
+      else {
+        this.walking = false;
+        this.updateCrafting(world);
+        return;
+      }
+    }
     this.updateCombat(world);
+    this.updateSearch(world);
     this.updateMovement(world);
     this.updateMining(world);
     this.updateCrafting(world);
@@ -212,24 +255,268 @@ export class Player {
 
   // ------------------------------------------------------------- Kampf
 
-  /** Schaden an der Spielfigur; bei 0 Lebenspunkten Neustart am Startpunkt (Inventar bleibt, Vereinfachung). */
-  damage(world: World, dmg: number): void {
+  /**
+   * Schaden an der Spielfigur. Zombietreffer (from) können eine blutende Wunde reißen oder infizieren.
+   * Bei 0 Lebenspunkten Tod: endgültig oder Wiedereinstieg am Start (Karteneinstellung „Tod“).
+   */
+  damage(world: World, dmg: number, from?: UnitDef): void {
     if (this.dead || this.god) return;
     const a = this.armor ? ARMORS[this.armor] : null;
-    // Rüstung: fester Abzug, dann Anteil (Wiki „Damage“: Widerstände)
-    if (a) dmg = Math.max(dmg * 0.01, (dmg - a.flat) * (1 - a.percent));
+    // Rüstung: fester Abzug, dann Anteil
+    if (a) dmg = Math.max(dmg * 0.1, (dmg - a.flat) * (1 - a.percent));
     this.hp -= dmg;
     this.lastHit = world.tick;
-    if (this.hp > 0) return;
-    this.hp = PLAYER_COMBAT.health;
-    // Wiki „Character corpse“: das Inventar bleibt in der Leiche am Todesort
+    this.wake();
+    if (from && world.settings.needs) {
+      const guard = a ? 1 - a.percent : 1;
+      if (this.wounds.length < SURVIVAL.maxWounds && hash01(world.seed, world.tick, 71) < from.bleedChance * guard) {
+        this.wounds.push(world.tick + SURVIVAL.bleedTicks);
+        this.note('Du blutest – ein Verband stoppt die Blutung');
+      }
+      if (this.infection === null && hash01(world.seed, world.tick, 72) < from.infectChance * guard) {
+        this.infection = 0;
+        this.note('Du wurdest gebissen! Ohne Antibiotika endet das tödlich');
+      }
+    }
+    if (this.hp <= 0) this.die(world, from ? `von einem ${from.name} getötet` : 'gestorben');
+  }
+
+  /** Tod der Figur. */
+  die(world: World, cause: string): void {
+    if (this.dead) return;
+    world.events.push('playerdeath', this.x, this.y);
+    // das Inventar bleibt in der Leiche am Todesort
     world.corpses.add(this.x, this.y, world.tick, this.inventory);
+    this.mineTarget = null;
+    this.searchTarget = null;
+    this.sleeping = false;
+    this.craftQueue.length = 0;
+    this.wounds = [];
+    this.infection = null;
+    if (world.settings.death === 'endgueltig') {
+      this.hp = 0;
+      this.dead = true;
+      this.deathTick = world.tick;
+      this.deathCause = cause;
+      return;
+    }
+    this.hp = PLAYER_COMBAT.health;
+    this.hunger = Math.max(this.hunger, 50);
+    this.thirst = Math.max(this.thirst, 50);
+    this.fatigue = Math.min(this.fatigue, 40);
     this.px = 128;
     this.py = 128;
     this.prevPx = this.px;
     this.prevPy = this.py;
+    this.note(`Du bist ${cause} – dein Inventar liegt in deiner Leiche (Rechtsklick holt es zurück)`);
+  }
+
+  // ------------------------------------------------------------- Überleben
+
+  /** Hunger, Durst, Müdigkeit, Blutung, Infektion, Heilung. Ohne Bedürfnisse (Einstellung/Gottmodus) nur Heilung. */
+  private updateSurvival(world: World): void {
+    const S = SURVIVAL;
+    const max = PLAYER_COMBAT.health;
+    if (!world.settings.needs || this.god) {
+      if (world.tick - this.lastHit > 600 && this.hp < max) this.hp = Math.min(max, this.hp + 0.05);
+      return;
+    }
+    const work = this.sleeping ? 0.5 : this.walking || this.mineTarget ? S.workFactor : 1;
+    this.hunger = Math.max(0, this.hunger - perTick(S.hungerDays) * work);
+    this.thirst = Math.max(0, this.thirst - perTick(S.thirstDays) * work);
+    if (this.sleeping) {
+      this.fatigue = Math.max(0, this.fatigue - (this.inBed ? S.sleepRestBed : S.sleepRestGround));
+      if (this.fatigue <= 0) {
+        this.wake();
+        this.note('Ausgeschlafen');
+      } else if (world.tick % 30 === 0 && world.enemies.nearestTarget(this.x, this.y, S.wakeDistance, world.tick)) {
+        this.wake();
+        this.note('Du schreckst hoch – Zombies in der Nähe!');
+      }
+    } else this.fatigue = Math.min(100, this.fatigue + perTick(S.fatigueDays));
+    if (world.tick % 60 !== 0) return;
+    let cause = '';
+    if (this.hunger <= 0) {
+      this.hp -= S.starveDamagePerSecond;
+      cause = 'verhungert';
+    }
+    if (this.thirst <= 0) {
+      this.hp -= S.thirstDamagePerSecond;
+      cause = 'verdurstet';
+    }
+    if (this.fatigue >= 100) {
+      this.hp -= 0.3;
+      cause ||= 'vor Erschöpfung zusammengebrochen';
+    }
+    this.wounds = this.wounds.filter((t) => t > world.tick);
+    if (this.wounds.length) {
+      this.hp -= S.bleedPerSecond * this.wounds.length;
+      cause = 'verblutet';
+    }
+    if (this.infection !== null) {
+      this.infection += 60 / (S.infectionDays * DAY.ticks);
+      if (this.infection >= 1) {
+        this.die(world, 'der Infektion erlegen');
+        return;
+      }
+    }
+    if (this.hp <= 0) {
+      this.die(world, cause || 'gestorben');
+      return;
+    }
+    if (this.hunger > S.healAbove && this.thirst > S.healAbove && !this.wounds.length && (this.infection ?? 0) < S.feverFrom && this.hp < max) {
+      this.hp = Math.min(max, this.hp + S.healPerSecond * (this.sleeping ? 2 : 1));
+    }
+    this.warn(0, 100 - this.hunger, ['Du hast Hunger', 'Du verhungerst – iss etwas!']);
+    this.warn(1, 100 - this.thirst, ['Du hast Durst', 'Du verdurstest – trink etwas!']);
+    this.warn(2, this.fatigue, ['Du bist müde (Z: schlafen)', 'Du kannst dich kaum noch auf den Beinen halten']);
+    this.warn(3, (this.infection ?? 0) * 100 + 25, ['Du hast Fieber – die Bisswunde hat sich entzündet', 'Das Fieber steigt – ohne Antibiotika bleibt wenig Zeit']);
+  }
+
+  /** Warnmeldung beim Überschreiten von 75 bzw. 92 (Wert 0 gut … 100 schlecht), einmal je Stufe. */
+  private warn(i: number, v: number, msg: [string, string]): void {
+    const level = v >= 92 ? 2 : v >= 75 ? 1 : 0;
+    if (level > this.warned[i]) this.note(msg[level - 1]);
+    this.warned[i] = level;
+  }
+
+  /** Lauf- und Arbeitstempo: müde, fiebrig oder ausgehungert ist die Figur langsamer. */
+  get condition(): number {
+    let f = 1;
+    if (this.fatigue >= SURVIVAL.tiredFrom) f *= SURVIVAL.tiredSpeed;
+    if ((this.infection ?? 0) >= SURVIVAL.feverFrom) f *= SURVIVAL.feverSpeed;
+    if (this.hunger <= 0 || this.thirst <= 0) f *= 0.85;
+    return f;
+  }
+
+  /** Schlafen legen (im Feldbett daneben oder auf dem Boden). Liefert eine Meldung, wenn es nicht geht. */
+  sleep(world: World): string | null {
+    if (this.dead) return null;
+    if (this.sleeping) {
+      this.wake();
+      return null;
+    }
+    if (world.settings.needs && this.fatigue < SURVIVAL.sleepFrom) return 'Du bist nicht müde';
+    if (world.enemies.nearestTarget(this.x, this.y, SURVIVAL.wakeDistance, world.tick)) return 'Zombies in der Nähe – hier kannst du nicht schlafen';
+    this.inBed = false;
+    for (let ty = Math.floor(this.y - 1.5); ty <= Math.floor(this.y + 1.5) && !this.inBed; ty++) {
+      for (let tx = Math.floor(this.x - 1.5); tx <= Math.floor(this.x + 1.5); tx++) {
+        if (world.entityAt(tx, ty)?.kind === 'bed') {
+          this.inBed = true;
+          break;
+        }
+      }
+    }
+    this.sleeping = true;
     this.mineTarget = null;
-    this.note('Du bist gestorben – dein Inventar liegt in deiner Leiche (Rechtsklick holt es zurück)');
+    this.searchTarget = null;
+    this.note(this.inBed ? 'Du legst dich ins Feldbett' : 'Du legst dich auf den Boden (ein Feldbett wäre erholsamer)');
+    return null;
+  }
+
+  wake(): void {
+    this.sleeping = false;
+  }
+
+  /** Gegenstand benutzen (essen, trinken, verbinden). Liefert eine Meldung, wenn es nicht geht. */
+  use(world: World, item: string): string | null {
+    const c = CONSUMABLES[item];
+    if (!c || this.dead) return 'Nicht benutzbar';
+    if (!this.god && this.inventory.count(item) < 1) return 'Nicht im Inventar';
+    const max = PLAYER_COMBAT.health;
+    if (c.cure && this.infection === null) return 'Du bist nicht infiziert';
+    if (c.bandage && !c.hunger && !this.wounds.length && this.hp >= max) return 'Du bist nicht verletzt';
+    if (c.hunger && c.hunger > 0 && !c.thirst && this.hunger >= 99) return 'Du bist satt';
+    if (c.returns && !this.god && this.inventory.space(c.returns) < 1 && this.inventory.count(item) > 1) return 'Inventar voll';
+    if (!this.god) this.inventory.remove(item, 1);
+    this.onUsed(item, 1);
+    if (c.hunger) this.hunger = Math.max(0, Math.min(100, this.hunger + c.hunger));
+    if (c.thirst) this.thirst = Math.max(0, Math.min(100, this.thirst + c.thirst));
+    if (c.rest) this.fatigue = Math.max(0, this.fatigue - c.rest);
+    if (c.heal) this.hp = Math.min(max, this.hp + c.heal);
+    if (c.bandage) this.wounds.splice(0, c.bandage);
+    if (c.cure) {
+      this.infection = null;
+      this.warned[3] = 0;
+    }
+    if (c.returns && !this.god) this.inventory.add(c.returns, 1);
+    world.events.push('use', this.x, this.y, { item });
+    this.note(`${ITEMS[item]?.name ?? item} ${c.verb}`);
+    return null;
+  }
+
+  /** Leere Flaschen an einem Wasserfeld in Reichweite füllen. Liefert die Zahl der gefüllten Flaschen. */
+  fillBottles(world: World, tx: number, ty: number): number {
+    if (!world.map.isWater(tx, ty) || !this.canReachResource(tx, ty)) return 0;
+    const n = this.inventory.count('empty-bottle');
+    if (n < 1) return 0;
+    this.inventory.remove('empty-bottle', n);
+    const added = this.inventory.add('water-bottle', n);
+    if (added < n) this.inventory.add('empty-bottle', n - added);
+    if (added > 0) this.note(`${added}× Wasserflasche gefüllt`);
+    return added;
+  }
+
+  /** Fundort durchsuchen (Linksklick): läuft, solange die Figur daneben steht. */
+  search(world: World, id: number): string | null {
+    const e = world.entities.get(id);
+    if (!e || e.kind !== 'loot') return null;
+    if (e.searched) return null;
+    if (this.distanceToRect(e.x, e.y, e.w, e.h) > PLAYER.searchDistance) return 'Zu weit weg zum Durchsuchen';
+    this.searchTarget = id;
+    return null;
+  }
+
+  private updateSearch(world: World): void {
+    const id = this.searchTarget;
+    if (id === null) return;
+    const e = world.entities.get(id);
+    if (!e || e.kind !== 'loot' || e.searched || this.distanceToRect(e.x, e.y, e.w, e.h) > PLAYER.searchDistance) {
+      this.searchTarget = null;
+      return;
+    }
+    if (++e.searchProgress >= (this.god ? 1 : e.searchTicks)) {
+      e.searched = true;
+      this.searchTarget = null;
+      world.events.push('search', e.cx, e.cy, { id: e.id });
+      this.note(e.inventory.isEmpty() ? `${e.def.name}: nichts Brauchbares` : `${e.def.name} durchsucht`);
+    }
+  }
+
+  distanceToRect(x: number, y: number, w: number, h: number): number {
+    const dx = Math.max(x - this.x, 0, this.x - (x + w));
+    const dy = Math.max(y - this.y, 0, this.y - (y + h));
+    return Math.hypot(dx, dy);
+  }
+
+  saveSurvival() {
+    return {
+      hu: this.hunger, th: this.thirst, fa: this.fatigue, wo: [...this.wounds], inf: this.infection, sl: this.sleeping, bed: this.inBed,
+      dead: this.dead, dt: this.deathTick, dc: this.deathCause, mw: { ...this.meleeWear }, ug: this.useGun, wa: [...this.warned], st: this.searchTarget,
+    };
+  }
+
+  loadSurvival(d: ReturnType<Player['saveSurvival']> | undefined): void {
+    if (!d) {
+      // Spielstand ohne Überlebenswerte: satt und ausgeruht
+      this.hunger = this.thirst = 100;
+      this.fatigue = 0;
+      return;
+    }
+    this.hunger = d.hu;
+    this.thirst = d.th;
+    this.fatigue = d.fa;
+    this.wounds = [...d.wo];
+    this.infection = d.inf;
+    this.sleeping = d.sl;
+    this.inBed = d.bed;
+    this.dead = d.dead;
+    this.deathTick = d.dt;
+    this.deathCause = d.dc;
+    this.meleeWear = { ...d.mw };
+    this.useGun = d.ug;
+    this.warned = [...d.wa];
+    this.searchTarget = d.st;
   }
 
   private updateRepair(world: World): void {
@@ -250,31 +537,41 @@ export class Player {
     }
   }
 
-  /** Waffe: Maschinenpistole, wenn vorhanden, sonst Pistole (Wiki „Pistol“, „Submachine gun“). */
+  /** Schusswaffe: Maschinenpistole, wenn vorhanden, sonst Pistole. */
   get weapon(): 'submachine-gun' | 'pistol' | null {
     if (this.inventory.count('submachine-gun') > 0) return 'submachine-gun';
     if (this.inventory.count('pistol') > 0) return 'pistol';
     return null;
   }
 
+  /** Beste Nahkampfwaffe im Inventar (Reihenfolge in MELEE), sonst null (Fäuste). */
+  get meleeWeapon(): string | null {
+    for (const id of Object.keys(MELEE)) if (this.inventory.count(id) > 0) return id;
+    return null;
+  }
+
+  /** Munition im Inventar oder im angebrochenen Magazin. */
+  get hasAmmo(): boolean {
+    return this.rounds > 0 || Object.keys(AMMO).some((a) => this.inventory.count(a) > 0);
+  }
+
   private updateCombat(world: World): void {
-    if (world.tick - this.lastHit > PLAYER_COMBAT.healDelay && this.hp < PLAYER_COMBAT.health) {
-      this.hp = Math.min(PLAYER_COMBAT.health, this.hp + PLAYER_COMBAT.healPerTick);
-    }
     this.updateRepair(world);
     if (this.gunCd > 0) this.gunCd--;
-    if (!this.shooting || this.gunCd > 0) return;
+    if (this.meleeCd > 0) this.meleeCd--;
+    if (!this.shooting) return;
     const wpn = this.weapon;
-    if (!wpn) return;
+    if (this.useGun && wpn && this.hasAmmo) this.shoot(world, wpn);
+    else this.strike(world);
+  }
+
+  private shoot(world: World, wpn: 'submachine-gun' | 'pistol'): void {
+    if (this.gunCd > 0) return;
     const W = WEAPONS[wpn];
     const t = world.enemies.nearestTarget(this.x, this.y, W.range, world.tick);
     if (!t) return;
     if (this.rounds === 0) {
-      const it = Object.keys(AMMO).reverse().find((a) => this.inventory.count(a) > 0);
-      if (!it) {
-        if (world.tick % 60 === 0) this.note('Keine Munition');
-        return;
-      }
+      const it = Object.keys(AMMO).reverse().find((a) => this.inventory.count(a) > 0)!;
       this.inventory.remove(it, 1);
       world.stats.used(it, 1);
       this.rounds = AMMO[it].rounds;
@@ -286,8 +583,33 @@ export class Player {
     this.shotX = t.x;
     this.shotY = t.y;
     world.events.push('shot', this.x, this.y);
+    world.noise.emit(this.x, this.y, W.noise);
     world.enemies.damageTarget(world, t, AMMO[this.roundsItem!].damage * (1 + world.research.bonus('bullet-damage')), { x: this.x, y: this.y });
     if (this.rounds === 0) this.roundsItem = null;
+  }
+
+  /** Nahkampf: Schlag auf den nächsten Zombie in Reichweite; betäubt kurz, nutzt die Waffe ab, ist leise. */
+  private strike(world: World): void {
+    if (this.meleeCd > 0) return;
+    const item = this.meleeWeapon;
+    const M: MeleeDef = item ? MELEE[item] : FISTS;
+    const t = world.enemies.nearestTarget(this.x, this.y, M.reach + 0.35, world.tick);
+    if (!t) return;
+    this.meleeCd = Math.round(M.cooldown / this.condition);
+    this.lastMelee = world.tick;
+    this.meleeAngle = Math.atan2(t.y - this.y, t.x - this.x);
+    world.events.push('melee', t.x, t.y);
+    world.noise.emit(this.x, this.y, NOISE.melee);
+    world.enemies.damageTarget(world, t, M.damage, { x: this.x, y: this.y }, ZOMBIE.stunTicks);
+    if (item && !this.god) {
+      const used = (this.meleeWear[item] ?? 0) + 1;
+      if (used >= M.durability) {
+        this.inventory.remove(item, 1);
+        world.stats.used(item, 1);
+        delete this.meleeWear[item];
+        this.note(`${ITEMS[item].name} ist zerbrochen`);
+      } else this.meleeWear[item] = used;
+    }
   }
 
   /** Nächstes Bodenitem im Umkreis aufheben. */
@@ -343,7 +665,9 @@ export class Player {
     // Bodenbelag unter der Figur beschleunigt (Wiki: Steinpflaster 130 %, Beton 140 %, veredelter Beton 150 %)
     const floor = world.map.floorAt(Math.floor(this.x), Math.floor(this.y));
     const fs = floor ? FLOOR_BY_ID[floor].speed : 1;
-    const speed = Math.round(PLAYER.runningSpeed * SUB * fs * (this.god ? GOD.runningFactor : 1));
+    // eigener Stacheldraht bremst auch die Figur
+    const wire = world.entityAt(this.x, this.y)?.kind === 'wire' ? HAZARD.wire.slow + 0.2 : 1;
+    const speed = Math.round(PLAYER.runningSpeed * SUB * fs * wire * this.condition * (this.god ? GOD.runningFactor : 1));
     // Diagonal: 181/256 ≈ 1/√2
     const diag = mx !== 0 && my !== 0;
     const step = diag ? Math.round((speed * 181) / 256) : speed;
@@ -365,7 +689,7 @@ export class Player {
     const y = py / SUB;
     for (let ty = Math.floor(y - r); ty <= Math.floor(y + r); ty++) {
       for (let tx = Math.floor(x - r); tx <= Math.floor(x + r); tx++) {
-        if (world.map.isBlocked(tx, ty) || world.enemies.nestAt(tx, ty)) return true;
+        if (world.map.isBlocked(tx, ty)) return true;
         const e = world.entityAt(tx, ty);
         const ed = e ? entityDef(e.name) : null;
         if (e && ed!.solid && !ed!.walkable) {
@@ -426,7 +750,7 @@ export class Player {
   /** Forschung „Stahlaxt“: +100 % Abbautempo der Figur (Wiki). */
   miningBonus = 0;
   private mineTicks(seconds: number): number {
-    return this.god ? 1 : Math.max(1, secondsToTicks(seconds / (PLAYER.miningSpeed * (1 + this.miningBonus))));
+    return this.god ? 1 : Math.max(1, secondsToTicks(seconds / (PLAYER.miningSpeed * (1 + this.miningBonus) * this.condition)));
   }
 
   private updateMining(world: World): void {
@@ -444,10 +768,11 @@ export class Player {
         this.note('Inventar voll');
         return;
       }
-      this.mineTotal = this.mineTicks(kind.mineTime);
+      this.mineTotal = this.mineTicks(kind.mineTime / (this.inventory.count('axe') > 0 ? MELEE.axe.chop! : 1));
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
         world.events.push('tree', tree.x, tree.y, { item: 'wood' });
+        world.noise.emit(tree.x, tree.y, NOISE.chop);
         if (world.map.trees.remove(tree.cx, tree.cy, tree.i)) {
           this.inventory.add('wood', kind.wood);
           world.stats.made('wood', kind.wood);
@@ -525,6 +850,7 @@ export class Player {
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
         world.events.push('mine', t.x + 0.5, t.y + 0.5, { item: def.result });
+        world.noise.emit(this.x, this.y, NOISE.mine);
         if (world.map.mineOne(t.x, t.y)) {
           this.inventory.add(def.result, 1);
           world.stats.made(def.result, 1);
@@ -541,12 +867,19 @@ export class Player {
         this.mineProgress = 0;
         return;
       }
-      this.mineTotal = this.mineTicks(def.mineTime);
+      // Fundorte ausschlachten: nur aus der Nähe, mit Brecheisen schneller, und es macht Lärm
+      const loot = e.kind === 'loot';
+      if (loot && this.distanceToRect(e.x, e.y, e.w, e.h) > PLAYER.searchDistance) {
+        this.mineProgress = 0;
+        return;
+      }
+      this.mineTotal = this.mineTicks(def.mineTime / (loot && this.inventory.count('crowbar') > 0 ? MELEE.crowbar.dismantle! : 1));
+      if (loot && this.mineProgress % 60 === 30) world.noise.emit(e.cx, e.cy, NOISE.chop);
       if (++this.mineProgress >= this.mineTotal) {
         this.mineProgress = 0;
         const rec = { name: e.name, x: e.x, y: e.y, dir: e.dir };
         world.events.push('remove', e.cx, e.cy, { item: def.item });
-        if (this.pickUpEntity(world, t.id)) this.minedLog.push(rec);
+        if (this.pickUpEntity(world, t.id) && !loot) this.minedLog.push(rec);
         this.mineTarget = null;
       }
     }

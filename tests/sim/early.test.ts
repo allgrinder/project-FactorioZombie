@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { ElectricSource } from '../../src/sim/energy';
 import {
-  type AssemblerEntity, type ContainerEntity, type FluidPumpEntity, type FurnaceEntity, type InserterEntity,
+  type ContainerEntity, type FluidPumpEntity, type FurnaceEntity, type InserterEntity,
   type PipeGroundEntity, type TankEntity, insertInto,
 } from '../../src/sim/machines';
-import { Player } from '../../src/sim/player';
 import { World } from '../../src/sim/world';
 
 function clearWorld(seed = 3): World {
@@ -95,21 +94,6 @@ describe('Frühe Phase (Wiki-Werte)', () => {
     expect(w.landfill(3, 3)).toBe(false);
   });
 
-  it('Motor nur in der Montagemaschine, Montagemaschine 2 mit Geschwindigkeit 0,75', () => {
-    const w = clearWorld();
-    const p = new Player(0.5, 0.5);
-    w.player = p;
-    w.research.complete('engine');
-    p.inventory.add('steel-plate', 5);
-    p.inventory.add('pipe', 10);
-    p.inventory.add('iron-gear-wheel', 5);
-    expect(p.craftableCount('engine-unit')).toBe(0);
-    const asm = w.place('assembling-machine-2', 3, 3, 0) as AssemblerEntity;
-    asm.setRecipe('engine-unit');
-    expect(asm.recipe?.id).toBe('engine-unit');
-    expect(asm.recipeTicks(asm.recipe!)).toBe(Math.round((10 / 0.75) * 60));
-  });
-
   it('Mittlerer und großer Strommast: Reichweite 9 / 32, Versorgung 7×7 / 4×4', () => {
     const w = clearWorld();
     w.place('medium-electric-pole', 0, 0, 0);
@@ -121,14 +105,14 @@ describe('Frühe Phase (Wiki-Werte)', () => {
   });
 });
 
-describe('Tag und Nacht (Wiki „Time“)', () => {
-  it('Tag 25.200 Ticks, Dunkelheit nach Phasen, Lampen nur nachts', async () => {
+describe('Tag und Nacht', () => {
+  it('Tag 36.000 Ticks (10 min), Dunkelheit nach Phasen, Lampen nur nachts', async () => {
     const { darknessAt, DAY } = await import('../../src/data/time');
-    expect(DAY.ticks).toBe(25_200);
+    expect(DAY.ticks).toBe(36_000);
     expect(darknessAt(0)).toBe(0);
-    expect(darknessAt(0.35)).toBeCloseTo(0.5, 5);
+    expect(darknessAt(0.34)).toBeCloseTo(0.5, 5);
     expect(darknessAt(0.5)).toBe(1);
-    expect(darknessAt(0.65)).toBeCloseTo(0.5, 5);
+    expect(darknessAt(0.66)).toBeCloseTo(0.5, 5);
     expect(darknessAt(0.8)).toBe(0);
     const w = clearWorld();
     const lamp = w.place('lamp', 0, 0, 0)!;

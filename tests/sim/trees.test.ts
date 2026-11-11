@@ -59,6 +59,6 @@ describe('Bäume und Holz', () => {
     expect((entityDef('wooden-chest') as { slots: number }).slots).toBe(16);
     const p = new Player(0, 0);
     p.giveStart();
-    expect(p.inventory.count('wood')).toBe(1);
+    expect(p.inventory.count('wood')).toBe(6);
   });
 });

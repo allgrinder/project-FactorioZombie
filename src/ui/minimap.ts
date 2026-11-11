@@ -1,5 +1,4 @@
 import { FLOOR_BY_ID } from '../data/floors';
-import { PollutionSystem } from '../sim/pollution';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX } from '../data/resources';
 import { MINIMAP } from '../data/ui';
@@ -194,21 +193,22 @@ export class Minimap {
         ctx.stroke();
       }
     }
-    // Verschmutzung (rötlicher Schleier je Abschnitt) und Gegner
-    const PC = 32;
-    for (const [k, val] of world.pollution.chunks) {
-      if (val < 5) continue;
-      const [gx, gy] = PollutionSystem.unkey(k);
-      if ((gx + 1) * PC < x0 || (gy + 1) * PC < y0 || gx * PC > x1 || gy * PC > y1 || !charted(gx * PC, gy * PC)) continue;
-      ctx.fillStyle = `rgba(200,60,40,${Math.min(0.45, 0.06 + val / 600).toFixed(3)})`;
-      ctx.fillRect(toX(gx * PC), toY(gy * PC), PC * scale, PC * scale);
+    // Fundorte (Häuser, Wracks) und Lärm (Ringe), dann Zombies
+    ctx.fillStyle = '#c9b58a';
+    for (const st of world.sites.sites) {
+      if (st.x < x0 || st.y < y0 || st.x > x1 || st.y > y1 || !charted(st.x, st.y)) continue;
+      const r = Math.max(2, st.r * 0.35 * scale);
+      ctx.fillRect(toX(st.x) - r, toY(st.y) - r, r * 2, r * 2);
     }
-    ctx.fillStyle = '#d23a2a';
-    for (const n of world.enemies.nestsIn(x0, y0, x1, y1)) {
-      if (!charted(n.x + 2, n.y + 2)) continue;
-      ctx.fillRect(toX(n.x), toY(n.y), Math.max(2, 5 * scale), Math.max(2, 5 * scale));
+    ctx.strokeStyle = 'rgba(255,190,90,0.55)';
+    ctx.lineWidth = 1;
+    for (const n of world.noise.recent) {
+      if (n.x + n.r < x0 || n.y + n.r < y0 || n.x - n.r > x1 || n.y - n.r > y1) continue;
+      ctx.beginPath();
+      ctx.arc(toX(n.x), toY(n.y), Math.max(1, n.r * scale), 0, Math.PI * 2);
+      ctx.stroke();
     }
-    if (detail) {
+    {
       ctx.fillStyle = '#ff6a50';
       for (const u of world.enemies.units.values()) {
         if (u.x < x0 || u.y < y0 || u.x > x1 || u.y > y1) continue;
