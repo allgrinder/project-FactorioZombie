@@ -2,7 +2,7 @@ name: GitHub Pages
 
 on:
   push:
-    branches: [claude/magical-goldberg-mpy6rx, main]
+    branches: [claude/gallant-feynman-h1ps2j, main]
   workflow_dispatch:
 
 permissions:
