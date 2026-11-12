@@ -48,11 +48,11 @@ export const UNITS: Readonly<Record<UnitKind, UnitDef>> = {
   },
   runner: {
     kind: 'runner', name: 'Läufer', health: 24, damage: 7, structureDamage: 4, cooldown: 38, reach: 0.45, speed: 0.125,
-    armorFlat: 0, armorPercent: 0, radius: 0.26, scale: 0.95, fromDay: 3, share: 0.06, sharePerDay: 0.03, shareMax: 0.35, bleedChance: 0.3, infectChance: 0.04,
+    armorFlat: 0, armorPercent: 0, radius: 0.26, scale: 1, fromDay: 3, share: 0.06, sharePerDay: 0.03, shareMax: 0.35, bleedChance: 0.3, infectChance: 0.04,
   },
   brute: {
     kind: 'brute', name: 'Brocken', health: 450, damage: 26, structureDamage: 45, cooldown: 75, reach: 0.7, speed: 0.055,
-    armorFlat: 3, armorPercent: 0.15, radius: 0.45, scale: 1.4, fromDay: 6, share: 0.02, sharePerDay: 0.012, shareMax: 0.12, bleedChance: 0.5, infectChance: 0.03,
+    armorFlat: 3, armorPercent: 0.15, radius: 0.45, scale: 1, fromDay: 6, share: 0.02, sharePerDay: 0.012, shareMax: 0.12, bleedChance: 0.5, infectChance: 0.03,
   },
   screamer: {
     kind: 'screamer', name: 'Schreier', health: 48, damage: 5, structureDamage: 3, cooldown: 60, reach: 0.45, speed: 0.06,

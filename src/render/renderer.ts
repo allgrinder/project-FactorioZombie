@@ -1085,9 +1085,42 @@ export class GameRenderer {
         } else this.drawGeneric(e, cx, cy, z);
         break;
       }
+      case 'loot': {
+        // Fundorte: Variante nach der Lage (gleiche Karte → gleiches Bild)
+        const n = s.countPrefix(`${e.name}.v`);
+        if (!n) this.drawGeneric(e, cx, cy, z);
+        else this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy, z);
+        break;
+      }
+      case 'wall': {
+        // Tor: offen, solange die Figur in der Nähe steht
+        const p = world.player;
+        if (e.def.gate && s.has('gate.open') && p && !p.dead && Math.hypot(p.x - e.cx, p.y - e.cy) < 2.2) this.drawNamed('gate.open', cx, cy, z, 'gate.shadow');
+        else this.drawGeneric(e, cx, cy, z);
+        break;
+      }
+      case 'producer': {
+        // Gemüsebeet: kahl, solange nichts gewachsen ist
+        if (e.name === 'garden' && s.has('garden.bare') && e.out.isEmpty() && e.progress < e.totalTicks / 2) this.drawNamed('garden.bare', cx, cy, z, 'garden.shadow');
+        else this.drawGeneric(e, cx, cy, z);
+        break;
+      }
       default:
         this.drawGeneric(e, cx, cy, z);
     }
+  }
+
+  /** Sprite mit Schatten unter festem Namen. */
+  private drawNamed(base: string, cx: number, cy: number, z: number, shadow = `${base}.shadow`): void {
+    const s = this.sprites;
+    if (s.has(shadow)) {
+      const sh = this.shadows.get(s.frame(shadow));
+      sh.position.set(cx, cy);
+      sh.scale.set(s.info(shadow)?.meta?.scale ?? 1);
+    }
+    const sp = this.ents.get(s.frame(base));
+    sp.position.set(cx, cy);
+    sp.zIndex = z;
   }
 
   private dotTex: Texture | null = null;
