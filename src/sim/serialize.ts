@@ -74,6 +74,8 @@ export interface SaveData {
   stats?: ReturnType<ProductionStats['serialize']>;
   robots?: ReturnType<RobotSystem['serialize']>;
   rockets?: number;
+  /** Zahl der Figuren, die diese Welt schon gesehen hat. */
+  chars?: number;
   circuit?: ReturnType<CircuitSystem['serialize']>;
   noise?: ReturnType<NoiseSystem['serialize']>;
   sites?: ReturnType<SiteSystem['serialize']>;
@@ -146,6 +148,7 @@ export function serializeWorld(w: World): SaveData {
     stats: w.stats.serialize(),
     robots: w.robots.serialize(),
     rockets: w.rocketsLaunched,
+    ...(w.characters > 1 ? { chars: w.characters } : {}),
     noise: w.noise.serialize(),
     sites: w.sites.serialize(),
     ...(w.rescuedAt !== null ? { rescued: w.rescuedAt } : {}),
@@ -207,6 +210,7 @@ export function deserializeWorld(d: SaveData): World {
   w.stats.load(d.stats);
   w.robots.load(w, d.robots);
   w.rocketsLaunched = d.rockets ?? 0;
+  w.characters = d.chars ?? 1;
   w.noise.load(d.noise);
   w.sites.load(d.sites);
   w.rescuedAt = d.rescued ?? null;

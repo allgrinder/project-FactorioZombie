@@ -256,7 +256,7 @@ describe('Fundorte', () => {
   });
 
   it('Karte: Startfundort in der Nähe, Dörfer mit Straße weiter draußen; bleibt nach dem Laden', () => {
-    const w = new World(11, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
+    const w = new World(11, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus', plan: false });
     const p = new Player(0.5, 0.5);
     w.player = p;
     w.step();

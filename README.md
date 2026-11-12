@@ -17,13 +17,22 @@ npm run dev
 
 | URL | Inhalt |
 |---|---|
-| http://localhost:5173/ | Freies Spiel (neue Karte je Runde, „Weiterspielen“ bei vorhandenem Spielstand) |
+| http://localhost:5173/ | Freies Spiel in der festen Welt „Kreis Aschland“ („Weiterspielen“ bei vorhandenem Spielstand) |
 | http://localhost:5173/?new&god | Gottmodus zum Ausprobieren (unsichtbar für Zombies, schnelles Bauen) |
 | http://localhost:5173/?scene=demo | Produktionskette des Vorgängers (Testszene) |
 | http://localhost:5173/?scene=sandbox | Sandkasten |
 
-Parameter: `?seed=123` (feste Karte), `?new` (ohne Startdialog), `&enemies=aus|wenig|normal|viele`,
+Parameter: `?seed=123` (anderes Gelände, Testhilfe), `?new` (ohne Startdialog), `&enemies=aus|wenig|normal|viele`,
 `&death=endgueltig|wiedereinstieg`, `&debug`, `&warp=600`.
+
+## Die Welt
+
+Das Spiel hat **eine feste Welt**: den Kreis Aschland mit dem Weiler Aschbach, den Dörfern Dornfeld, Moorbrück und
+Kaltenhain, den Städten Eisenrode (Industrie) und Grauenfurt (Kreisstadt) und dem Militärposten 7, verbunden durch
+Landstraßen. Die Karte (**M**) zeigt Straßen und Ortsnamen von Anfang an. Wer stirbt, kommt mit einer neuen Figur in
+dieselbe Welt zurück: Lager, geplünderte Häuser und die Leiche mit dem Inventar sind noch da.
+
+![Weltkarte](docs/img/weltkarte.png)
 
 ## So läuft eine Runde
 

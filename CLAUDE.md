@@ -36,13 +36,15 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Überleben (`src/data/survival.ts`, `src/sim/player.ts`): Hunger, Durst, Müdigkeit/Schlaf, Blutung, Infektion, Tod.
 - Nahkampf mit Haltbarkeit, Schusswaffen laut (X wechselt), Stacheldraht/Nagelfalle (Wirkung in `EnemySystem.move`).
 - Fundorte (`src/sim/sites.ts`, Beute `src/data/loot.ts`, Gebäude `src/sim/entities/survival.ts`).
+- Feste Welt „Kreis Aschland“ (`src/data/world.ts`: Orte, Landstraßen, Posten; Aufbau in `SiteSystem.planCell/town/street`),
+  fester Seed im freien Spiel; die Welt überdauert den Tod (`World.newCharacter`, neue Figur, Leiche und Lager bleiben).
 - Trümmerfelder (`RUBBLE` in `src/data/mapgen.ts`, `GameMap.rubbleAt`), Förderer je Material (`DrillDef.mines`).
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Schuttbrecher.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).
   Der Code gestrichener Systeme (Züge, Roboter, Schaltungsnetz, Kernkraft, Öl, Module, Rakete) liegt noch im Projekt,
   ist im Spiel nicht erreichbar und soll entfernt werden.
 - Modelle: `lib/zombie.py`, `ruinen.py`, `lager.py`, `kram.py`, `truemmer.py`; `models/zombies.py`, `ruinen.py`, `lager.py`.
-- Tests: `zombies.test.ts`, `survival.test.ts`, `rubble.test.ts`.
+- Tests: `zombies.test.ts`, `survival.test.ts`, `rubble.test.ts`, `welt.test.ts`.
 
 ## Stand des Vorgängers (Eisenwerk)
 - M1 Bänder: fertig.

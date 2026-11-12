@@ -1,3 +1,4 @@
+import { WORLD } from '../data/world';
 import { FLOOR_BY_ID } from '../data/floors';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -192,6 +193,26 @@ export class Minimap {
         ctx.lineTo(toX(pb.cx), toY(pb.cy));
         ctx.stroke();
       }
+    }
+    // Feste Welt: Landstraßen und Ortsnamen (wie eine Straßenkarte, auch unerkundet)
+    if (world.settings.plan) {
+      ctx.strokeStyle = 'rgba(40,40,42,0.8)';
+      ctx.lineWidth = Math.max(1, 2 * scale);
+      for (const road of WORLD.roads) {
+        ctx.beginPath();
+        road.forEach(([rx, ry], i) => (i ? ctx.lineTo(toX(rx), toY(ry)) : ctx.moveTo(toX(rx), toY(ry))));
+        ctx.stroke();
+      }
+      ctx.font = `${detail ? 13 : 10}px sans-serif`;
+      ctx.textAlign = 'center';
+      for (const t of [...WORLD.towns, ...WORLD.outposts]) {
+        if (t.x < x0 || t.y < y0 || t.x > x1 || t.y > y1) continue;
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillText(t.name, toX(t.x) + 1, toY(t.y) - 7);
+        ctx.fillStyle = '#f0e6c8';
+        ctx.fillText(t.name, toX(t.x), toY(t.y) - 8);
+      }
+      ctx.textAlign = 'start';
     }
     // Fundorte (Häuser, Wracks) und Lärm (Ringe), dann Zombies
     ctx.fillStyle = '#c9b58a';

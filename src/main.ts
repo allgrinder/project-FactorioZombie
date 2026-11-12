@@ -1,4 +1,5 @@
 import { CLIFF_SETTINGS, type CliffSetting, DEATH_SETTINGS, type DeathSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, FREQUENCY_SETTINGS, type FrequencySetting, type EnemySetting, type MapSettings, RESOURCE_SETTINGS, type ResourceSetting } from './data/mapgen';
+import { WORLD } from './data/world';
 import { Game } from './game/game';
 import { type SceneName, createScene } from './game/scenes';
 import { loadSprites } from './render/assets';
@@ -7,9 +8,8 @@ import { GameRenderer } from './render/renderer';
 async function main(): Promise<void> {
   const params = new URLSearchParams(location.search);
   const sceneName = (params.get('scene') ?? 'freeplay') as SceneName;
-  // Freies Spiel ohne seed-Angabe: jede neue Runde eine neue Karte; Szenen mit festem Aufbau behalten 12345
-  const seed = params.has('seed') ? Number(params.get('seed')) | 0
-    : sceneName === 'freeplay' ? 1 + Math.floor(Math.random() * 999_999) : 12345;
+  // Freies Spiel: die feste Welt (src/data/world.ts); ?seed=… erzeugt anderes Gelände (Testhilfe). Szenen behalten 12345
+  const seed = params.has('seed') ? Number(params.get('seed')) | 0 : sceneName === 'freeplay' ? WORLD.seed : 12345;
   const debug = params.has('debug');
   const root = document.getElementById('app')!;
   const loading = document.getElementById('loading');

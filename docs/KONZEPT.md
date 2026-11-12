@@ -70,10 +70,36 @@ dazu ein Startfundort in Sichtweite. Durchsuchen dauert 1–6 s; Ausschlachten l
 Zahnräder (mit Brecheisen doppelt so schnell). Seltene Beute (Waffen, Antibiotika, Funkteile) wird mit der
 Entfernung vom Start wahrscheinlicher.
 
+## Feste Welt (`src/data/world.ts`, `src/sim/sites.ts`)
+
+Wunsch 12.11.2026: eine persistente, lebensechte Welt statt Zufallskarten. Das freie Spiel ist immer derselbe
+„Kreis Aschland“ (fester Karten-Seed 326, gewählt, weil Orte und Straßen dort fast ganz auf Land liegen):
+
+| Ort | Größe | Lage vom Start | Besonderheit |
+|---|---|---|---|
+| Aschbach | Weiler | 105 Felder Nordost | erster Ort hinter der Waldhütte, Straßenkreuzung |
+| Dornfeld | Dorf | 205 West | Bauerndorf |
+| Moorbrück | Dorf | 270 Südost | am Fluss |
+| Eisenrode | Stadt | 410 Ost | Industrie: Werkstätten, Wracks |
+| Grauenfurt | Stadt | 360 Nord | Kreisstadt, viele Läden, die meisten Zombies |
+| Kaltenhain | Dorf | 450 West | abgelegen |
+| Posten 7 | Militärposten | 505 Südost | Militärkisten, stark bewacht |
+
+- **Landstraßen** verbinden die Orte (zwei Felder Asphalt, über Flüsse als Damm); alle 85 Felder liegt ein Hof daneben.
+- **Orte** haben eine Hauptstraße (Ortskern: Läden, Werkstätten) und Querstraßen (Wohnhäuser, Schuppen; in
+  Eisenrode Werkstätten). Wasser und Klippen unter Straßen und Gebäuden werden eingeebnet.
+- **Wildnis:** nur noch vereinzelt Wracks und verlassene Lager.
+- Die Karte (M) zeigt Straßen und Ortsnamen von Anfang an, wie eine Straßenkarte.
+- **Die Welt überdauert den Tod:** Nach dem endgültigen Tod kommt eine neue Figur mit Startausrüstung in dieselbe
+  Welt (`World.newCharacter`). Lager, geplünderte Häuser, Tageszähler und die Leiche mit dem Inventar bleiben; die alte
+  Figur steht als Zombie wieder auf. „Neue Welt“ im Menü setzt alles zurück.
+- Zufallskarten gibt es weiter über `MapSettings.plan = false` (Tests) bzw. anderes Gelände über `?seed=`.
+
 ## Offen
 
 - **Aufräumen:** Code gestrichener Systeme entfernen (Züge, Roboter, Schaltungsnetz, Kernkraft, Öl, Module, Rakete).
 - **Schuttbrecher** nutzt vorerst das Bild des Schrottgreifers (getönt); eigenes Modell fehlt.
 - **Feinschliff Kampf:** Angriffsanimation der Figur, Zombies ohne Überlappen, Sichtlinie (Mauern verdecken).
+- **Welt:** Felder und Zäune um Höfe, Ortsschilder, Brücken als eigenes Bauwerk, Bahnhof/Tankstelle als besondere Orte.
 - **Später:** Häuser betreten, Kochen, Fahrzeuge, Fähigkeiten, Scheinwerfer, Flammenwerfer-Turm.
 - **Balance** der Horden, Beute und Bedürfnisse nach den ersten gespielten Runden.

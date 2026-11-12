@@ -5,6 +5,7 @@ import { SURVIVAL, isConsumable } from '../data/survival';
 import { PLAYER } from '../data/player';
 import { DAY, dayNumber } from '../data/time';
 import { compassName } from '../sim/enemies';
+import { WORLD } from '../data/world';
 import { CLIFF_SETTINGS, type CliffSetting, DEATH_SETTINGS, type DeathSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, FREQUENCY_SETTINGS, type FrequencySetting, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
 import { EMPTY_ANY_BARREL, FILL_ANY_BARREL, RECIPES, RECIPE_LIST, isFluidBarrelRecipe } from '../data/recipes';
 import { TECHS, TECH_BY_ID, type TechEffect } from '../data/tech';
@@ -326,12 +327,13 @@ export class Hud {
     const horde = w.settings.enemies === 'aus' ? '' : w.daytime < DAY.dusk && today > 0
       ? `Horde heute Abend: ~${today} (in ${Math.ceil(untilDusk / 3600)} min)`
       : w.enemies.lastHorde && w.tick - w.enemies.lastHorde.tick < DAY.ticks * 0.45 ? `Horde aus ${compassName(w.enemies.lastHorde.angle)}: ${w.enemies.lastHorde.size}` : '';
-    const key = [day, this.clock(), night, Math.round(p.hp), Math.round(p.hunger), Math.round(p.thirst), Math.round(p.fatigue), tags.join(), weapon, noiseTxt, near, horde, needs].join('|');
+    const key = [Math.round(p.x / 8), Math.round(p.y / 8), day, this.clock(), night, Math.round(p.hp), Math.round(p.hunger), Math.round(p.thirst), Math.round(p.fatigue), tags.join(), weapon, noiseTxt, near, horde, needs].join('|');
     if (key === this.survKey) return;
     this.survKey = key;
     this.survEl.replaceChildren();
     const head = el('div', 'surv-head', this.survEl);
-    head.textContent = `Tag ${day} · ${this.clock()} · ${night}`;
+    const town = w.settings.plan ? WORLD.towns.find((t) => Math.hypot(t.x - p.x, t.y - p.y) < 30 + t.size * 22) : undefined;
+    head.textContent = `Tag ${day} · ${this.clock()} · ${night}${town ? ` · ${town.name}` : ''}`;
     const bar = (label: string, frac: number, cls: string, title: string) => {
       const r = el('div', `surv-row ${cls}${frac < 0.25 ? ' low' : ''}`, this.survEl);
       r.title = title;
@@ -386,7 +388,15 @@ export class Hud {
       b.onclick = fn;
     };
     if (dead) {
-      btn('Neue Runde …', () => { this.endWin.classList.add('hidden'); this.newGameDialog(); }, true);
+      btn(`Neue Figur in dieser Welt (Tag ${dayNumber(w.tick)})`, () => {
+        // die Welt bleibt: Lager, geplünderte Häuser, die Leiche mit dem Inventar – und die alte Figur als Zombie
+        if (!w.newCharacter()) return;
+        this.game.cursorItem = null;
+        this.endWin.classList.add('hidden');
+        this.refreshAll();
+        void this.saveGame('autosave', true);
+      }, true);
+      btn('Neue Welt (alles zurücksetzen) …', () => { this.endWin.classList.add('hidden'); this.newGameDialog(); });
       btn('Menü (Spielstände)', () => { this.endWin.classList.add('hidden'); this.toggleMenu(); });
     } else {
       btn('Weiterspielen', () => {
@@ -2001,7 +2011,7 @@ export class Hud {
       }
       el('div', 'dim', body).textContent = ENEMY_SETTINGS[w.settings.enemies].hint;
     }
-    btn('Neues Spiel (neue Karte) …', () => this.newGameDialog());
+    btn('Neue Welt (alles zurücksetzen) …', () => this.newGameDialog());
     el('div', 'hint', body).textContent = `Karte ${this.game.world.seed} · Autosave alle 5 Minuten und beim Schließen des Tabs`;
     const saves = await listSaves().catch(() => []);
     if (saves.length) {
@@ -2034,7 +2044,7 @@ export class Hud {
     if (!(freq in FREQUENCY_SETTINGS)) freq = 'viel';
     this.menu.replaceChildren();
     const head = el('div', 'win-head', this.menu);
-    head.textContent = 'Neues Spiel';
+    head.textContent = `Neue Welt: ${WORLD.name}`;
     const body = el('div', 'win-body menu-body', this.menu);
     const group = <K extends string>(title: string, opts: Record<K, { label: string; hint: string }>, get: () => K, set: (k: K) => void) => {
       el('div', 'sub-head', body).textContent = title;
@@ -2057,9 +2067,9 @@ export class Hud {
     group('Zombies', ENEMY_SETTINGS, () => enemies, (k) => (enemies = k));
     group('Tod', DEATH_SETTINGS, () => death, (k) => (death = k));
     group('Klippen', CLIFF_SETTINGS, () => cliffs, (k) => (cliffs = k));
-    el('div', 'hint', body).textContent = 'Ziel: überleben, ein Lager befestigen und mit dem Funkturm die Rettung rufen. Lärm lockt Zombies an.';
+    el('div', 'hint', body).textContent = `${WORLD.name} ist immer dieselbe Welt: ${WORLD.towns.map((t) => t.name).join(', ')}. Wer stirbt, kommt mit einer neuen Figur zurück – Lager und geplünderte Häuser bleiben. „Neu beginnen“ setzt alles zurück.`;
     const go = el('button', 'menu-btn primary', body);
-    go.textContent = 'Starten (neue Karte)';
+    go.textContent = 'Welt neu beginnen';
     go.onclick = () => {
       try {
         localStorage.setItem('letzteschicht.res', res);

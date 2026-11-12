@@ -27,7 +27,7 @@ import { RobotSystem } from './robots';
 import { CircuitSystem } from './circuit';
 import { TrainSystem } from './trains';
 import { Burner } from './burner';
-import type { Player } from './player';
+import { Player } from './player';
 
 export interface PlaceCheck {
   ok: boolean;
@@ -107,6 +107,8 @@ export class World {
   }
   /** Gestartete Raketen (Vorgänger, ungenutzt). */
   rocketsLaunched = 0;
+  /** Wie viele Figuren diese Welt schon gesehen hat (die Welt überdauert den Tod). */
+  characters = 1;
   /** Tick, in dem der Funkturm die Rettung erreicht hat (Spielziel), sonst null. */
   rescuedAt: number | null = null;
   /** Wird bei jeder Gebäudeänderung erhöht (Renderer). */
@@ -276,6 +278,35 @@ export class World {
     return out;
   }
 
+  /**
+   * Neue Figur in derselben Welt (nach dem endgültigen Tod): Lager, geplünderte Häuser und die Leiche mit dem
+   * Inventar bleiben; die alte Figur steht als Zombie wieder auf. Start am Ursprung, bei Zombies dort etwas abseits.
+   */
+  newCharacter(): Player | null {
+    const old = this._player;
+    if (!old || !old.dead) return null;
+    if (this.settings.enemies !== 'aus') this.enemies.spawnAt(old.x, old.y, 'walker');
+    let sx = 0.5;
+    let sy = 0.5;
+    for (let k = 0; k < 24; k++) {
+      const a = (k * Math.PI) / 4;
+      const r = Math.floor(k / 8) * 14;
+      const x = 0.5 + Math.round(Math.cos(a) * r);
+      const y = 0.5 + Math.round(Math.sin(a) * r);
+      if (this.map.isBlocked(Math.floor(x), Math.floor(y)) || this.entityAt(x, y)?.def.solid) continue;
+      if (this.enemies.nearestTarget(x, y, 16, this.tick)) continue;
+      sx = x;
+      sy = y;
+      break;
+    }
+    const p = new Player(sx, sy);
+    p.giveStart();
+    this.player = p;
+    this.characters++;
+    p.note(`Eine neue Überlebende erreicht die Gegend (Figur ${this.characters}). Die Welt ist geblieben, wie sie war.`);
+    return p;
+  }
+
   // ------------------------------------------------------------ Simulation
 
   /** Tageszeit 0..1 (0 = Mittag). */
@@ -314,7 +345,9 @@ export class World {
     // Fundorte vor den Zombies anlegen (Zombies lungern um Häuser und Wracks)
     if (this.tick % 60 === 0 && this._player && this.settings.sites) {
       const p = this._player;
-      this.sites.ensureArea(this, p.x - 130, p.y - 130, p.x + 130, p.y + 130);
+      // feste Welt: weiter voraus, damit ganze Orte stehen, bevor ihre Zombies einziehen
+      const r = this.settings.plan ? 210 : 130;
+      this.sites.ensureArea(this, p.x - r, p.y - r, p.x + r, p.y + r);
     }
     this.enemies.update(this);
     this.capsules.update(this);

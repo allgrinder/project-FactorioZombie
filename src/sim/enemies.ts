@@ -135,7 +135,7 @@ export class EnemySystem {
     for (let i = 0; i < n && this.units.size < ZOMBIE.maxUnits; i++) {
       const x = (gx + hash01(s, gx, gy, 710 + i * 2)) * c;
       const y = (gy + hash01(s, gx, gy, 711 + i * 2)) * c;
-      if (this.free(w, x, y)) this.spawnAt(x, y, this.pickKind(day));
+      if (Math.hypot(x, y) >= g.startFree * 0.9 && this.free(w, x, y)) this.spawnAt(x, y, this.pickKind(day));
     }
     // Fundorte: Zombies lungern um Häuser und Wracks
     for (const site of w.sites.sitesIn(gx * c, gy * c, (gx + 1) * c, (gy + 1) * c)) {
@@ -146,7 +146,7 @@ export class EnemySystem {
         const r = site.r * (0.4 + 0.9 * hash01(s, site.x | 0, site.y | 0, 760 + i));
         const x = site.x + Math.cos(a) * r;
         const y = site.y + Math.sin(a) * r;
-        if (this.free(w, x, y)) this.spawnAt(x, y, this.pickKind(day));
+        if (Math.hypot(x, y) >= g.startFree * 0.9 && this.free(w, x, y)) this.spawnAt(x, y, this.pickKind(day));
       }
     }
   }
