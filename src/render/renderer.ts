@@ -907,7 +907,8 @@ export class GameRenderer {
     cx = Math.round(cx);
     switch (e.kind) {
       case 'drill': {
-        const base = e.name === 'burner-mining-drill' ? 'drill' : e.name;
+        const crusher = e.name === 'stone-crusher' && !s.has(`stone-crusher.${e.dir}`);
+        const base = e.name === 'burner-mining-drill' || crusher ? 'drill' : e.name;
         if (!s.has(`${base}.${e.dir}`)) {
           this.drawGeneric(e, cx, cy, z);
           break;
@@ -915,6 +916,7 @@ export class GameRenderer {
         const sh = this.shadows.get(s.frame(`${base}.${e.dir}.shadow`));
         sh.position.set(cx, cy);
         const sp = this.ents.get(s.frame(`${base}.${e.dir}`, Math.floor(e.workTicks / this.ticksPerFrame(`${base}.${e.dir}`))));
+        if (crusher) sp.tint = 0xb8c4b0;
         sp.position.set(cx, cy);
         sp.zIndex = z;
         break;
@@ -1326,7 +1328,7 @@ export class GameRenderer {
           tex = this.sprites.frame(this.sprites.has(`${b}.in.${g.dir}`) ? `${b}.in.${g.dir}` : `item.${def.item}`);
           break;
         }
-        case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break;
+        case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break; // Schuttbrecher: Bohrerbild
         case 'furnace': tex = this.sprites.frame(g.name !== 'stone-furnace' && this.sprites.has(`${g.name}.off`) ? `${g.name}.off` : 'furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;
         case 'rail': {

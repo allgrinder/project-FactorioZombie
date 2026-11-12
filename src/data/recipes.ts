@@ -550,8 +550,8 @@ const craft = (id: string, time: number, ingredients: ItemAmount[], amount = 1):
 
 /** Neue Rezepte (eigene Werte, docs/GAME_DATA.md Abschnitt „Überleben“ und „Verteidigung“). */
 const SURVIVAL: RecipeDef[] = [
-  // Schrott einschmelzen (Ofen): 2 Schrott → 1 Eisenplatte
-  { id: 'scrap-smelting', category: 'smelting', time: 3.2, ingredients: [I('scrap', 2)], results: [I('iron-plate', 1)] },
+  // Schuttbrecher: Gegenstück zum Schrottgreifer für Bauschutt und Kohle
+  craft('stone-crusher', 2, [I('iron-gear-wheel', 3), I('iron-plate', 3), I('stone-furnace', 1)]),
   // Akku ohne Chemie (das Batterie-Rezept des Vorgängers entfällt)
   craft('accumulator', 10, [I('iron-plate', 4), I('copper-cable', 20), I('electronic-circuit', 5)]),
   // Nahkampf

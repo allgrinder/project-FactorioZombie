@@ -1,4 +1,4 @@
-import { FREQUENCY_SETTINGS, LEGACY_MAP_SETTINGS, MAPGEN, type MapSettings, RESOURCE_SETTINGS } from '../data/mapgen';
+import { FREQUENCY_SETTINGS, LEGACY_MAP_SETTINGS, MAPGEN, type MapSettings, RESOURCE_SETTINGS, RUBBLE } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel, resourceById } from '../data/resources';
 import { tileKey } from './geom';
 import { fbm, hash01, hash32, valueNoise } from './rng';
@@ -498,10 +498,11 @@ export class GameMap {
         c.hasWater = true;
       }
     }
-    this.placeOil(c, x0, y0);
+    // Öl und Uran gibt es in der Trümmerwelt nicht
+    if (!this.settings.rubble) this.placeOil(c, x0, y0);
     const patches = this.patchesNear(x0, y0, x0 + CS, y0 + CS);
     if (patches.length) this.placeOre(c, x0, y0, patches);
-    this.placeUranium(c, x0, y0);
+    if (!this.settings.rubble) this.placeUranium(c, x0, y0);
     this.placeCliffs(c, x0, y0, ponds);
     return c;
   }
@@ -603,11 +604,44 @@ export class GameMap {
         if (hash01(this.seed, x, y, 71) > 0.45 * k * k) continue;
       }
       const rich = 0.6 + 0.8 * valueNoise(this.seed + bestP.res * 13, x / 4.5, y / 4.5);
-      c.resource[i] = bestP.res;
-      c.resource0[i] = bestP.res;
+      const res = this.settings.rubble ? this.rubbleAt(bestP.res, x, y) : bestP.res;
+      c.resource[i] = res;
+      c.resource0[i] = res;
       c.amount[i] = Math.max(10, Math.round(bestP.richness * (0.3 + Math.max(0, best) * 0.9) * rich * this.richness));
       c.amount0[i] = c.amount[i];
     }
+  }
+
+  /**
+   * Trümmerfeld: Material eines Feldes nach der Zusammensetzung der Feldart (RUBBLE). Nester von etwa 2×2 Feldern
+   * (zeilenweise versetzt), damit Förderer zusammenhängendes Material finden.
+   */
+  private rubbleAt(kind: number, x: number, y: number): number {
+    const mix = RUBBLE[RESOURCE_BY_INDEX[kind]?.id ?? ''];
+    if (!mix) return kind;
+    const by = y >> 1;
+    const bx = (x + (hash32(this.seed, by, 74) & 1)) >> 1;
+    let t = hash01(this.seed, bx, by, 73);
+    for (const m of mix.mix) {
+      if (t < m.share) return resourceById(m.resource).index;
+      t -= m.share;
+    }
+    return kind;
+  }
+
+  /** Art des Trümmerfelds an einem Feld (Name für die Anzeige), sonst null. */
+  rubbleName(x: number, y: number): string | null {
+    if (!this.settings.rubble) return null;
+    let best = -Infinity;
+    let kind = 0;
+    for (const p of this.patchesNear(x, y, x, y)) {
+      const v = this.patchValue(p, x + 0.5, y + 0.5);
+      if (v > best) {
+        best = v;
+        kind = p.res;
+      }
+    }
+    return best > -MAPGEN.patchFringe ? RUBBLE[RESOURCE_BY_INDEX[kind]?.id ?? '']?.name ?? null : null;
   }
 
   /** Ölquellen eines Chunks (deterministisch je Feldzelle, unabhängig von der Erzeugungsreihenfolge). */

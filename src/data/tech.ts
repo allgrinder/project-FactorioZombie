@@ -113,7 +113,7 @@ const RAW_TECHS: readonly TechDef[] = [
   // Produktion (schlank)
   { id: 'automation', name: 'Automatisierung', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['assembling-machine-1', 'long-handed-inserter'] },
   { id: 'logistics', name: 'Logistik', count: 20, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['splitter', 'underground-belt'] },
-  { id: 'electric-mining-drill', name: 'Elektrischer Bohrer', count: 25, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['electric-mining-drill'] },
+  { id: 'electric-mining-drill', name: 'Sortieranlage', count: 25, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['electric-mining-drill'] },
   { id: 'steel-processing', name: 'Stahlverarbeitung', count: 50, time: 5, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['steel-plate', 'steel-chest'] },
   { id: 'fast-inserter', name: 'Schneller Greifarm', count: 30, time: 15, packs: RED, prerequisites: ['automation'], unlocks: ['fast-inserter'] },
   { id: 'lamp', name: 'Lampe', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['lamp'],

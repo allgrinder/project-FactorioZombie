@@ -9,7 +9,7 @@ import { SiteSystem } from './sites';
 import { ChartSystem } from './chart';
 import { EventQueue } from './events';
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
-import { RESOURCE_BY_INDEX } from '../data/resources';
+import { RESOURCES, RESOURCE_BY_INDEX } from '../data/resources';
 import { DAY, darknessAt } from '../data/time';
 import { BeltSystem } from './belts';
 import type { InsertMode } from './entities/base';
@@ -203,11 +203,10 @@ export class World {
     }
     if (def.kind === 'drill') {
       const tmp = new DrillEntity(0, name, x, y, dir);
-      if (!tmp.areaTiles().some(([tx, ty]) => {
-        const r = this.map.resourceAt(tx, ty);
-        return r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid;
-      })) {
-        return { ok: false, reason: 'Keine Ressourcen' };
+      const tiles = tmp.areaTiles().map(([tx, ty]) => this.map.resourceAt(tx, ty)).filter((r) => r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid);
+      if (!tiles.length) return { ok: false, reason: 'Keine Trümmer' };
+      if (!tiles.some((r) => tmp.canMine(this, RESOURCE_BY_INDEX[r.res]?.id))) {
+        return { ok: false, reason: `Hier liegt nichts für den ${def.name} (verwertet ${(def.mines ?? []).map((m) => RESOURCES.find((x) => x.id === m)?.name ?? m).join(', ')})` };
       }
     }
     return { ok: true };

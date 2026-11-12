@@ -207,15 +207,8 @@ describe('Versorgung', () => {
     expect(ITEMS.vegetables.name).toBe('Gemüse');
   });
 
-  it('Schrott lässt sich einschmelzen, Akku braucht keine Chemie', () => {
-    expect(RECIPES['scrap-smelting'].results[0].item).toBe('iron-plate');
+  it('Akku braucht keine Chemie', () => {
     expect(RECIPES.accumulator.ingredients.some((i) => i.item === 'battery')).toBe(false);
-    const w = arena();
-    const f = w.place('stone-furnace', 3, 3, 0)!;
-    f.insert('scrap', 4, 'player');
-    f.insert('coal', 2, 'player');
-    w.run(60 * 8);
-    expect(f.contents().find((s) => s.item === 'iron-plate')?.count).toBe(2);
   });
 });
 
@@ -248,14 +241,14 @@ describe('Fundorte', () => {
       const p = w.player!;
       if (crowbar) p.inventory.add('crowbar', 1);
       const car = w.create(w.nextId++, 'car-wreck', 1, 0, 0) as LootEntity;
-      const loot = car.inventory.count('scrap');
+      const loot = car.inventory.count('iron-ore');
       p.setMineTarget({ kind: 'entity', id: car.id });
       let t = 0;
       while (w.entities.has(car.id) && t < 5000) {
         w.step();
         t++;
       }
-      expect(p.inventory.count('scrap')).toBe(10 + loot);
+      expect(p.inventory.count('iron-ore')).toBe(10 + loot);
       expect(p.inventory.count('iron-gear-wheel')).toBeGreaterThanOrEqual(3);
       return t;
     };
@@ -326,7 +319,7 @@ describe('Spielziel und Inhalt', () => {
     for (const t of TECHS) for (const u of t.unlocks) expect(RECIPES[u], `${t.id} → ${u}`).toBeTruthy();
     for (const t of TECHS) for (const pre of t.prerequisites) expect(TECHS.some((x) => x.id === pre), `${t.id} braucht ${pre}`).toBe(true);
     // Rohstoffe und reine Beute
-    const raw = new Set(['iron-ore', 'copper-ore', 'coal', 'stone', 'wood', 'water', 'steam', 'scrap', 'cloth', 'radio-parts', 'vegetables', 'water-bottle']);
+    const raw = new Set(['iron-ore', 'copper-ore', 'coal', 'stone', 'wood', 'water', 'steam', 'cloth', 'radio-parts', 'vegetables', 'water-bottle']);
     for (const r of RECIPE_LIST) for (const i of r.ingredients) expect(raw.has(i.item) || isCraftable(i.item), `${r.id} braucht ${i.item}`).toBe(true);
     for (const r of RECIPE_LIST) for (const x of [...r.ingredients, ...r.results]) expect(ITEMS[x.item] || x.item === 'water' || x.item === 'steam', x.item).toBeTruthy();
   });

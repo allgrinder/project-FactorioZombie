@@ -138,7 +138,7 @@ export class Player {
     this.quickbar[1] = 'burner-inserter';
     this.quickbar[2] = 'burner-mining-drill';
     this.quickbar[3] = 'stone-furnace';
-    this.quickbar[4] = 'wooden-barricade';
+    this.quickbar[4] = 'stone-crusher';
     this.quickbar[5] = 'coal';
     this.quickbar[6] = 'canned-food';
     this.quickbar[7] = 'water-bottle';

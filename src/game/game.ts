@@ -1024,7 +1024,8 @@ export class Game {
     const r = this.world.map.resourceAt(Math.floor(m.x), Math.floor(m.y));
     if (r.amount > 0) {
       const def = RESOURCE_BY_INDEX[r.res]!;
-      return def.fluid ? `${def.name}: ${(r.amount / 1000).toFixed(1)} % Ergiebigkeit` : `${def.name}: ${r.amount}`;
+      const field = this.world.map.rubbleName(Math.floor(m.x), Math.floor(m.y));
+      return def.fluid ? `${def.name}: ${(r.amount / 1000).toFixed(1)} % Ergiebigkeit` : `${def.name}: ${r.amount}${field ? ` · ${field}` : ''}`;
     }
     return '';
   }

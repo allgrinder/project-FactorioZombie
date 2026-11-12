@@ -39,6 +39,6 @@ describe('Verhältnis-Rechner (Handbuch)', () => {
       expect(Number.isFinite(n.count)).toBe(true);
     }
     expect(recipesFor('petroleum-gas').length).toBe(0);
-    expect(recipesFor('iron-plate').map((r) => r.id).sort()).toEqual(['iron-plate', 'scrap-smelting']);
+    expect(recipesFor('iron-plate').map((r) => r.id).sort()).toEqual(['iron-plate']);
   });
 });

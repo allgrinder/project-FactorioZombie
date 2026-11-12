@@ -21,10 +21,10 @@ export interface ResourceDef {
 }
 
 export const RESOURCES: readonly ResourceDef[] = [
-  { id: 'iron-ore', index: 1, name: 'Eisenerz', result: 'iron-ore', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0x6f8aa0 },
+  { id: 'iron-ore', index: 1, name: 'Eisenschrott', result: 'iron-ore', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0x6f8aa0 },
   { id: 'coal', index: 2, name: 'Kohle', result: 'coal', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0x1e1d1c },
-  { id: 'stone', index: 3, name: 'Stein', result: 'stone', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0xb09e7c },
-  { id: 'copper-ore', index: 4, name: 'Kupfererz', result: 'copper-ore', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0xc0683a },
+  { id: 'stone', index: 3, name: 'Bauschutt', result: 'stone', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0xb09e7c },
+  { id: 'copper-ore', index: 4, name: 'Kupferschrott', result: 'copper-ore', miningTime: 1, densityThresholds: [150, 400, 800], mapColor: 0xc0683a },
   { id: 'crude-oil', index: 5, name: 'Rohöl', result: 'crude-oil', miningTime: 1, densityThresholds: [80_000, 150_000, 250_000], mapColor: 0xc032c0, fluid: true },
   // Wiki „Uranium ore“: Abbauzeit 2, 10 Schwefelsäure je 10 Erz, Forschung „Uranabbau“
   {

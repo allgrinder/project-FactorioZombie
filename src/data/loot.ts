@@ -34,7 +34,7 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
     R('coal', 5, 15, 0.4), R('firearm-magazine', 1, 4, 0.15, true),
   ],
   car: [
-    R('scrap', 2, 6, 0.8), R('iron-gear-wheel', 1, 3, 0.4), R('copper-cable', 2, 6, 0.4), R('snack', 1, 2, 0.25), R('water-bottle', 1, 1, 0.25),
+    R('iron-ore', 2, 6, 0.8), R('iron-gear-wheel', 1, 3, 0.4), R('copper-cable', 2, 6, 0.4), R('snack', 1, 2, 0.25), R('water-bottle', 1, 1, 0.25),
     R('cloth', 1, 3, 0.3), R('bandage', 1, 1, 0.15), R('crowbar', 1, 1, 0.1), R('firearm-magazine', 1, 2, 0.08, true),
   ],
   crate: [
@@ -46,7 +46,7 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
     R('grenade', 1, 4, 0.35), R('first-aid-kit', 1, 2, 0.5), R('canned-food', 2, 4, 0.5), R('radio-parts', 1, 2, 0.3), R('antibiotics', 1, 1, 0.15),
   ],
   trash: [
-    R('scrap', 2, 8, 0.8), R('empty-bottle', 1, 4, 0.6), R('cloth', 1, 4, 0.5), R('wood', 1, 5, 0.4), R('snack', 1, 1, 0.15), R('iron-stick', 1, 4, 0.3),
+    R('iron-ore', 2, 8, 0.8), R('empty-bottle', 1, 4, 0.6), R('cloth', 1, 4, 0.5), R('wood', 1, 5, 0.4), R('snack', 1, 1, 0.15), R('iron-stick', 1, 4, 0.3),
   ],
 };
 

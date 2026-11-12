@@ -43,6 +43,7 @@ export const START_INVENTORY: readonly { item: string; amount: number }[] = [
   { item: 'iron-plate', amount: 8 },
   { item: 'wood', amount: 6 },
   { item: 'burner-mining-drill', amount: 1 },
+  { item: 'stone-crusher', amount: 1 },
   { item: 'stone-furnace', amount: 1 },
   { item: 'baseball-bat', amount: 1 },
   { item: 'pistol', amount: 1 },

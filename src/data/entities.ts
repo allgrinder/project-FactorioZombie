@@ -62,6 +62,11 @@ export interface DrillDef extends EntityBase {
   readonly fuelSlots: number;
   /** Flüssigkeitseingang (Schwefelsäure für Uranerz, Wiki „Electric mining drill“: links, rechts, hinten). */
   readonly fluidInput?: MachineFluidBox;
+  /**
+   * Trümmerfelder: dieser Förderer verwertet nur diese Materialien (Ressourcen-IDs); fehlt = alles.
+   * Gilt nur in Karten mit Trümmerfeldern (MapSettings.rubble).
+   */
+  readonly mines?: readonly string[];
 }
 
 export interface FurnaceDef extends EntityBase {
@@ -399,9 +404,17 @@ const list: EntityDef[] = [
     item: 'fast-splitter', mineTime: 0.1, solid: false, rotatable: true, speed: 16,
   },
   {
-    kind: 'drill', id: 'burner-mining-drill', name: 'Brennstoff-Bohrer', width: 2, height: 2, health: 150,
+    kind: 'drill', id: 'burner-mining-drill', name: 'Schrottgreifer', width: 2, height: 2, health: 150,
     item: 'burner-mining-drill', mineTime: 0.3, solid: true, rotatable: true, energy: 'burner',
     miningSpeed: 0.25, energyUsage: 150_000, miningAreaSize: 2, outputVector: [-0.35, -1.3], fuelSlots: 1,
+    mines: ['iron-ore', 'copper-ore'],
+  },
+  {
+    // Schuttbrecher: wie der Schrottgreifer, aber für Bauschutt und Kohle (eigene Festlegung)
+    kind: 'drill', id: 'stone-crusher', name: 'Schuttbrecher', width: 2, height: 2, health: 150,
+    item: 'stone-crusher', mineTime: 0.3, solid: true, rotatable: true, energy: 'burner',
+    miningSpeed: 0.25, energyUsage: 150_000, miningAreaSize: 2, outputVector: [-0.35, -1.3], fuelSlots: 1,
+    mines: ['stone', 'coal'],
   },
   {
     kind: 'furnace', id: 'stone-furnace', name: 'Steinofen', width: 2, height: 2, health: 200,
@@ -416,7 +429,7 @@ const list: EntityDef[] = [
     fuelInsertLimit: 5,
   },
   {
-    kind: 'drill', id: 'electric-mining-drill', name: 'Elektrischer Bohrer', width: 3, height: 3, health: 300,
+    kind: 'drill', id: 'electric-mining-drill', name: 'Sortieranlage', width: 3, height: 3, health: 300,
     item: 'electric-mining-drill', mineTime: 0.3, solid: true, rotatable: true, energy: 'electric',
     miningSpeed: 0.5, energyUsage: 90_000, miningAreaSize: 5, outputVector: [0, -1.85], fuelSlots: 0, moduleSlots: 3,
     fluidInput: { type: 'input', volume: 200, ports: [[0, 1, 3], [2, 1, 1], [1, 2, 2]] },
@@ -731,27 +744,27 @@ const list: EntityDef[] = [
   },
   {
     kind: 'loot', id: 'car-wreck', name: 'Autowrack', width: 3, height: 2, health: 500,
-    item: 'scrap', itemCount: 10, mineTime: 5, solid: true, rotatable: false, slots: 6, table: 'car', searchTime: 2.5,
+    item: 'iron-ore', itemCount: 10, mineTime: 5, solid: true, rotatable: false, slots: 6, table: 'car', searchTime: 2.5,
     salvage: [{ item: 'iron-gear-wheel', amount: 3 }, { item: 'copper-cable', amount: 4 }],
   },
   {
     kind: 'loot', id: 'ruin-house', name: 'Verlassenes Haus', width: 5, height: 4, health: 2000,
-    item: 'scrap', itemCount: 6, mineTime: 14, solid: true, rotatable: false, slots: 12, table: 'house', searchTime: 5,
+    item: 'iron-ore', itemCount: 6, mineTime: 14, solid: true, rotatable: false, slots: 12, table: 'house', searchTime: 5,
     salvage: [{ item: 'wood', amount: 24 }, { item: 'stone-brick', amount: 20 }, { item: 'cloth', amount: 4 }],
   },
   {
     kind: 'loot', id: 'ruin-shed', name: 'Schuppen', width: 3, height: 3, health: 800,
-    item: 'scrap', itemCount: 6, mineTime: 8, solid: true, rotatable: false, slots: 8, table: 'shed', searchTime: 3,
+    item: 'iron-ore', itemCount: 6, mineTime: 8, solid: true, rotatable: false, slots: 8, table: 'shed', searchTime: 3,
     salvage: [{ item: 'wood', amount: 14 }],
   },
   {
     kind: 'loot', id: 'ruin-store', name: 'Geplünderter Laden', width: 6, height: 4, health: 2500,
-    item: 'scrap', itemCount: 12, mineTime: 16, solid: true, rotatable: false, slots: 16, table: 'store', searchTime: 6,
+    item: 'iron-ore', itemCount: 12, mineTime: 16, solid: true, rotatable: false, slots: 16, table: 'store', searchTime: 6,
     salvage: [{ item: 'stone-brick', amount: 30 }, { item: 'wood', amount: 10 }],
   },
   {
     kind: 'loot', id: 'ruin-garage', name: 'Werkstatt', width: 4, height: 4, health: 2000,
-    item: 'scrap', itemCount: 20, mineTime: 14, solid: true, rotatable: false, slots: 12, table: 'garage', searchTime: 5,
+    item: 'iron-ore', itemCount: 20, mineTime: 14, solid: true, rotatable: false, slots: 12, table: 'garage', searchTime: 5,
     salvage: [{ item: 'stone-brick', amount: 16 }, { item: 'iron-gear-wheel', amount: 6 }],
   },
   {
@@ -760,11 +773,11 @@ const list: EntityDef[] = [
   },
   {
     kind: 'loot', id: 'military-crate', name: 'Militärkiste', width: 1, height: 1, health: 200,
-    item: 'scrap', itemCount: 3, mineTime: 0.8, solid: true, rotatable: false, slots: 6, table: 'military', searchTime: 2, salvage: [],
+    item: 'iron-ore', itemCount: 3, mineTime: 0.8, solid: true, rotatable: false, slots: 6, table: 'military', searchTime: 2, salvage: [],
   },
   {
     kind: 'loot', id: 'dumpster', name: 'Müllcontainer', width: 2, height: 1, health: 300,
-    item: 'scrap', itemCount: 6, mineTime: 3, solid: true, rotatable: false, slots: 6, table: 'trash', searchTime: 2, salvage: [],
+    item: 'iron-ore', itemCount: 6, mineTime: 3, solid: true, rotatable: false, slots: 6, table: 'trash', searchTime: 2, salvage: [],
   },
 ];
 

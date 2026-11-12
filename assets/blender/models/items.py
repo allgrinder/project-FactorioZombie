@@ -1,5 +1,6 @@
 """Item-Symbole für Inventar und Band (64×64, gleiche Kamera und Beleuchtung)."""
 import math
+import random
 
 import bmesh
 import anlagen
@@ -10,6 +11,7 @@ import bohrer
 import kleinteile
 import parts
 import stufen
+import truemmer
 
 
 def icon_scene():
@@ -56,7 +58,9 @@ def render(out):
 
     for res, name in (('iron-ore', 'item.iron-ore'), ('coal', 'item.coal'), ('stone', 'item.stone'), ('copper-ore', 'item.copper-ore')):
         icon_scene()
-        objs = parts.ore_pile(res, 4, 0.2, seed={'iron-ore': 11, 'coal': 23, 'stone': 37, 'copper-ore': 53}[res], spread=0.2)
+        # Trümmer statt Erz: Schrott, Kabel/Rohre, Bauschutt, Kohle (lib/truemmer.py)
+        rnd = random.Random({'iron-ore': 11, 'coal': 23, 'stone': 37, 'copper-ore': 53}[res])
+        objs = truemmer.pieces(res, truemmer.Mats('ic' + res[:2]), rnd, 5, 0.26, size=(0.13, 0.19), foreign=0.0)
         finish(out, name, eisen.parent_all(objs))
 
     m = icon_scene()

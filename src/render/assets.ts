@@ -73,10 +73,13 @@ export class SpriteLib {
 
   /** Data-URL eines Frames für das DOM-HUD (Icons). */
   iconUrl(name: string): string {
-    return this.iconCache.get(name) ?? '';
+    return this.iconCache.get(name) ?? this.iconCache.get(ICON_FALLBACK[name] ?? '') ?? '';
   }
   readonly iconCache = new Map<string, string>();
 }
+
+/** Symbole, die noch kein eigenes Bild haben, leihen sich eines. */
+const ICON_FALLBACK: Readonly<Record<string, string>> = { 'item.stone-crusher': 'item.burner-mining-drill' };
 
 export type Quality = 'sd' | 'hd';
 

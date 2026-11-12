@@ -1,33 +1,50 @@
-# Eisenwerk – Projektregeln
+# Letzte Schicht – Projektregeln
 
-Browser-Fabrikspiel (Arbeitstitel „Eisenwerk“). Den Namen des Vorbilds nie im Spiel verwenden.
+Zombie-Überlebensspiel im Browser auf Grundlage des Fabrikspiels „Eisenwerk“ (`allgrinder/Webgame`, Remote `upstream`).
+Schlanke Produktion, Schwerpunkt Überleben und Verteidigung. Konzept und Werte: `docs/KONZEPT.md`.
+Namen der Vorbilder nie im Spiel verwenden.
 
 ## Regeln
 - Vite, TypeScript strict, PixiJS 8, Vitest, Playwright. Kein Backend, kein React; HUD als DOM-Overlay (`src/ui/`).
 - `src/sim/` kennt weder DOM noch PixiJS, läuft headless, deterministisch, 60 Ticks/s, ganzzahlige Bandlogik.
-- Alle Zahlenwerte in `src/data/`, jede Quelle in `docs/GAME_DATA.md` (Wiki > factorio-data-Prototypen > Messvorschlag).
-  Aus factorio-data nur einzelne Zahlen ablesen, nichts kopieren, keine Abhängigkeit. Kein Reverse Engineering.
+  Speichern/Laden muss den Lauf exakt fortsetzen (Eigenschaftstest in `tests/sim/properties.test.ts`).
+- Alle Zahlenwerte in `src/data/`. Werte des Vorgängers haben ihre Quelle in `docs/GAME_DATA.md`; neue Werte
+  (Zombies, Lärm, Überleben, Beute, Trümmerfelder) sind eigene Festlegungen und stehen in `docs/KONZEPT.md`.
+- Produktion bewusst flach halten: keine neuen Fabrikstufen. Neue Tiefe gehört ins Überleben und in die Verteidigung.
 - Bänder: Transportlinien mit Abständen (`src/sim/belts.ts`), nie Items einzeln pro Tick bewegen.
-- Grafik nur aus Blender-Skripten (`assets/blender/`, headless `blender -b -P`), keine fremden Grafiken/Icons/Sounds.
-  Ergebnis: PNG-Arbeitsatlanten in `assets/atlas/` (eingecheckt, nicht ausgeliefert) und daraus WebP für die Seite:
-  `public/assets/hd/` (volle Auflösung) und `public/assets/sd/` (halbe, Standard), Liste in `public/assets/manifest.json`.
-  Atlasframes werden auf sichtbare Pixel beschnitten. Grafikqualität: Menü bzw. `?hd`/`?sd`. Nach jedem Renderlauf
-  Kontaktbogen ansehen.
-- Natur-Grafik (Wiese, Kiesel, Gräser, Sträucher, Bäume) nutzt die eigenen Gartenwerk-Generatoren
-  (`assets/blender/lib/gartenwerk/`, aus `allgrinder/Greenlabv2`). Szene/Licht für alle Modelle: `gw_lib.reset_scene` (AgX).
-- Stil: natürlich, trockene Steppenwiese. Bäume sind wie im Original fällbar (Holz, `src/sim/trees.ts`) und
-  blockieren das Bauen; Sträucher, Felsen, Schilf bleiben Dekoration.
-- Ziel: so nah wie möglich am Original (Wiki ist Quelle 1, Abgleich in `docs/WIKI_ABGLEICH.md`).
+- Grafik nur aus Blender-Skripten (`assets/blender/`), keine fremden Grafiken/Icons/Sounds.
+  Ergebnis: PNG-Arbeitsatlanten in `assets/atlas/` und daraus WebP in `public/assets/{hd,sd}`, Liste in `manifest.json`.
+  Neue Modelle in eigenen Bibliotheken anlegen; bestehende Bibliotheken nur ändern, wenn nötig (jede Änderung lässt
+  alle abhängigen Modelle neu rendern). Einzelne Modelle: `npm run assets -- --only <modell>`.
+- Stil „Endzeit“: verwittert, gedeckt, Notbau (`docs/ART_STYLE.md`). Natur über die Gartenwerk-Generatoren.
 - Meilenstein fertig erst, wenn `npm run build`, `npm test` und `npm run e2e` durchlaufen.
-- Erweiterbarkeit: neue Gebäude/Ressourcen/Rezepte nur über `src/data/` + `kind`-Verhalten in `src/sim/`.
+- Erweiterbarkeit: neue Gebäude/Rezepte nur über `src/data/` + `kind`-Verhalten in `src/sim/entities/`.
 
 ## Konventionen
 - Richtungen 0=N,1=E,2=S,3=W; y wächst nach Süden. Gebäude-`dir` = Ausgaberichtung (Greifarm: Ablagerichtung).
 - Bandspur 0 = links, 1 = rechts in Laufrichtung. Positionen 256 pro Feld.
-- Spielstand: `src/sim/serialize.ts` (JSON), IndexedDB in `src/game/save.ts`.
-- Szenen über `?scene=freeplay|demo|sandbox|stress`; Gottmodus (Testhilfe) über `?god`.
+- Spielstand: `src/sim/serialize.ts` (JSON), IndexedDB „letzteschicht“ in `src/game/save.ts`.
+- Szenen über `?scene=freeplay|demo|sandbox|stress`; Gottmodus (Testhilfe, unsichtbar für Zombies) über `?god`.
+- Karteneinstellungen (`MapSettings`): `LEGACY_MAP_SETTINGS` (Tests, Demo) hat keine Zombies, Bedürfnisse, Fundorte
+  und reine Rohstofffelder; `DEFAULT_MAP_SETTINGS` schaltet alles ein.
+- Item-IDs des Vorgängers bleiben (z. B. `iron-ore` heißt im Spiel „Eisenschrott“, `burner-mining-drill` „Schrottgreifer“).
 
-## Stand
+## Stand Letzte Schicht
+- Zombies (`src/sim/enemies.ts`, Werte `src/data/enemies.ts`): Schlurfer, Läufer, Brocken, Schreier; Zustände ruhen /
+  nachsehen / verfolgen / Horde; Flussfeld-Wegsuche; Besiedlung je Zelle; Horden in der Dämmerung.
+- Lärm (`src/sim/noise.ts`) statt Verschmutzung; Lockvogel als Wurfgegenstand (`src/sim/capsules.ts`).
+- Überleben (`src/data/survival.ts`, `src/sim/player.ts`): Hunger, Durst, Müdigkeit/Schlaf, Blutung, Infektion, Tod.
+- Nahkampf mit Haltbarkeit, Schusswaffen laut (X wechselt), Stacheldraht/Nagelfalle (Wirkung in `EnemySystem.move`).
+- Fundorte (`src/sim/sites.ts`, Beute `src/data/loot.ts`, Gebäude `src/sim/entities/survival.ts`).
+- Trümmerfelder (`RUBBLE` in `src/data/mapgen.ts`, `GameMap.rubbleAt`), Förderer je Material (`DrillDef.mines`).
+- Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Schuttbrecher.
+- Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).
+  Der Code gestrichener Systeme (Züge, Roboter, Schaltungsnetz, Kernkraft, Öl, Module, Rakete) liegt noch im Projekt,
+  ist im Spiel nicht erreichbar und soll entfernt werden.
+- Modelle: `lib/zombie.py`, `ruinen.py`, `lager.py`, `kram.py`, `truemmer.py`; `models/zombies.py`, `ruinen.py`, `lager.py`.
+- Tests: `zombies.test.ts`, `survival.test.ts`, `rubble.test.ts`.
+
+## Stand des Vorgängers (Eisenwerk)
 - M1 Bänder: fertig.
 - M2 Blender-Pipeline: fertig (9 Modelle, 154 Sprites; Boden als periodische 8×8-Fläche).
 - M3 Produktionskette: fertig (`?scene=demo`, Tests für Bohrer/Ofen/Greifarm/Kette/Speichern).

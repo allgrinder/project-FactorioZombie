@@ -76,6 +76,11 @@ export class DrillEntity extends EntityBase {
     const r = RESOURCE_BY_INDEX[resIndex]!;
     return secondsToTicks(r.miningTime / this.def.miningSpeed);
   }
+  /** Trümmerfelder: verwertet dieser Förderer das Material? */
+  canMine(w: World, resource: string | undefined): boolean {
+    const only = this.def.mines;
+    return !only || !w.settings.rubble || (!!resource && only.includes(resource));
+  }
   areaTiles(): [number, number][] {
     return drillAreaTiles(this.def, this.x, this.y);
   }
@@ -103,7 +108,7 @@ export class DrillEntity extends EntityBase {
       const c = (this.cursor + k) % area.length;
       const r = w.map.resourceAt(area[c][0], area[c][1]);
       const rd = RESOURCE_BY_INDEX[r.res];
-      if (r.amount > 0 && !rd?.fluid) {
+      if (r.amount > 0 && !rd?.fluid && this.canMine(w, rd?.id)) {
         // Uranerz: nur mit Flüssigkeitseingang und erforschtem Uranabbau (Wiki „Uranium ore“)
         if (rd?.requiresFluid && (!this.acid || !w.research.done.has(rd.requiresFluid.tech))) {
           needsFluid = true;
