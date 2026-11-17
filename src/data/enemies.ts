@@ -43,15 +43,15 @@ export interface UnitDef {
  */
 export const UNITS: Readonly<Record<UnitKind, UnitDef>> = {
   walker: {
-    kind: 'walker', name: 'Schlurfer', health: 36, damage: 9, structureDamage: 7, cooldown: 55, reach: 0.45, speed: 0.045,
-    armorFlat: 0, armorPercent: 0, radius: 0.28, scale: 1, fromDay: 1, share: 1, sharePerDay: 0, shareMax: 1, bleedChance: 0.25, infectChance: 0.04,
+    kind: 'walker', name: 'Schlurfer', health: 36, damage: 7, structureDamage: 7, cooldown: 70, reach: 0.45, speed: 0.045,
+    armorFlat: 0, armorPercent: 0, radius: 0.28, scale: 1, fromDay: 1, share: 1, sharePerDay: 0, shareMax: 1, bleedChance: 0.2, infectChance: 0.035,
   },
   runner: {
-    kind: 'runner', name: 'Läufer', health: 24, damage: 7, structureDamage: 4, cooldown: 38, reach: 0.45, speed: 0.125,
+    kind: 'runner', name: 'Läufer', health: 24, damage: 6, structureDamage: 4, cooldown: 50, reach: 0.45, speed: 0.125,
     armorFlat: 0, armorPercent: 0, radius: 0.26, scale: 1, fromDay: 3, share: 0.06, sharePerDay: 0.03, shareMax: 0.35, bleedChance: 0.3, infectChance: 0.04,
   },
   brute: {
-    kind: 'brute', name: 'Brocken', health: 450, damage: 26, structureDamage: 45, cooldown: 75, reach: 0.7, speed: 0.055,
+    kind: 'brute', name: 'Brocken', health: 450, damage: 22, structureDamage: 45, cooldown: 80, reach: 0.7, speed: 0.055,
     armorFlat: 3, armorPercent: 0.15, radius: 0.45, scale: 1, fromDay: 6, share: 0.02, sharePerDay: 0.012, shareMax: 0.12, bleedChance: 0.5, infectChance: 0.03,
   },
   screamer: {
@@ -110,7 +110,7 @@ export const ENEMY_MAPGEN: Readonly<Record<EnemySetting, {
  */
 export const HORDE = {
   firstDay: 2,
-  base: 5,
+  base: 4,
   perDay: 2.5,
   bigEvery: 7,
   bigFactor: 2.5,

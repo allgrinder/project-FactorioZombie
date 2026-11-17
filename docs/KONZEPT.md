@@ -22,7 +22,7 @@ Aufräumschritt entfernt – siehe „Offen“.
 
 | Art | Leben | Tempo | Besonderheit | ab Tag |
 |---|---|---|---|---|
-| Schlurfer | 36 | 0,045 | häufig, langsam | 1 |
+| Schlurfer | 36 | 0,045 | häufig, langsam; 7 Schaden je 1,2 s | 1 |
 | Läufer | 24 | 0,125 | fast so schnell wie die Figur (0,15) | 3 |
 | Schreier | 48 | 0,06 | Schrei lockt Zombies aus 45 Feldern | 4 |
 | Brocken | 450 | 0,055 | gepanzert, reißt Mauern ein (45 je Schlag) | 6 |
@@ -32,7 +32,9 @@ Aufräumschritt entfernt – siehe „Offen“.
 - **Wegsuche:** Flussfelder um das Ziel; Mauern kosten einen Umweg von 8 Feldern, sonst werden sie eingerissen.
   Fundorte der alten Welt (Häuser, Wracks) greifen Zombies nie an.
 - **Besiedlung:** je 32×32-Zelle, dichter mit der Entfernung vom Start und rund um Fundorte; 45 Felder um den Start frei.
-- **Horden:** ab Tag 2 bei Einbruch der Dämmerung, Größe 5 + 2,5 je Tag, jede 7. Nacht × 2,5.
+- **Horden:** ab Tag 2 bei Einbruch der Dämmerung, Größe 4 + 2,5 je Tag, jede 7. Nacht × 2,5. Probelauf ohne Spieler-
+  eingriff: hinter Barrikaden mit einem MG-Turm (40 Magazine) übersteht die Figur vier Nächte; ohne Turm überrennt
+  schon die erste Horde eine reglos stehende Figur – man muss also kämpfen, zurückweichen oder schießen.
 
 ## Lärm (`src/sim/noise.ts`)
 
