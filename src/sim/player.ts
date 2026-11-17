@@ -7,6 +7,7 @@ import { MAPGEN } from '../data/mapgen';
 import { AMMO, FISTS, HAZARD, MELEE, type MeleeDef, NOISE, PLAYER_COMBAT, REPAIR, type UnitDef, WEAPONS, ZOMBIE } from '../data/enemies';
 import { CONSUMABLES, SURVIVAL, perTick } from '../data/survival';
 import { CROWBAR_FACTOR } from '../data/scavenge';
+import { CAR } from '../data/vehicles';
 import { DAY } from '../data/time';
 import { hash01 } from './rng';
 import { GOD, PLAYER, START_INVENTORY } from '../data/player';
@@ -183,6 +184,11 @@ export class Player {
       }
     }
     this.updateCombat(world);
+    if (this.inCar) {
+      this.walking = false;
+      this.updateCrafting(world);
+      return;
+    }
     this.updateSearch(world);
     this.updateMovement(world);
     this.updateMining(world);
@@ -193,6 +199,9 @@ export class Player {
   }
 
   // ------------------------------------------------------------- Rüstung
+
+  /** Sitzt im Pritschenwagen (src/sim/cars.ts): keine eigene Bewegung, geschützt. */
+  inCar = false;
 
   /** Rucksack: einmal im Inventar, bleibt umgeschnallt (die Plätze gehen nicht verloren). */
   hasBackpack = false;
@@ -274,10 +283,12 @@ export class Player {
     const a = this.armor ? ARMORS[this.armor] : null;
     // Rüstung: fester Abzug, dann Anteil
     if (a) dmg = Math.max(dmg * 0.1, (dmg - a.flat) * (1 - a.percent));
+    // im Wagen schützt die Kabine
+    if (this.inCar) dmg *= CAR.cabinProtection;
     this.hp -= dmg;
     this.lastHit = world.tick;
     this.wake();
-    if (from && world.settings.needs) {
+    if (from && world.settings.needs && !this.inCar) {
       const guard = a ? 1 - a.percent : 1;
       if (this.wounds.length < SURVIVAL.maxWounds && hash01(world.seed, world.tick, 71) < from.bleedChance * guard) {
         this.wounds.push(world.tick + SURVIVAL.bleedTicks);
@@ -294,6 +305,7 @@ export class Player {
   /** Tod der Figur. */
   die(world: World, cause: string): void {
     if (this.dead) return;
+    if (this.inCar) world.cars.toggle(world, this);
     world.events.push('playerdeath', this.x, this.y);
     // das Inventar bleibt in der Leiche am Todesort
     world.corpses.add(this.x, this.y, world.tick, this.inventory);
@@ -505,7 +517,7 @@ export class Player {
   saveSurvival() {
     return {
       hu: this.hunger, th: this.thirst, fa: this.fatigue, wo: [...this.wounds], inf: this.infection, sl: this.sleeping, bed: this.inBed,
-      bp: this.hasBackpack, dead: this.dead, dt: this.deathTick, dc: this.deathCause, mw: { ...this.meleeWear }, ug: this.useGun, wa: [...this.warned], st: this.searchTarget,
+      bp: this.hasBackpack, car: this.inCar, dead: this.dead, dt: this.deathTick, dc: this.deathCause, mw: { ...this.meleeWear }, ug: this.useGun, wa: [...this.warned], st: this.searchTarget,
     };
   }
 
@@ -525,6 +537,7 @@ export class Player {
     this.inBed = d.bed;
     this.dead = d.dead;
     this.hasBackpack = !!d.bp;
+    this.inCar = !!d.car;
     this.deathTick = d.dt;
     this.deathCause = d.dc;
     this.meleeWear = { ...d.mw };

@@ -864,7 +864,7 @@ export class GameRenderer {
       sp.zIndex = c.y * TILE - 20;
     }
     const pl = world.player;
-    if (pl) {
+    if (pl && !pl.inCar) {
       const px = (pl.prevPx + (pl.px - pl.prevPx) * alpha) / 256;
       const py = (pl.prevPy + (pl.py - pl.prevPy) * alpha) / 256;
       const t = world.tick + alpha;
@@ -1402,6 +1402,24 @@ export class GameRenderer {
   private drawVehicles(world: World): void {
     const v = this.viewRect();
     const s = this.sprites;
+    // Pritschenwagen: 16 Winkel (0 = Osten, im Uhrzeigersinn), Schatten; fährt er, wackelt er leicht
+    for (const c of world.cars.cars) {
+      if (c.x < v.x0 - 4 || c.x > v.x1 + 4 || c.y < v.y0 - 4 || c.y > v.y1 + 5) continue;
+      const k = ((Math.round(c.angle / (Math.PI / 8)) % 16) + 16) % 16;
+      const key = `pickup.${k}`;
+      if (s.has(`${key}.shadow`)) {
+        const sh = this.shadows.get(s.frame(`${key}.shadow`));
+        sh.position.set(c.x * TILE, c.y * TILE);
+      }
+      const bump = c.running ? Math.sin(world.tick * 0.9 + c.id) * (Math.abs(c.speed) > 0.05 ? 1.2 : 0.5) : 0;
+      const sp = this.ents.get(s.frame(s.has(key) ? key : 'item.fuel-can'));
+      sp.position.set(c.x * TILE, c.y * TILE + bump);
+      if (!s.has(key)) {
+        sp.rotation = c.angle;
+        sp.scale.set(3, 2);
+      }
+      sp.zIndex = c.y * TILE + 20;
+    }
     for (const t of world.trains.trains) {
       for (const veh of t.vehicles) {
         const p = veh.pose;

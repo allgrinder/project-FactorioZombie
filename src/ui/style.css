@@ -489,3 +489,5 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .goal.first .goal-title { color: #f3e2b8; font-weight: 600; }
 .goal-title::before { content: '▸ '; color: var(--accent); }
 .goal-hint { color: var(--dim); margin-left: 12px; font-size: 11px; }
+.car-win { min-width: 280px; max-width: 470px; }
+.window-row:has(.window.car-win:not(.hidden)) .craft-col { display: none; }

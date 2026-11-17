@@ -42,6 +42,8 @@ Namen der Vorbilder nie im Spiel verwenden.
   Sammelstelle + Sammler (`src/sim/scavengers.ts`, Zombies jagen sie über `Unit.prey`), Schrottplätze (`SiteSystem.junkyard`).
 - Basis: Lagerfeuer (`kind: 'fire'`, `World.base`: Neustart, Hordenziel), Licht (`World.isLit`, Türme nachts kürzer),
   Wachturm (TurretDef-Werte), Versorgungsabwürfe (`src/sim/drops.ts`), Ziele (`src/sim/goals.ts`), Requisiten (`kind: 'prop'`).
+- Pritschenwagen (`src/sim/cars.ts`, `src/data/vehicles.ts`, Modell `lib/fahrzeug.py`): Wrack am Start reparieren,
+  Benzinkanister, Ladefläche, überfährt Zombies, Taste V. Test `fahrzeug.test.ts`.
 - Ortsbild: Gehwege, Mittellinien, Äcker (Beläge 7–10 in `src/data/floors.ts`), Zäune, Schilder, Masten, Laternen.
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
   Feuerschale, Scheinwerfer, Wachturm, Sammelstelle.

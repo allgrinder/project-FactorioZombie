@@ -844,6 +844,12 @@ const list: EntityDef[] = [
     salvage: [{ item: 'pipe', amount: 6 }, { item: 'steel-plate', amount: 4 }],
   },
   {
+    // defekter Pritschenwagen: wird mit CAR.repair zum fahrbaren Wagen (src/sim/cars.ts)
+    kind: 'loot', id: 'pickup-wreck', name: 'Defekter Pritschenwagen', width: 3, height: 2, health: 800,
+    item: 'iron-ore', itemCount: 12, mineTime: 6, solid: true, rotatable: false, slots: 4, table: 'pickup', searchTime: 2,
+    salvage: [{ item: 'iron-gear-wheel', amount: 4 }],
+  },
+  {
     kind: 'loot', id: 'airdrop', name: 'Versorgungsabwurf', width: 2, height: 2, health: 400,
     item: 'cloth', itemCount: 6, mineTime: 2, solid: true, rotatable: false, slots: 12, table: 'airdrop', searchTime: 2,
     salvage: [{ item: 'iron-plate', amount: 4 }],

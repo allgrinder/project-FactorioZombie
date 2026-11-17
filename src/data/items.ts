@@ -199,6 +199,7 @@ const list: ItemDef[] = [
   { id: 'scavenger-camp', name: 'Sammelstelle', stackSize: 5, placeResult: 'scavenger-camp', order: 32 },
   { id: 'scavenger-kit', name: 'Sammler-Ausrüstung', stackSize: 10, order: 32.1 },
   { id: 'backpack', name: 'Rucksack', stackSize: 1, order: 140.5 },
+  { id: 'fuel-can', name: 'Benzinkanister', stackSize: 10, fuelValue: 25 * MJ, order: 11.5 },
   // Gefüllte Fässer (Wiki „Barrel“: 50 Einheiten, Stapel 10; kein Dampf)
   ...BARRELED.map((f, i) => ({ id: `${f.id}-barrel`, name: `${f.name}fass`, stackSize: 10, order: 85.1 + i * 0.01 })),
 ];

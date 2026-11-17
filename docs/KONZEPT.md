@@ -106,6 +106,15 @@ wartet, ist er verbarrikadiert und sicher. Geht man zu ihm, folgt er der Figur �
 Erreicht er das Lagerfeuer, wird er Sammler: eine Sammler-Ausrüstung landet in der Sammelstelle (sonst im Inventar).
 Bleibt er mehr als 40 Felder zurück, wartet er wieder.
 
+## Pritschenwagen (eigene Idee, `src/sim/cars.ts`, Werte `src/data/vehicles.ts`)
+
+Am Startfundort steht ein defekter Pritschenwagen. Reparatur per Linksklick: 20 Eisenplatten, 8 Zahnräder, 10 Kabel.
+Tank: Benzinkanister (25 MJ; Tankstellen, Autowracks, Werkstätten, Abwürfe), Motor 60 kW bei Vollgas, Leerlauf ein
+Zehntel. Asphalt 0,42 Felder/Tick, Gelände 0,26, rückwärts 0,08. W/S Gas/Bremse, A/D lenken, V ein- und aussteigen,
+Klick auf den Wagen öffnet Tank und Ladefläche (30 Plätze). Insassen nehmen 30 % Schaden, ohne Wunden/Infektion.
+Zombies werden überfahren (60 Schaden bei Höchsttempo), Hindernisse beschädigen ihn ab 0,15 Felder/Tick.
+Der Motor ist laut (Lärm 26 alle 30 Ticks). 600 Lebenspunkte; zerstört fällt die Ladung heraus.
+
 ## Nacht
 
 Zombies laufen nachts bis zu 25 % schneller und sehen kürzer (7 statt 11 Felder); Türme ohne Licht schießen kürzer.

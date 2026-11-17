@@ -8,6 +8,7 @@ import { NoiseSystem } from './noise';
 import { SiteSystem } from './sites';
 import { ScavengerSystem } from './scavengers';
 import { DropSystem } from './drops';
+import { CarSystem } from './cars';
 import { ChartSystem } from './chart';
 import { EventQueue } from './events';
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
@@ -79,6 +80,8 @@ export class World {
   readonly scavengers = new ScavengerSystem();
   /** Versorgungsabwürfe. */
   readonly drops = new DropSystem();
+  /** Fahrzeuge (Pritschenwagen). */
+  readonly cars = new CarSystem();
   /** Aufgedeckte Kartenabschnitte (Figur, Radar, Roboterhangar). */
   readonly chart = new ChartSystem();
   /** Ereignisse für Ton/Effekte (nicht gespeichert). */
@@ -410,6 +413,7 @@ export class World {
     this.drops.update(this);
     this.capsules.update(this);
     this.player?.update(this);
+    this.cars.update(this);
     this.noise.update(this);
     this.chart.update(this);
     this.tick++;

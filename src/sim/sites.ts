@@ -128,9 +128,13 @@ export class SiteSystem {
       const x = Math.round(Math.cos(a) * d);
       const y = Math.round(Math.sin(a) * d);
       if (!this.put(w, 'ruin-shed', x, y)) continue;
-      this.put(w, 'car-wreck', x + 5, y + 2);
+      // defekter Pritschenwagen (zu reparieren): ein paar Ausweichstellen, falls etwas im Weg steht
+      for (const [dx, dy] of [[5, 2], [5, 5], [-6, 1], [1, 6], [6, -3], [-3, -6]]) {
+        if (!this.put(w, 'pickup-wreck', x + dx, y + dy, true)) continue;
+        this.asphalt(w, x + dx - 1, y + dy - 1, x + dx + 4, y + dy + 3);
+        break;
+      }
       this.put(w, 'supply-crate', x - 2, y + 1);
-      this.asphalt(w, x + 4, y + 4, x + 9, y + 5);
       // Material für den Anfang: Schrott, Schutt, Kohle, Holz (von Hand ausschlachten)
       for (const [name, dx, dy] of [['scrap-pile', 9, -2], ['rubble-pile', -5, -3], ['coal-pile', -4, 4], ['wood-pile', 1, -3], ['scrap-pile', 11, 6]] as const) {
         for (let t = 0; t < 4 && !this.put(w, name, x + dx + t * 2, y + dy); t++);

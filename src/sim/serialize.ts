@@ -81,6 +81,7 @@ export interface SaveData {
   noise?: ReturnType<NoiseSystem['serialize']>;
   scav?: ReturnType<ScavengerSystem['serialize']>;
   drops?: ReturnType<World['drops']['serialize']>;
+  cars?: ReturnType<World['cars']['serialize']>;
   sites?: ReturnType<SiteSystem['serialize']>;
   /** Tick der Rettung (Funkturm), sonst nicht gesetzt. */
   rescued?: number;
@@ -155,6 +156,7 @@ export function serializeWorld(w: World): SaveData {
     noise: w.noise.serialize(),
     ...(w.scavengers.workers.length ? { scav: w.scavengers.serialize() } : {}),
     drops: w.drops.serialize(),
+    ...(w.cars.cars.length ? { cars: w.cars.serialize() } : {}),
     sites: w.sites.serialize(),
     ...(w.rescuedAt !== null ? { rescued: w.rescuedAt } : {}),
     chart: w.chart.serialize(),
@@ -219,6 +221,7 @@ export function deserializeWorld(d: SaveData): World {
   w.noise.load(d.noise);
   w.scavengers.load(d.scav);
   w.drops.load(d.drops);
+  w.cars.load(d.cars);
   w.sites.load(d.sites);
   w.rescuedAt = d.rescued ?? null;
   w.chart.load(d.chart);

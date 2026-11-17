@@ -403,6 +403,15 @@ export class Game {
             : `Nahkampf: ${p.meleeWeapon ? ITEMS[p.meleeWeapon].name : 'Fäuste'} (leise)`);
         } else if (this.debug) this.debugItem('coal');
         break;
+      case 'v': {
+        // V: in den Pritschenwagen ein- bzw. aussteigen (im Sandkasten ohne Figur: Debug-Platte)
+        const p = this.world.player;
+        if (p) {
+          const err = this.world.cars.toggle(this.world, p);
+          if (err) p.note(err);
+        } else if (this.debug) this.debugItem('iron-plate');
+        break;
+      }
       case 'n': {
         // N: schlafen legen bzw. aufstehen
         const p = this.world.player;
@@ -410,8 +419,8 @@ export class Game {
         if (err) p!.note(err);
         break;
       }
-      case 'c': case 'v':
-        if (this.debug) this.debugItem({ c: 'stone', v: 'iron-plate' }[k]);
+      case 'c':
+        if (this.debug) this.debugItem('stone');
         break;
       default:
         if (/^[0-9]$/.test(k)) {
@@ -736,7 +745,12 @@ export class Game {
     if (!item) {
       if (!target && this.buildGhost(tx, ty)) return;
       if (target && ctrl && p) this.takeAllFrom(target);
-      else if (target && target.kind === 'loot' && !target.searched) {
+      else if (target && target.name === 'pickup-wreck' && p) {
+        const err = this.world.cars.repair(this.world, target, p);
+        if (err) p.note(err);
+      } else if (!target && p && this.world.cars.near(at.x, at.y, 1.6)) {
+        this.hud.openCar(this.world.cars.near(at.x, at.y, 1.6)!.id);
+      } else if (target && target.kind === 'loot' && !target.searched) {
         // Fundort: erst durchsuchen, dann öffnet sich das Fenster von selbst
         const err = p ? p.search(this.world, target.id) : null;
         if (err) p!.note(err);
@@ -1006,6 +1020,11 @@ export class Game {
   hoverInfo(): string {
     const m = this.mouseWorld();
     const e = this.world.entityAt(m.x, m.y);
+    if (e?.name === 'pickup-wreck') {
+      const p = this.world.player;
+      const miss = p ? this.world.cars.missing(p) : [];
+      return `Defekter Pritschenwagen – Klick: reparieren${miss.length ? ` (fehlt: ${miss.map((x) => `${x.amount}× ${ITEMS[x.item]?.name ?? x.item}`).join(', ')})` : ' (alles dabei!)'}`;
+    }
     if (e?.kind === 'pile') return `${e.def.name} – noch ${e.amount} Stück · Rechtsklick halten: ausschlachten${this.world.player?.inventory.count('crowbar') ? ' (Brecheisen: schneller)' : ''}`;
     if (e?.kind === 'camp') return `Sammelstelle – ${this.world.scavengers.workersOf(e.id).length} Sammler · Umkreis ${e.def.radius} Felder · Klick: öffnen`;
     if (e?.kind === 'fire') return `${e.def.name}${e.def.base ? ' (Mitte der Basis)' : ''} – ${e.lit ? 'brennt' : 'aus'} · brennt nachts mit Holz oder Kohle`;
@@ -1013,6 +1032,8 @@ export class Game {
       return `${e.def.name} – ${e.searched ? (e.inventory.isEmpty() ? 'leer' : 'durchsucht (Klick: öffnen)') : 'Klick: durchsuchen'} · Rechtsklick halten: ausschlachten`;
     }
     if (e) return entityDef(e.name).name + this.fluidHover(e);
+    const car = this.world.cars.near(m.x, m.y, 1.4);
+    if (car) return `Pritschenwagen – ${this.world.cars.driving === car.id ? `${Math.round(car.speed * 60 * 3.6)} km/h` : 'Klick: Tank und Ladefläche · V: einsteigen'} · Zustand ${Math.round((car.hp / 600) * 100)} %`;
     const wk = this.world.scavengers.nearest(m.x, m.y, 0.7);
     if (wk && wk.camp === 0) return `Überlebender – ${wk.state === 'wait' ? 'wartet auf Hilfe (hingehen)' : 'folgt dir zum Lagerfeuer'} · Leben ${Math.ceil(wk.hp)}`;
     if (wk) return `Sammler – ${wk.state === 'gather' ? 'sammelt' : wk.flee ? 'auf der Flucht' : wk.state === 'back' ? 'auf dem Heimweg' : 'unterwegs'} · ${wk.cargo.length} Stück · Leben ${Math.ceil(wk.hp)}`;

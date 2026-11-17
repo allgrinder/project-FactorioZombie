@@ -31,11 +31,11 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
   garage: [
     R('crowbar', 1, 1, 0.5), R('iron-plate', 6, 20, 0.8), R('iron-gear-wheel', 3, 10, 0.7), R('copper-cable', 6, 20, 0.6),
     R('electronic-circuit', 2, 8, 0.45), R('steel-plate', 2, 8, 0.3, true), R('repair-pack', 1, 4, 0.4), R('radio-parts', 1, 2, 0.3, true),
-    R('coal', 5, 15, 0.4), R('firearm-magazine', 1, 4, 0.15, true),
+    R('coal', 5, 15, 0.4), R('firearm-magazine', 1, 4, 0.15, true), R('fuel-can', 1, 2, 0.35),
   ],
   car: [
     R('iron-ore', 2, 6, 0.8), R('iron-gear-wheel', 1, 3, 0.4), R('copper-cable', 2, 6, 0.4), R('snack', 1, 2, 0.25), R('water-bottle', 1, 1, 0.25),
-    R('cloth', 1, 3, 0.3), R('bandage', 1, 1, 0.15), R('crowbar', 1, 1, 0.1), R('firearm-magazine', 1, 2, 0.08, true),
+    R('cloth', 1, 3, 0.3), R('bandage', 1, 1, 0.15), R('crowbar', 1, 1, 0.1), R('firearm-magazine', 1, 2, 0.08, true), R('fuel-can', 1, 1, 0.25),
   ],
   crate: [
     R('canned-food', 1, 3, 0.6), R('water-bottle', 1, 2, 0.5), R('bandage', 1, 2, 0.4), R('wood', 2, 6, 0.4), R('iron-plate', 2, 8, 0.4),
@@ -45,6 +45,7 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
     R('firearm-magazine', 4, 12, 0.95), R('piercing-rounds-magazine', 2, 6, 0.3, true), R('pistol', 1, 1, 0.5), R('submachine-gun', 1, 1, 0.15, true),
     R('grenade', 1, 4, 0.35), R('first-aid-kit', 1, 2, 0.5), R('canned-food', 2, 4, 0.5), R('radio-parts', 1, 2, 0.3), R('antibiotics', 1, 1, 0.15),
   ],
+  pickup: [R('fuel-can', 1, 1, 1), R('crowbar', 1, 1, 0.5), R('water-bottle', 1, 1, 0.6)],
   police: [
     R('firearm-magazine', 4, 12, 0.95), R('piercing-rounds-magazine', 2, 6, 0.45, true), R('pistol', 1, 1, 0.7), R('submachine-gun', 1, 1, 0.3, true),
     R('heavy-armor', 1, 1, 0.35, true), R('grenade', 1, 3, 0.35), R('first-aid-kit', 1, 1, 0.4), R('radio-parts', 1, 2, 0.4), R('coffee', 1, 3, 0.5),
@@ -55,12 +56,12 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
   ],
   gas: [
     R('snack', 3, 8, 0.9), R('soda', 3, 8, 0.9), R('canned-food', 2, 5, 0.7), R('water-bottle', 2, 4, 0.6), R('coffee', 2, 4, 0.5),
-    R('coal', 10, 30, 0.6), R('repair-pack', 1, 3, 0.4), R('iron-gear-wheel', 2, 6, 0.4), R('noise-lure', 1, 1, 0.15),
+    R('coal', 10, 30, 0.6), R('repair-pack', 1, 3, 0.4), R('iron-gear-wheel', 2, 6, 0.4), R('noise-lure', 1, 1, 0.15), R('fuel-can', 2, 5, 0.95),
   ],
   airdrop: [
     R('firearm-magazine', 6, 15, 0.95), R('piercing-rounds-magazine', 2, 6, 0.35), R('grenade', 1, 3, 0.5), R('first-aid-kit', 1, 2, 0.6),
     R('antibiotics', 1, 1, 0.4), R('canned-food', 3, 6, 0.9), R('water-bottle', 2, 4, 0.8), R('radio-parts', 1, 2, 0.5),
-    R('scavenger-kit', 1, 1, 0.35), R('backpack', 1, 1, 0.2), R('submachine-gun', 1, 1, 0.15), R('noise-lure', 1, 2, 0.3),
+    R('scavenger-kit', 1, 1, 0.35), R('backpack', 1, 1, 0.2), R('fuel-can', 1, 2, 0.4), R('submachine-gun', 1, 1, 0.15), R('noise-lure', 1, 2, 0.3),
   ],
   trash: [
     R('iron-ore', 2, 8, 0.8), R('empty-bottle', 1, 4, 0.6), R('cloth', 1, 4, 0.5), R('wood', 1, 5, 0.4), R('snack', 1, 1, 0.15), R('iron-stick', 1, 4, 0.3),

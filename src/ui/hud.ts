@@ -4,6 +4,7 @@ import { MELEE, PLAYER_COMBAT, UNITS } from '../data/enemies';
 import { SURVIVAL, isConsumable } from '../data/survival';
 import { PLAYER } from '../data/player';
 import { DAY, dayNumber } from '../data/time';
+import { CAR } from '../data/vehicles';
 import { compassName } from '../sim/enemies';
 import { GOALS, goalStatus } from '../sim/goals';
 import { WORLD } from '../data/world';
@@ -125,6 +126,9 @@ export class Hud {
   private readonly help: HTMLDivElement;
   private readonly invWin: HTMLDivElement;
   private readonly entWin: HTMLDivElement;
+  private readonly carWin: HTMLDivElement;
+  private openCarId: number | null = null;
+  private carKey = '';
   private readonly menu: HTMLDivElement;
   private readonly techWin: HTMLDivElement;
   private readonly statsWin: HTMLDivElement;
@@ -167,6 +171,7 @@ export class Hud {
     const row = el('div', 'window-row', this.layer);
     this.invWin = el('div', 'window inventory hidden', row);
     this.entWin = el('div', 'window entity hidden', row);
+    this.carWin = el('div', 'window car-win hidden', row);
     this.menu = el('div', 'window menu hidden', this.layer);
     this.techWin = el('div', 'window tech hidden', this.layer);
     this.statsWin = el('div', 'window stats hidden', this.layer);
@@ -287,6 +292,7 @@ export class Hud {
     if (this.frame % 30 === 0) this.updatePowerBadge();
     if (this.frame % 60 === 0 && !this.powerWin.classList.contains('hidden')) this.buildPower();
     if (this.frame % 15 === 0 && this.openTrainId) this.buildTrain();
+    if (this.frame % 10 === 0 && this.openCarId !== null) this.buildCar();
     if (this.frame % 10 === 0) {
       if (!this.invWin.classList.contains('hidden')) this.updateInventory();
       if (this.openEntityId !== null) {
@@ -735,6 +741,20 @@ export class Hud {
       g.cursorItem = null;
       return;
     }
+    // Pritschenwagen offen: Benzinkanister in den Tank, alles andere auf die Ladefläche
+    const car = this.openCarId !== null ? g.world.cars.get(this.openCarId) : undefined;
+    if (mode && car) {
+      const item = st.item;
+      const amount = mode === 'all' ? p.inventory.count(item) : mode === 'half' ? Math.ceil(st.count / 2) : st.count;
+      const inv = item === 'fuel-can' ? car.fuel.fuel : car.cargo;
+      const n = inv.add(item, amount);
+      if (n > 0) p.inventory.remove(item, n);
+      else p.note('Passt nicht hinein');
+      this.carKey = '';
+      this.updateInventory(true);
+      this.buildCar();
+      return;
+    }
     const target = this.openEntityId !== null ? g.world.entities.get(this.openEntityId) : undefined;
     if (mode && target) {
       const item = st.item;
@@ -785,6 +805,74 @@ export class Hud {
       this.buildInventory();
     }
     this.buildEntity();
+  }
+
+  /** Pritschenwagen öffnen (Tank, Ladefläche); nur aus der Nähe. */
+  openCar(id: number): void {
+    const g = this.game;
+    const c = g.world.cars.get(id);
+    const p = g.world.player;
+    if (!c || !p) return;
+    if (Math.hypot(c.x - p.x, c.y - p.y) > 4) {
+      p.note('Zu weit weg');
+      return;
+    }
+    this.closeEntity();
+    this.openCarId = id;
+    this.carKey = '';
+    this.carWin.classList.remove('hidden');
+    if (this.invWin.classList.contains('hidden')) {
+      this.invWin.classList.remove('hidden');
+      this.buildInventory();
+    }
+    this.buildCar();
+  }
+
+  private buildCar(): void {
+    const g = this.game;
+    const c = this.openCarId !== null ? g.world.cars.get(this.openCarId) : undefined;
+    const p = g.world.player;
+    if (!c || !p || Math.hypot(c.x - p.x, c.y - p.y) > 5) {
+      this.openCarId = null;
+      this.carWin.classList.add('hidden');
+      return;
+    }
+    const key = JSON.stringify([c.fuel.fuel.serialize(), c.cargo.serialize(), Math.round(c.hp), Math.round(c.fuel.energy / 1e5)]);
+    if (key === this.carKey) return;
+    this.carKey = key;
+    this.carWin.replaceChildren();
+    const head = el('div', 'win-head', this.carWin);
+    head.textContent = 'Pritschenwagen';
+    const close = el('button', 'close', head);
+    close.textContent = '×';
+    close.onclick = () => { this.openCarId = null; this.carWin.classList.add('hidden'); };
+    const body = el('div', 'win-body', this.carWin);
+    el('div', 'dim', body).textContent = `Zustand ${Math.round((c.hp / CAR.health) * 100)} % · Tank ${Math.round(c.fuel.energy / 1e6)} MJ im Motor · V: ein-/aussteigen`;
+    const grid = (label: string, inv: Inventory) => {
+      el('div', 'sub-head', body).textContent = label;
+      const r = el('div', 'grid inv chest-grid', body);
+      inv.slots.forEach((st, i) => {
+        const s = el('div', 'slot', r);
+        if (st) {
+          s.appendChild(this.icon(`item.${st.item}`));
+          el('span', 'count', s).textContent = String(st.count);
+          s.dataset.item = st.item;
+          this.tip.attach(s, () => this.tip.item(st.item, st.count));
+        }
+        s.addEventListener('click', () => {
+          const cur = inv.slots[i];
+          if (!cur) return;
+          const n = p.inventory.add(cur.item, cur.count);
+          inv.remove(cur.item, n);
+          this.carKey = '';
+          this.updateInventory(true);
+          this.buildCar();
+        });
+      });
+    };
+    grid('Tank (Benzinkanister)', c.fuel.fuel);
+    grid('Ladefläche', c.cargo);
+    el('div', 'dim', body).textContent = 'Klick: Stapel nehmen · Inventar: Umschalt+Klick hinein, Strg+Klick alle dieser Sorte';
   }
 
   private closeEntity(): void {
@@ -1093,7 +1181,8 @@ export class Hud {
       this.mapView.toggle(0, 0);
       any = true;
     }
-    for (const w of [this.help, this.invWin, this.entWin, this.menu, this.techWin, this.statsWin, this.bookWin, this.powerWin, this.bpWin, this.trainWin]) {
+    this.openCarId = null;
+    for (const w of [this.help, this.invWin, this.entWin, this.carWin, this.menu, this.techWin, this.statsWin, this.bookWin, this.powerWin, this.bpWin, this.trainWin]) {
       if (!w.classList.contains('hidden')) {
         w.classList.add('hidden');
         any = true;
@@ -1964,6 +2053,7 @@ export class Hud {
         <p><b>Kein Bergbau:</b> Material liegt als <b>Schrotthaufen</b> (Schrott, Schutt, Kohle, Holz, Autoteile, Elektroschrott) in Höfen, Orten und auf eingezäunten <b>Schrottplätzen</b> – <b>Rechtsklick halten</b> schlachtet aus, mit Brecheisen doppelt so schnell. Der Rucksack bringt 20 Plätze.</p>
         <p><b>Sammeltrupps:</b> Eine <b>Sammelstelle</b> schickt je Sammler-Ausrüstung einen Sammler zu den Haufen im Umkreis (80 Felder); jeder Gang kostet Verpflegung. Zombies jagen Sammler – beschütze sie und die Sammelstelle.</p>
         <p><b>Basis:</b> Das <b>Lagerfeuer</b> ist die Mitte deiner Basis: Neustartpunkt, Ziel der Horden, Schlaf wie im Bett. Nachts sehen Türme ohne Licht schlechter – Feuerschalen und Scheinwerfer helfen. Der <b>Wachturm</b> schießt weiter und stärker als der MG-Turm.</p>
+        <p><b>Pritschenwagen:</b> Das Wrack am Startplatz mit 20 Eisenplatten, 8 Zahnrädern und 10 Kabeln reparieren (Linksklick). Benzinkanister in den Tank (Klick auf den Wagen), <b>V</b> ein-/aussteigen, <b>W/S</b> Gas/Bremse, <b>A/D</b> lenken. Schnell auf Straßen, überfährt Zombies – aber laut.</p>
         <p><b>Versorgungsabwürfe</b> landen ab Tag 2 am Fallschirm – laut, mit Munition und Medizin.</p>
         <p><b>Fundorte</b> (Häuser, Wracks, Kisten): <b>Linksklick</b> durchsuchen und Beute nehmen · <b>Rechtsklick halten</b> ausschlachten (Schrott, Holz, Ziegel)</p>
         <p><b>Essen, Trinken, Verbinden:</b> Rechtsklick im Inventar – oder Gegenstand in die Hand nehmen (Schnellleiste) und ins Freie klicken. Leere Flaschen am Wasser füllen (Flasche in die Hand, aufs Wasser klicken) oder in die Regentonne legen.</p>

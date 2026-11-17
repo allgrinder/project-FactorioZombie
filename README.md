@@ -65,6 +65,7 @@ Die Schleife ist: **hinausgehen, plündern, kämpfen – und zurück zur bewacht
 - **Rechtsklick im Inventar** essen, trinken, verbinden (oder Gegenstand in die Hand und ins Freie klicken)
 - **E** Inventar & Handwerk, **T** Forschung, **M** Karte, **J** Handbuch, **O** Strom, **P** Produktion
 - **R** drehen, **Q** aufnehmen/Hand leeren, **1–0** Schnellleiste, **Alt** Detailansicht
+- **V** in den Pritschenwagen ein-/aussteigen (W/S Gas/Bremse, A/D lenken); Wrack anklicken repariert ihn
 - **Strg+S / Strg+L** speichern/laden, **Esc** Menü, **H** Hilfe
 
 ## Befehle

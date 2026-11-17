@@ -534,6 +534,63 @@
     "item.decider-combinator"
    ]
   },
+  "fahrzeug": {
+   "hash": "29bf39ca4567ed6d",
+   "sprites": [
+    "pickup.0",
+    "pickup.0.nrm",
+    "pickup.0.shadow",
+    "pickup.1",
+    "pickup.1.nrm",
+    "pickup.1.shadow",
+    "pickup.2",
+    "pickup.2.nrm",
+    "pickup.2.shadow",
+    "pickup.3",
+    "pickup.3.nrm",
+    "pickup.3.shadow",
+    "pickup.4",
+    "pickup.4.nrm",
+    "pickup.4.shadow",
+    "pickup.5",
+    "pickup.5.nrm",
+    "pickup.5.shadow",
+    "pickup.6",
+    "pickup.6.nrm",
+    "pickup.6.shadow",
+    "pickup.7",
+    "pickup.7.nrm",
+    "pickup.7.shadow",
+    "pickup.8",
+    "pickup.8.nrm",
+    "pickup.8.shadow",
+    "pickup.9",
+    "pickup.9.nrm",
+    "pickup.9.shadow",
+    "pickup.10",
+    "pickup.10.nrm",
+    "pickup.10.shadow",
+    "pickup.11",
+    "pickup.11.nrm",
+    "pickup.11.shadow",
+    "pickup.12",
+    "pickup.12.nrm",
+    "pickup.12.shadow",
+    "pickup.13",
+    "pickup.13.nrm",
+    "pickup.13.shadow",
+    "pickup.14",
+    "pickup.14.nrm",
+    "pickup.14.shadow",
+    "pickup.15",
+    "pickup.15.nrm",
+    "pickup.15.shadow",
+    "pickup-wreck.v0",
+    "pickup-wreck.v0.nrm",
+    "pickup-wreck.v0.shadow",
+    "item.fuel-can"
+   ]
+  },
   "floors": {
    "hash": "cd1c10f3bec15920",
    "sprites": [
@@ -2564,6 +2621,10 @@
   {
    "group": "entities",
    "file": "atlas-entities-13.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-14.json"
   },
   {
    "group": "flora",
@@ -10274,6 +10335,465 @@
     0.19999999999999998
    ]
   },
+  "pickup-wreck.v0": {
+   "group": "entities",
+   "frames": [
+    "pickup-wreck.v0#0"
+   ],
+   "w": 240,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6000000000000001
+   ]
+  },
+  "pickup-wreck.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup-wreck.v0.shadow#0"
+   ],
+   "w": 224,
+   "h": 176,
+   "anchor": [
+    0.25,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.0": {
+   "group": "entities",
+   "frames": [
+    "pickup.0#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.0.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.0.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.1": {
+   "group": "entities",
+   "frames": [
+    "pickup.1#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.1.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.1.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.10": {
+   "group": "entities",
+   "frames": [
+    "pickup.10#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.10.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.10.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.11": {
+   "group": "entities",
+   "frames": [
+    "pickup.11#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.11.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.11.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.12": {
+   "group": "entities",
+   "frames": [
+    "pickup.12#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.12.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.12.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.13": {
+   "group": "entities",
+   "frames": [
+    "pickup.13#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.13.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.13.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.14": {
+   "group": "entities",
+   "frames": [
+    "pickup.14#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.14.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.14.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.15": {
+   "group": "entities",
+   "frames": [
+    "pickup.15#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.15.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.15.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.2": {
+   "group": "entities",
+   "frames": [
+    "pickup.2#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.2.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.2.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.3": {
+   "group": "entities",
+   "frames": [
+    "pickup.3#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.3.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.3.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.4": {
+   "group": "entities",
+   "frames": [
+    "pickup.4#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.4.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.4.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.5": {
+   "group": "entities",
+   "frames": [
+    "pickup.5#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.5.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.5.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.6": {
+   "group": "entities",
+   "frames": [
+    "pickup.6#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.6.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.6.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.7": {
+   "group": "entities",
+   "frames": [
+    "pickup.7#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.7.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.7.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.8": {
+   "group": "entities",
+   "frames": [
+    "pickup.8#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.8.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.8.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "pickup.9": {
+   "group": "entities",
+   "frames": [
+    "pickup.9#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.9.shadow": {
+   "group": "entities",
+   "frames": [
+    "pickup.9.shadow#0"
+   ],
+   "w": 224,
+   "h": 224,
+   "anchor": [
+    0.32142857142857145,
+    0.32142857142857145
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "pipe-to-ground.0": {
    "group": "entities",
    "frames": [
@@ -16228,6 +16748,18 @@
     0.5
    ]
   },
+  "item.fuel-can": {
+   "group": "items",
+   "frames": [
+    "item.fuel-can#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.garden": {
    "group": "items",
    "frames": [
@@ -19970,6 +20502,210 @@
    "anchor": [
     0.5,
     0.5333333333333333
+   ]
+  },
+  "pickup-wreck.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup-wreck.v0.nrm#0"
+   ],
+   "w": 240,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6000000000000001
+   ]
+  },
+  "pickup.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.0.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.1.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.10.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.10.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.11.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.11.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.12.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.12.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.13.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.13.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.14.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.14.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.15.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.15.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.2.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.3.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.4.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.5.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.6.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.7.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.8.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.8.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
+   ]
+  },
+  "pickup.9.nrm": {
+   "group": "normals",
+   "frames": [
+    "pickup.9.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.56
    ]
   },
   "pipe-to-ground.0.nrm": {
