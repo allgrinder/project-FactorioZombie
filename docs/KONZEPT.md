@@ -90,10 +90,21 @@ Es gibt keine Rohstofffelder und keine Förderer mehr. Material kommt aus drei Q
 - **Rucksack** (Beute oder Handwerk): +20 Inventarplätze; Grundinventar 50 Plätze, damit Ausflüge sich lohnen und man
   zurückkehren muss.
 
+## Überlebende (eigene Idee)
+
+In jedem Dorf wartet ein Überlebender, in jeder Stadt zwei, einer am Militärposten (blau auf der Karte). Solange er
+wartet, ist er verbarrikadiert und sicher. Geht man zu ihm, folgt er der Figur – jetzt sehen und jagen ihn Zombies.
+Erreicht er das Lagerfeuer, wird er Sammler: eine Sammler-Ausrüstung landet in der Sammelstelle (sonst im Inventar).
+Bleibt er mehr als 40 Felder zurück, wartet er wieder.
+
+## Nacht
+
+Zombies laufen nachts bis zu 25 % schneller und sehen kürzer (7 statt 11 Felder); Türme ohne Licht schießen kürzer.
+
 ## Ortsbild
 
 Ortsstraßen haben Gehwege und eine gestrichelte Mittellinie, Ortsschilder an den Enden und Laternen; Landstraßen
-Holzmasten; Höfe einen eingezäunten Acker mit Heuballen; Schrottplätze einen Maschendrahtzaun mit Einfahrt.
+verlaufen gerade mit rechtwinkligen Kurven, Mittellinie, Holzmasten und liegengebliebenen Autos; Höfe einen eingezäunten Acker mit Heuballen; Schrottplätze einen Maschendrahtzaun mit Einfahrt.
 Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffen.
 
 ## Fundorte (`src/sim/sites.ts`, `src/data/loot.ts`)
@@ -131,7 +142,6 @@ Wunsch 12.11.2026: eine persistente, lebensechte Welt statt Zufallskarten. Das f
 ## Offen
 
 - **Aufräumen:** Code gestrichener Systeme entfernen (Züge, Roboter, Schaltungsnetz, Kernkraft, Öl, Module, Rakete).
-- **Überlebende retten** (Sammler oder Wachen gewinnen) statt Ausrüstung herstellen.
 - **Feinschliff Kampf:** Angriffsanimation der Figur, Zombies ohne Überlappen, Sichtlinie (Mauern verdecken).
 - **Welt:** Felder und Zäune um Höfe, Ortsschilder, Brücken als eigenes Bauwerk, Bahnhof/Tankstelle als besondere Orte.
 - **Später:** Häuser betreten, Kochen, Fahrzeuge, Fähigkeiten, Scheinwerfer, Flammenwerfer-Turm.

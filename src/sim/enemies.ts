@@ -568,6 +568,8 @@ export class EnemySystem {
 
   /** Schritt in Richtung (tx, ty); Wasser und Fundorte umgehen, Gebäude im Weg angreifen (aggressive). */
   private move(w: World, u: Unit, tx: number, ty: number, speed: number, aggressive: boolean): void {
+    // nachts sind Zombies schneller
+    speed *= 1 + ZOMBIE.nightSpeed * w.darkness;
     const dx = tx - u.x;
     const dy = ty - u.y;
     const d = Math.hypot(dx, dy);

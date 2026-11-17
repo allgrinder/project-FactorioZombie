@@ -84,6 +84,8 @@ export const ZOMBIE = {
   screamCooldown: 900,
   /** Nach dem Erreichen einer Lärmquelle: Gebäude in diesem Umkreis werden angegriffen. */
   smashRadius: 4,
+  /** Nachts schneller: Anteil bei voller Dunkelheit. */
+  nightSpeed: 0.25,
   /** Obergrenze aller Zombies (Rechenaufwand). */
   maxUnits: 900,
 } as const;

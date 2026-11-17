@@ -322,7 +322,8 @@ export class HandbookView {
         };
       }
     };
-    seg('drill', ['burner-mining-drill', 'electric-mining-drill']);
+    const drills = (['burner-mining-drill', 'electric-mining-drill'] as const).filter(isCraftable);
+    if (drills.length) seg('drill', drills);
     seg('furnace', (['stone-furnace', 'steel-furnace', 'electric-furnace'] as const).filter(isCraftable));
     seg('assembler', (['assembling-machine-1', 'assembling-machine-2', 'assembling-machine-3'] as const).filter(isCraftable));
 

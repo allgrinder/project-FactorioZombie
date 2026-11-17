@@ -222,6 +222,15 @@ export class Minimap {
       const r = Math.max(2, st.r * 0.35 * scale);
       ctx.fillRect(toX(st.x) - r, toY(st.y) - r, r * 2, r * 2);
     }
+    // Basis (Lagerfeuer): oranger Ring
+    const base = world.base;
+    if (base) {
+      ctx.strokeStyle = '#ffa040';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(toX(base.cx), toY(base.cy), Math.max(4, 4 * scale), 0, Math.PI * 2);
+      ctx.stroke();
+    }
     // Versorgungsabwürfe (blinkend) und Sammler
     if (Math.floor(world.tick / 30) % 2 === 0) {
       ctx.fillStyle = '#ff4a3a';

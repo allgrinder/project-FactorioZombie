@@ -1,7 +1,7 @@
 import { ENTITIES } from '../data/entities';
 import { FLUIDS } from '../data/fluids';
 import { ITEMS } from '../data/items';
-import { RECIPE_LIST, RECIPES, type RecipeDef } from '../data/recipes';
+import { RECIPE_LIST, RECIPES, type RecipeDef, isCraftable } from '../data/recipes';
 import { RESOURCES } from '../data/resources';
 
 /**
@@ -212,14 +212,15 @@ export function ratioRules(m: MachineChoice = DEFAULT_MACHINES): RatioRule[] {
   const rules: RatioRule[] = [];
   const drillRate = rawSource('iron-ore', m)!.perMachine;
   const plateRate = ratePerMachine('iron-plate', m);
-  {
+  // Bohrer-Regeln nur, wenn es Bohrer gibt (in „Letzte Schicht“ kommt Schrott aus Haufen und von Sammlern)
+  if (isCraftable(m.drill)) {
     const [d, f] = intRatio(drillRate, plateRate);
     rules.push({
       title: 'Bohrer → Öfen', item: 'iron-plate', parts: [{ count: d, machine: m.drill, item: 'iron-ore' }, { count: f, machine: m.furnace, item: 'iron-plate' }],
       note: `Ein Bohrer liefert ${fmt(drillRate)} Erz/s, ein Ofen schmilzt ${fmt(plateRate)} Platten/s (gilt für Eisen und Kupfer).`,
     });
   }
-  {
+  if (isCraftable(m.drill)) {
     const beltRate = beltRates()[0].rate;
     rules.push({
       title: 'Ein gelbes Band Platten', item: 'iron-plate',

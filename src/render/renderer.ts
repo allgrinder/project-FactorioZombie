@@ -20,6 +20,7 @@ import { AdvancedBloomFilter } from 'pixi-filters';
 import type { GameEvent } from '../sim/events';
 import { PLAYER_COMBAT, UNITS, type UnitKind } from '../data/enemies';
 import { DROPS } from '../data/loot';
+import { SCAVENGER, SURVIVOR } from '../data/scavenge';
 
 /** Ersatzfarben der Zombies, solange die Sprites fehlen (Kreise in drawCombat). */
 const ZOMBIE_COLOR: Record<UnitKind, number> = { walker: 0x6f7f4a, runner: 0x9a6a3a, brute: 0x4a5a3a, screamer: 0x8a4a6a };
@@ -872,6 +873,8 @@ export class GameRenderer {
         // 8 Richtungen aus der Bewegung bzw. zum Abbauziel; Ruhe, Laufen, Abbauen
         const mt = pl.mineTarget;
         const mining = mt !== null && pl.mineProgress > 0;
+        // Nahkampf: Schwung mit dem Brecheisen (Abbau-Bilder), zum Ziel gedreht
+        const striking = t - pl.lastMelee < 16;
         let dx = pl.px - pl.prevPx;
         let dy = pl.py - pl.prevPy;
         if (mining) {
@@ -881,9 +884,14 @@ export class GameRenderer {
           dx = tx - px;
           dy = ty - py;
         }
+        if (striking) {
+          dx = Math.cos(pl.meleeAngle);
+          dy = Math.sin(pl.meleeAngle);
+        }
         if (dx !== 0 || dy !== 0) this.playerDir = (Math.round(Math.atan2(dx, -dy) / (Math.PI / 4)) + 8) % 8;
         const k = this.playerDir;
-        if (mining) tex = s.frame(`player.mine.${k}`, Math.floor(t / 7.5));
+        if (striking) tex = s.frame(`player.mine.${k}`, 3 + Math.floor(((t - pl.lastMelee) / 16) * 4));
+        else if (mining) tex = s.frame(`player.mine.${k}`, Math.floor(t / 7.5));
         else if (pl.walking) tex = s.frame(`player.walk.${k}`, Math.floor(t / 2.5));
         else tex = s.frame(`player.idle.${k}`, Math.floor(t / 10));
       } else tex = s.frame(`player.${pl.facing}`, pl.walking ? Math.floor(t / 5) : 0);
@@ -1795,7 +1803,8 @@ export class GameRenderer {
       }
     }
     for (const k of world.scavengers.workers) {
-      if (k.state !== 'home' && k.hp < 60) bar(k.x - 0.3, k.y + 0.3, 0.6, k.hp / 60);
+      const max = k.camp === 0 ? SURVIVOR.health : SCAVENGER.health;
+      if (k.state !== 'home' && k.hp < max) bar(k.x - 0.3, k.y + 0.3, 0.6, k.hp / max);
     }
     for (const u of world.enemies.units.values()) {
       if (u.x < v.x0 || u.x > v.x1 || u.y < v.y0 || u.y > v.y1) continue;

@@ -46,15 +46,14 @@ def limb(name, size, pivot, angle, mat, axis=0):
 
 
 def pickaxe(m, name='pick'):
-    """Spitzhacke: Stiel entlang -Z vom Griffpunkt, Kopf quer am Ende."""
+    """Brecheisen (Letzte Schicht: Ausschlachten und Nahkampf): Stange entlang -Z vom Griffpunkt, Klaue am Ende."""
+    bar = eisen.material(name + 'mat', eisen.srgb('#34495a'), rough=0.45, metal=0.8, noise=0.2)
     o = []
-    o.append(eisen.cylinder(name + 's', 0.018, 0.5, (0, 0, -0.22), m.cloth, segments=8))
-    head = eisen.box(name + 'h', (0.03, 0.34, 0.04), (0, 0, -0.46), m.steel, bevel=0.01)
-    o.append(head)
-    for s in (-1, 1):
-        tip = eisen.box(f'{name}t{s}', (0.022, 0.08, 0.03), (0, s * 0.19, -0.47), m.steel, bevel=0.006)
-        tip.rotation_euler = (s * 0.3, 0, 0)
-        o.append(tip)
+    o.append(eisen.cylinder(name + 's', 0.016, 0.52, (0, 0, -0.24), bar, segments=8))
+    hook = eisen.box(name + 'h', (0.026, 0.12, 0.03), (0, 0.05, -0.5), bar, bevel=0.006)
+    hook.rotation_euler = (0.5, 0, 0)
+    o.append(hook)
+    o.append(eisen.box(name + 'tip', (0.03, 0.05, 0.012), (0, -0.01, 0.03), bar))
     return eisen.parent_all(o, name)
 
 
@@ -98,8 +97,11 @@ def worker(m, mode='walk', phase=0.0):
     body.append(eisen.box('torso', (0.3, 0.2, 0.34), (0, 0, 0.55 + bob), m.suit, bevel=0.05))
     body.append(eisen.box('belt', (0.31, 0.21, 0.05), (0, 0, 0.4 + bob), m.dark))
     body.append(eisen.box('buckle', (0.06, 0.02, 0.04), (0, -0.11, 0.4 + bob), m.brass))
-    body.append(eisen.box('pack', (0.25, 0.13, 0.3), (0, 0.16, 0.57 + bob), m.steel, bevel=0.035))
-    body.append(eisen.cylinder('tank', 0.05, 0.24, (0.085, 0.21, 0.62 + bob), m.ochre, segments=12))
+    # Rucksack aus Segeltuch mit Schlafsackrolle
+    canvas = eisen.material('packcloth', eisen.srgb('#5a5236'), rough=0.9, noise=0.25)
+    body.append(eisen.box('pack', (0.25, 0.13, 0.3), (0, 0.16, 0.57 + bob), canvas, bevel=0.05))
+    body.append(eisen.cylinder('roll', 0.055, 0.28, (0, 0.17, 0.75 + bob), eisen.material('roll', eisen.srgb('#3f4a3a'), rough=0.9, noise=0.2),
+                               segments=12, rot=(0, math.pi / 2, 0)))
     body.append(eisen.box('strapL', (0.04, 0.22, 0.03), (-0.09, 0.0, 0.7 + bob), m.dark))
     body.append(eisen.box('strapR', (0.04, 0.22, 0.03), (0.09, 0.0, 0.7 + bob), m.dark))
     for side, s, ang in (('L', -1, arm_l), ('R', 1, arm_r)):
@@ -113,20 +115,33 @@ def worker(m, mode='walk', phase=0.0):
             pk.location = (0, -0.02, -0.33)
             pk.rotation_euler = (-math.pi / 2 + 0.25, 0, 0)
     if mode != 'mine':
-        # Spitzhacke auf dem Rücken
+        # Brecheisen schräg im Rucksack
         pk = pickaxe(m, 'back')
-        pk.location = (-0.06, 0.24, 0.8 + bob)
-        pk.rotation_euler = (0, 0.95, 0)
+        pk.location = (0.08, 0.25, 0.98 + bob)
+        pk.rotation_euler = (0.15, 0.55, 0)
         o.append(pk)
     body.append(eisen.cylinder('neck', 0.05, 0.06, (0, 0, 0.74 + bob), m.skin, segments=10))
     body.append(sphere('head', 0.11, (0, -0.005, 0.85 + bob), m.skin))
-    body.append(eisen.cylinder('helmet', 0.135, 0.08, (0, 0.01, 0.93 + bob), m.ochre, segments=20, bevel=0.035))
-    body.append(eisen.cylinder('brim', 0.16, 0.015, (0, -0.01, 0.9 + bob), m.ochre, segments=20))
-    body.append(eisen.box('visor', (0.16, 0.03, 0.05), (0, -0.1, 0.86 + bob), m.visor))
+    # Strickmütze statt Helm
+    beanie = sphere('beanie', 0.118, (0, 0.008, 0.88 + bob), m.ochre, 16)
+    beanie.scale = (1.0, 1.0, 0.8)
+    body.append(beanie)
+    body.append(eisen.cylinder('cuff', 0.12, 0.035, (0, 0.008, 0.875 + bob), m.ochre, segments=16))
     upper = eisen.parent_all(body, 'upper')
     upper.rotation_euler = (lean, 0, 0)
     o.append(upper)
     return eisen.parent_all(o, 'worker')
+
+
+class SurvivorMats(parts.Mats):
+    """Die Figur als Überlebende: ochsenblutrote Jacke, Jeans, dunkle Mütze."""
+
+    def __init__(self):
+        super().__init__()
+        S = eisen.srgb
+        self.suit = eisen.material('s_jacket', S('#6a3a2c'), rough=0.8, noise=0.25)
+        self.cloth = eisen.material('s_jeans', S('#3a4250'), rough=0.85, noise=0.25)
+        self.ochre = eisen.material('s_beanie', S('#2e2e2a'), rough=0.95, noise=0.2)
 
 
 def render(out):
@@ -136,7 +151,7 @@ def render(out):
             frames = []
             for f in range(n):
                 eisen.reset(samples=40)
-                root = worker(parts.Mats(), mode, f / n)
+                root = worker(SurvivorMats(), mode, f / n)
                 root.rotation_euler = (0, 0, rot)
                 eisen.shadow_catcher(4)
                 eisen.camera(*CANVAS, anchor=ANCHOR)
