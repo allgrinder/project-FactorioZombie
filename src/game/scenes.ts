@@ -1,4 +1,5 @@
 import { DEFAULT_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
+import { WORLD } from '../data/world';
 import type { Dir } from '../sim/geom';
 import { resourceById } from '../data/resources';
 import { type AssemblerEntity, type Entity, type LabEntity, insertInto, itemIndex } from '../sim/machines';
@@ -30,7 +31,7 @@ export function freeplayScene(seed: number, settings: MapSettings = DEFAULT_MAP_
   p.giveStart();
   world.player = p;
   p.note('Kreis Aschland, nach dem Zusammenbruch. Setz dein Lagerfeuer, plündere die Haufen am Schuppen – und sei vor der zweiten Nacht befestigt.');
-  return { world, creative: false, camera: { x: 0.5, y: 0.5, zoom: 1 }, title: `Freies Spiel · Karte ${seed}` };
+  return { world, creative: false, camera: { x: 0.5, y: 0.5, zoom: 1 }, title: seed === WORLD.seed ? WORLD.name : `Karte ${seed}` };
 }
 
 function sandboxScene(seed: number): Scene {

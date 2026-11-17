@@ -68,7 +68,7 @@ export const CLIFF_SETTINGS: Readonly<Record<CliffSetting, { label: string; hint
 
 /** Neue Runden: deutlich größere Felder als die Grundwerte (Wunsch). Alte Spielstände ohne Einstellung: Größe 1. */
 export const DEFAULT_MAP_SETTINGS: MapSettings = {
-  resources: 'mittel', size: 2, enemies: 'normal', cliffs: 'normal', frequency: 'viel', needs: true, death: 'endgueltig', sites: true, ore: false, plan: true,
+  resources: 'mittel', size: 2, enemies: 'normal', cliffs: 'aus', frequency: 'viel', needs: true, death: 'endgueltig', sites: true, ore: false, plan: true,
 };
 export const LEGACY_MAP_SETTINGS: MapSettings = { resources: 'schwer', size: 1, enemies: 'aus', cliffs: 'aus' };
 

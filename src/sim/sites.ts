@@ -1,7 +1,7 @@
 import { type EntityDef, entityDef } from '../data/entities';
 import { ASPHALT, FIELD, PAVEMENT, ROADLINE_E, ROADLINE_S } from '../data/floors';
 import { SITES } from '../data/loot';
-import { type TownDef, WORLD } from '../data/world';
+import { type TownDef, WORLD, roadSegments } from '../data/world';
 import { hash01 } from './rng';
 import type { World } from './world';
 
@@ -270,24 +270,19 @@ export class SiteSystem {
   private farms(): [number, number][] {
     if (this.farmSpots) return this.farmSpots;
     const out: [number, number][] = [];
-    WORLD.roads.forEach((road, ri) => {
-      let run = WORLD.farmEvery * 0.6;
-      for (let k = 0; k + 1 < road.length; k++) {
-        const [ax, ay] = road[k];
-        const [bx, by] = road[k + 1];
-        const L = Math.hypot(bx - ax, by - ay);
-        while (run < L) {
-          const t = run / L;
-          const side = hash01(WORLD.seed, ri, out.length, 840) < 0.5 ? 1 : -1;
-          const nx = (-(by - ay) / L) * side;
-          const ny = ((bx - ax) / L) * side;
-          const x = Math.round(ax + (bx - ax) * t + nx * WORLD.farmOffset);
-          const y = Math.round(ay + (by - ay) * t + ny * WORLD.farmOffset);
-          if (Math.hypot(x, y) > 45 && !this.nearTown(x, y, 60)) out.push([x, y]);
-          run += WORLD.farmEvery;
-        }
-        run -= L;
+    let run = WORLD.farmEvery * 0.6;
+    roadSegments().forEach(([ax, ay, bx, by], ri) => {
+      const L = Math.hypot(bx - ax, by - ay);
+      while (run < L) {
+        const t = run / L;
+        const side = hash01(WORLD.seed, ri, out.length, 840) < 0.5 ? 1 : -1;
+        const horiz = ay === by;
+        const x = Math.round(ax + (bx - ax) * t + (horiz ? 0 : side * WORLD.farmOffset));
+        const y = Math.round(ay + (by - ay) * t + (horiz ? side * WORLD.farmOffset : 0));
+        if (Math.hypot(x, y) > 45 && !this.nearTown(x, y, 60)) out.push([x, y]);
+        run += WORLD.farmEvery;
       }
+      run -= L;
     });
     return (this.farmSpots = out);
   }
@@ -304,33 +299,39 @@ export class SiteSystem {
     const x1 = x0 + c;
     const y1 = y0 + c;
     // Landstraßen zuerst (Orte setzen ihre Straßen darüber)
-    for (const road of WORLD.roads) {
-      for (let k = 0; k + 1 < road.length; k++) {
-        const [ax, ay] = road[k];
-        const [bx, by] = road[k + 1];
-        if (Math.max(ax, bx) < x0 - 2 || Math.min(ax, bx) > x1 + 2 || Math.max(ay, by) < y0 - 2 || Math.min(ay, by) > y1 + 2) continue;
-        const L = Math.hypot(bx - ax, by - ay);
-        // runder Pinsel (Radius 1,3): gleichmäßig breite Straße auch schräg, ohne Treppenstufen
-        for (let d = 0; d <= L; d += 0.5) {
-          const px = ax + ((bx - ax) * d) / L;
-          const py = ay + ((by - ay) * d) / L;
-          for (let y = Math.floor(py - 1.3); y <= Math.floor(py + 1.3); y++) {
-            for (let x = Math.floor(px - 1.3); x <= Math.floor(px + 1.3); x++) {
-              if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
-              if (Math.hypot(x + 0.5 - px, y + 0.5 - py) > 1.3) continue;
-              this.asphalt(w, x, y, x, y, true);
-            }
-          }
+    for (const [ax, ay, bx, by] of roadSegments()) {
+      const horiz = ay === by;
+      const lo = horiz ? Math.min(ax, bx) : Math.min(ay, by);
+      const hi = (horiz ? Math.max(ax, bx) : Math.max(ay, by)) + 1;
+      if ((horiz ? hi < x0 || lo >= x1 || ay + 1 < y0 || ay >= y1 : hi < y0 || lo >= y1 || bx + 1 < x0 || bx >= x1)) continue;
+      const inside = (x: number, y: number) => x >= x0 && x < x1 && y >= y0 && y < y1;
+      for (let a = lo; a <= hi; a++) {
+        for (let k = 0; k < 2; k++) {
+          const x = horiz ? a : bx + k;
+          const y = horiz ? ay + k : a;
+          if (inside(x, y)) this.asphalt(w, x, y, x, y, true);
         }
-        // Holzmasten am Straßenrand (alle 14 Felder, rechts der Fahrtrichtung), nicht in Orten
-        const nx = -(by - ay) / L;
-        const ny = (bx - ax) / L;
-        for (let d = 7; d < L; d += 14) {
-          const x = Math.floor(ax + ((bx - ax) * d) / L + nx * 3);
-          const y = Math.floor(ay + ((by - ay) * d) / L + ny * 3);
-          if (x < x0 || x >= x1 || y < y0 || y >= y1 || this.nearTown(x, y, 45)) continue;
-          if (!w.map.floorAt(x, y)) this.put(w, 'utility-pole', x, y);
+        // gestrichelte Mittellinie, nicht an den Kurven
+        if (a - lo > 3 && hi - a > 3 && ((a % 4) + 4) % 4 < 2) {
+          const x = horiz ? a : bx;
+          const y = horiz ? ay : a;
+          if (inside(x, y) && !this.nearTown(x, y, 40)) this.paint(w, x, y, horiz ? ROADLINE_S : ROADLINE_E, true);
         }
+      }
+      // liegengebliebene Autos am Straßenrand (etwa alle 60 Felder, wechselnde Seite)
+      for (let a = lo + 30; a < hi - 10; a += 60) {
+        const side = hash01(WORLD.seed, ax, ay, 880 + a) < 0.5 ? 1 : -1;
+        const x = horiz ? a : side > 0 ? bx + 3 : bx - 4;
+        const y = horiz ? (side > 0 ? ay + 3 : ay - 3) : a;
+        if (!inside(x, y) || this.nearTown(x, y, 50)) continue;
+        if (this.put(w, 'car-wreck', x, y, true) && hash01(WORLD.seed, x, y, 881) < 0.4) this.put(w, 'scrap-pile', x + (horiz ? 4 : 0), y + (horiz ? 0 : 3), true);
+      }
+      // Holzmasten am Straßenrand (alle 14 Felder, auf der Süd- bzw. Ostseite), nicht in Orten
+      for (let a = lo + 7; a < hi; a += 14) {
+        const x = horiz ? a : bx + 3;
+        const y = horiz ? ay + 3 : a;
+        if (!inside(x, y) || this.nearTown(x, y, 45)) continue;
+        if (!w.map.floorAt(x, y)) this.put(w, 'utility-pole', x, y);
       }
     }
     const inCell = (x: number, y: number) => x >= x0 && x < x1 && y >= y0 && y < y1;

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_MAP_SETTINGS, LEGACY_MAP_SETTINGS } from '../../src/data/mapgen';
+import { DEFAULT_MAP_SETTINGS as DEFAULTS, LEGACY_MAP_SETTINGS } from '../../src/data/mapgen';
+
+/** Klippen sind in „Letzte Schicht“ abgeschaltet; die Tests prüfen das Verfahren mit Klippen. */
+const DEFAULT_MAP_SETTINGS = { ...DEFAULTS, cliffs: 'normal' as const };
 import { Player } from '../../src/sim/player';
 import { deserializeWorld, serializeWorld } from '../../src/sim/serialize';
 import { World } from '../../src/sim/world';

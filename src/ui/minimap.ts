@@ -1,4 +1,4 @@
-import { WORLD } from '../data/world';
+import { WORLD, roadSegments } from '../data/world';
 import { FLOOR_BY_ID } from '../data/floors';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -198,11 +198,12 @@ export class Minimap {
     if (world.settings.plan) {
       ctx.strokeStyle = 'rgba(40,40,42,0.8)';
       ctx.lineWidth = Math.max(1, 2 * scale);
-      for (const road of WORLD.roads) {
-        ctx.beginPath();
-        road.forEach(([rx, ry], i) => (i ? ctx.lineTo(toX(rx), toY(ry)) : ctx.moveTo(toX(rx), toY(ry))));
-        ctx.stroke();
+      ctx.beginPath();
+      for (const [ax, ay, bx, by] of roadSegments()) {
+        ctx.moveTo(toX(ax + 1), toY(ay + 1));
+        ctx.lineTo(toX(bx + 1), toY(by + 1));
       }
+      ctx.stroke();
       ctx.font = `${detail ? 13 : 10}px sans-serif`;
       ctx.textAlign = 'center';
       for (const t of [...WORLD.towns, ...WORLD.outposts]) {

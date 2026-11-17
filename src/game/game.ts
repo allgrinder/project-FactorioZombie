@@ -19,6 +19,7 @@ import { type Entity, insertInto, itemIndex } from '../sim/machines';
 import type { Tree } from '../sim/trees';
 import type { World } from '../sim/world';
 import { Hud } from '../ui/hud';
+import { WORLD } from '../data/world';
 import { Input } from './input';
 import type { Scene } from './scenes';
 
@@ -106,7 +107,7 @@ export class Game {
     this.creative = creative;
     this.acc = 0;
     this.lastAutosaveTick = world.tick;
-    this.hud.setTitle(creative ? 'Sandkasten' : `Freies Spiel${world.player?.god ? ' · GOTTMODUS' : ''} · Karte ${world.seed}`);
+    this.hud.setTitle(creative ? 'Sandkasten' : `${world.seed === WORLD.seed ? WORLD.name : `Karte ${world.seed}`}${world.player?.god ? ' · GOTTMODUS' : ''}`);
     if (world.player) {
       this.renderer.camera.x = world.player.px / 256;
       this.renderer.camera.y = world.player.py / 256;

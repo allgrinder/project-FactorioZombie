@@ -885,6 +885,7 @@ export class Player {
       if (e.kind === 'pile') {
         if (this.distanceToRect(e.x, e.y, e.w, e.h) > PLAYER.searchDistance) {
           this.mineProgress = 0;
+          if (world.tick % 90 === 0) this.note(`Zu weit weg – näher an den ${e.def.name} herangehen`);
           return;
         }
         // Ausschlachten geht schneller als der alte Handabbau: Sekunden je Stück direkt (Stahlaxt-Bonus, Zustand, Brecheisen)

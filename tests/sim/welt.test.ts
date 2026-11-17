@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_MAP_SETTINGS } from '../../src/data/mapgen';
-import { WORLD } from '../../src/data/world';
+import { WORLD, roadSegments } from '../../src/data/world';
 import { Player } from '../../src/sim/player';
 import { deserializeWorld, serializeWorld } from '../../src/sim/serialize';
 import { World } from '../../src/sim/world';
@@ -52,20 +52,17 @@ describe('Feste Welt', () => {
     expect(count('ruin-house')).toBeGreaterThanOrEqual(10);
     expect(count('car-wreck')).toBeGreaterThanOrEqual(4);
     expect(w.sites.sites.filter((s) => s.kind === 'town').length).toBeGreaterThanOrEqual(6);
-    // Landstraße: durchgehend begehbar, auch wo vorher Wasser oder Klippen waren
-    for (const road of WORLD.roads) {
-      for (let k = 0; k + 1 < road.length; k++) {
-        const [ax, ay] = road[k];
-        const [bx, by] = road[k + 1];
-        if (Math.hypot((ax + bx) / 2 - t.x, (ay + by) / 2 - t.y) > 120) continue;
-        const L = Math.hypot(bx - ax, by - ay);
-        for (let d = 0; d <= L; d += 1) {
-          const x = Math.floor(ax + ((bx - ax) * d) / L);
-          const y = Math.floor(ay + ((by - ay) * d) / L);
-          if (Math.abs(x - t.x) > 180 || Math.abs(y - t.y) > 180) continue;
-          expect(w.map.isBlocked(x, y), `${x},${y}`).toBe(false);
-          expect(w.map.floorAt(x, y) > 0 || w.map.resourceAt(x, y).amount > 0 || !!w.entityAt(x, y)).toBe(true);
-        }
+    // Landstraße: durchgehend begehbar und befestigt, auch wo vorher Wasser oder Klippen waren
+    for (const [ax, ay, bx, by] of roadSegments()) {
+      const horiz = ay === by;
+      const lo = horiz ? Math.min(ax, bx) : Math.min(ay, by);
+      const hi = horiz ? Math.max(ax, bx) : Math.max(ay, by);
+      for (let a = lo; a <= hi; a++) {
+        const x = horiz ? a : bx;
+        const y = horiz ? ay : a;
+        if (Math.abs(x - t.x) > 150 || Math.abs(y - t.y) > 150) continue;
+        expect(w.map.isBlocked(x, y), `${x},${y}`).toBe(false);
+        expect(w.map.floorAt(x, y) > 0 || !!w.entityAt(x, y), `${x},${y}`).toBe(true);
       }
     }
   });
