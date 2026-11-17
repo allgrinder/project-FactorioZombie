@@ -175,7 +175,7 @@ export class NightLayer {
       k++;
     };
     const p = world.player;
-    if (p) {
+    if (p && !p.inCar) {
       const px = p.px / 256;
       const py = p.py / 256 - 0.4;
       add(px, py, NIGHT.playerRadius, 0.55, NIGHT.playerColor);
@@ -189,6 +189,13 @@ export class NightLayer {
         add(v.pose.x + v.pose.dx * sgn * 2.5, v.pose.y + v.pose.dy * sgn * 2.5, NIGHT.headlightRange, 1.2, NIGHT.flashlightColor,
           { dx: v.pose.dx * sgn, dy: v.pose.dy * sgn, cos: Math.cos((NIGHT.headlightAngle * Math.PI) / 360) });
       }
+    }
+    // Pritschenwagen: Scheinwerfer, solange der Motor läuft
+    for (const c of world.cars.cars) {
+      if (!c.running) continue;
+      const dx = Math.cos(c.angle);
+      const dy = Math.sin(c.angle);
+      add(c.x + dx * 1.4, c.y + dy * 1.4, NIGHT.headlightRange, 1.2, NIGHT.flashlightColor, { dx, dy, cos: Math.cos((NIGHT.headlightAngle * Math.PI) / 360) });
     }
     // Lampen zuerst (falls mehr Lichter als Plätze), dann Feuer und Masten
     const poles = world.research.bonus('pole-light') > 0 && d >= DAY.lampOn;
