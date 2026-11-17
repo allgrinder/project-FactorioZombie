@@ -379,6 +379,11 @@ export class SiteSystem {
     const len = WORLD.mainLength[t.size - 1];
     const weight = 2 + t.size * 1.5;
     this.street(w, t.x, t.y, horizontal, len, t.size === 1 ? 'village' : 'center', hs(0), true);
+    // Überlebende: in Dörfern einer, in Städten zwei (vor einem Haus an der Hauptstraße)
+    for (let i = 0; i < t.size - 1; i++) {
+      const a = Math.round((i === 0 ? -0.25 : 0.3) * len);
+      w.scavengers.addSurvivor(t.x + (horizontal ? a : -1.5) + 0.5, t.y + (horizontal ? -1.5 : a) + 0.5);
+    }
     // Ortsschilder an beiden Enden, Laternen auf dem Gehweg
     for (const s of [-1, 1]) {
       const a = s * (len / 2 + 2);
@@ -471,6 +476,7 @@ export class SiteSystem {
     this.put(w, 'car-wreck', x + 5, y - 7, true);
     this.put(w, 'ruin-shed', x - 9, y - 6, true);
     this.sites.push({ x, y, r: 10, weight: 7, kind: 'outpost' });
+    w.scavengers.addSurvivor(x + 0.5, y + 3.5);
   }
 
   // ------------------------------------------------------------ Speichern

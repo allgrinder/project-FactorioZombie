@@ -1502,6 +1502,11 @@ export class GameRenderer {
       sp.position.set(k.x * TILE, k.y * TILE);
       sp.scale.set(0.92);
       if (base === 'player') sp.tint = 0xb8c8a0;
+      // Überlebende: andere Kleidung (getönt), wartend mit Winken
+      if (k.camp === 0) {
+        sp.tint = 0xa8bce0;
+        if (k.state === 'wait') sp.rotation = Math.sin(t / 15 + k.id) * 0.05;
+      }
       sp.zIndex = k.y * TILE;
       if (k.cargo.length) {
         const it = this.ents.get(s.frame(`item.${k.cargo[k.cargo.length - 1]}`));

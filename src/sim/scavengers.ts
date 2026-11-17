@@ -1,13 +1,16 @@
 import { CONSUMABLES } from '../data/survival';
 import { ITEMS } from '../data/items';
-import { PILES, SCAVENGER } from '../data/scavenge';
+import { PILES, SCAVENGER, SURVIVOR } from '../data/scavenge';
 import { secondsToTicks } from '../data/time';
 import { FlowField } from './flowfield';
 import type { CampEntity, Entity, PileEntity } from './machines';
 import type { World } from './world';
 
-/** home: in der Sammelstelle; out: unterwegs zum Haufen; gather: schlachtet aus; back: auf dem Heimweg. */
-export type WorkerState = 'home' | 'out' | 'gather' | 'back';
+/**
+ * home: in der Sammelstelle; out: unterwegs zum Haufen; gather: schlachtet aus; back: auf dem Heimweg.
+ * Überlebende (camp 0): wait: wartet im Ort; follow: folgt der Figur.
+ */
+export type WorkerState = 'home' | 'out' | 'gather' | 'back' | 'wait' | 'follow';
 
 /** Sammler (wie die Erntefahrzeuge eines Echtzeit-Strategiespiels): geht hinaus, sammelt, bringt heim. */
 export interface Worker {
@@ -54,7 +57,8 @@ export class ScavengerSystem {
     let best: Worker | null = null;
     let bd = r;
     for (const k of this.workers) {
-      if (k.state === 'home') continue;
+      // daheim und wartende Überlebende (verbarrikadiert) sind sicher
+      if (k.state === 'home' || k.state === 'wait') continue;
       const d = Math.hypot(k.x - x, k.y - y);
       if (d < bd) {
         bd = d;
@@ -62,6 +66,18 @@ export class ScavengerSystem {
       }
     }
     return best;
+  }
+
+  /** Überlebenden in einem Ort setzen (Weltaufbau, src/sim/sites.ts). */
+  addSurvivor(x: number, y: number): Worker {
+    const k: Worker = { id: this.nextId++, camp: 0, x, y, state: 'wait', pile: null, cargo: [], hp: SURVIVOR.health, wait: 0, flee: false, angle: Math.PI / 2, phase: 0 };
+    this.workers.push(k);
+    return k;
+  }
+
+  /** Überlebende, die noch warten oder folgen. */
+  get survivors(): Worker[] {
+    return this.workers.filter((k) => k.camp === 0);
   }
 
   /** Sammelstelle abgerissen: alle ihre Sammler verschwinden, ihre Last fällt zu Boden. */
@@ -96,6 +112,76 @@ export class ScavengerSystem {
     for (const k of [...this.workers]) this.step(w, k);
   }
 
+  /** Überlebender: wartet, bis die Figur kommt; folgt ihr; am Lagerfeuer wird er Sammler. */
+  private stepSurvivor(w: World, k: Worker): void {
+    const p = w.player && !w.player.dead ? w.player : null;
+    if (w.tick % 60 === 0) k.hp = Math.min(SURVIVOR.health, k.hp + 0.2);
+    if (!p) return;
+    const d = Math.hypot(p.x - k.x, p.y - k.y);
+    if (k.state === 'wait') {
+      k.phase = 0;
+      if (d < SURVIVOR.joinDistance) {
+        k.state = 'follow';
+        p.note(w.base ? 'Ein Überlebender schließt sich dir an – bring ihn heil zum Lagerfeuer' : 'Ein Überlebender schließt sich dir an – entzünde ein Lagerfeuer als Basis');
+        w.events.push('use', k.x, k.y);
+      }
+      return;
+    }
+    // folgt der Figur
+    const b = w.base;
+    if (b && Math.hypot(b.cx - k.x, b.cy - k.y) < SURVIVOR.homeDistance) return this.rescue(w, k);
+    if (d > SURVIVOR.lostDistance) {
+      k.state = 'wait';
+      p.note('Ein Überlebender hat dich verloren und wartet');
+      return;
+    }
+    if (d <= SURVIVOR.keep) {
+      k.phase = 0;
+      return;
+    }
+    this.stepToward(w, k, p.x, p.y, SURVIVOR.followSpeed);
+  }
+
+  /** Gerettet: wird Sammler (Ausrüstung in eine Sammelstelle mit Platz, sonst ins Inventar). */
+  private rescue(w: World, k: Worker): void {
+    this.workers.splice(this.workers.indexOf(k), 1);
+    w.stats.made('rescue.survivor', 1);
+    w.events.push('rescue', k.x, k.y);
+    let camp: CampEntity | null = null;
+    for (const e of w.entities.values()) if (e.kind === 'camp' && e.kits.count('scavenger-kit') < e.def.workers && (!camp || e.id < camp.id)) camp = e;
+    if (camp) {
+      camp.kits.add('scavenger-kit', 1);
+      w.player?.note('Gerettet! Der Überlebende arbeitet jetzt als Sammler in der Sammelstelle');
+    } else {
+      const p = w.player!;
+      if (p.inventory.add('scavenger-kit', 1) < 1) w.spill(p.x, p.y, 'scavenger-kit');
+      p.note('Gerettet! Baue eine Sammelstelle und lege seine Sammler-Ausrüstung hinein');
+    }
+  }
+
+  /** Schritt geradewegs Richtung Ziel; Hindernisse seitlich umgehen (wie Zombies, ohne Wegfeld). */
+  private stepToward(w: World, k: Worker, tx: number, ty: number, speed: number): void {
+    const dx = tx - k.x;
+    const dy = ty - k.y;
+    const d = Math.hypot(dx, dy);
+    if (d < 1e-6) return;
+    const s = Math.min(speed, d);
+    const a = Math.atan2(dy, dx);
+    for (const off of [0, 0.6, -0.6, 1.2, -1.2, 1.9, -1.9]) {
+      const b = a + off * (k.id % 2 ? 1 : -1);
+      const nx = k.x + Math.cos(b) * s;
+      const ny = k.y + Math.sin(b) * s;
+      if (w.map.isBlocked(Math.floor(nx), Math.floor(ny))) continue;
+      const e = w.entityAt(nx, ny);
+      if (e && e.def.solid && !e.def.walkable) continue;
+      k.x = nx;
+      k.y = ny;
+      k.angle = b;
+      k.phase += s;
+      return;
+    }
+  }
+
   /** Je Sammelstelle so viele Sammler wie Ausrüstungen (überzählige gehen, sobald sie daheim sind). */
   private staff(w: World): void {
     for (const e of w.entities.values()) {
@@ -118,6 +204,7 @@ export class ScavengerSystem {
   }
 
   private step(w: World, k: Worker): void {
+    if (k.camp === 0) return this.stepSurvivor(w, k);
     const camp = w.entities.get(k.camp) as CampEntity | undefined;
     if (!camp) {
       this.workers.splice(this.workers.indexOf(k), 1);

@@ -1013,6 +1013,7 @@ export class Game {
     }
     if (e) return entityDef(e.name).name + this.fluidHover(e);
     const wk = this.world.scavengers.nearest(m.x, m.y, 0.7);
+    if (wk && wk.camp === 0) return `Überlebender – ${wk.state === 'wait' ? 'wartet auf Hilfe (hingehen)' : 'folgt dir zum Lagerfeuer'} · Leben ${Math.ceil(wk.hp)}`;
     if (wk) return `Sammler – ${wk.state === 'gather' ? 'sammelt' : wk.flee ? 'auf der Flucht' : wk.state === 'back' ? 'auf dem Heimweg' : 'unterwegs'} · ${wk.cargo.length} Stück · Leben ${Math.ceil(wk.hp)}`;
     const z = this.world.enemies.nearestTarget(m.x, m.y, 0.6, this.world.tick);
     if (z) {

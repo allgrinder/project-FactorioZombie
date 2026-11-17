@@ -213,3 +213,43 @@ describe('Versorgungsabwürfe', () => {
     expect(b.drops.next).toBe(w.drops.next);
   });
 });
+
+describe('Überlebende', () => {
+  it('wartet sicher, folgt der Figur, wird am Lagerfeuer Sammler der Sammelstelle', () => {
+    const w = arena({ enemies: 'aus' });
+    const p = new Player(0.5, 0.5);
+    w.player = p;
+    const fire = w.place('campfire', -2, -6, 0)!;
+    const c = w.place('scavenger-camp', 4, -8, 0) as CampEntity;
+    const s = w.scavengers.addSurvivor(30.5, 0.5);
+    w.run(30);
+    expect(s.state).toBe('wait');
+    expect(w.scavengers.nearest(s.x, s.y, 5)).toBeNull(); // wartend: Zombies sehen ihn nicht
+    p.px = Math.round(29 * 256);
+    w.run(2);
+    expect(s.state).toBe('follow');
+    // Figur geht heim, der Überlebende folgt
+    for (let i = 0; i < 60 * 20 && w.scavengers.survivors.length; i++) {
+      p.moveX = p.x > fire.cx + 2 ? -1 : 0;
+      p.moveY = p.y > fire.cy + 3 ? -1 : 0;
+      w.step();
+    }
+    expect(w.scavengers.survivors.length).toBe(0);
+    expect(c.kits.count('scavenger-kit')).toBe(1);
+    expect(w.stats.totalMade.get('rescue.survivor') ?? 0).toBe(0); // Sekundenstatistik
+    w.run(61);
+    expect(w.stats.totalMade.get('rescue.survivor')).toBe(1);
+  });
+
+  it('feste Welt: in Dörfern und Städten warten Überlebende', async () => {
+    const { WORLD } = await import('../../src/data/world');
+    const { DEFAULT_MAP_SETTINGS } = await import('../../src/data/mapgen');
+    const w = new World(WORLD.seed, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
+    w.player = new Player(0.5, 0.5);
+    const t = WORLD.towns.find((x) => x.size === 3)!;
+    w.player.px = t.x * 256;
+    w.player.py = t.y * 256;
+    w.step();
+    expect(w.scavengers.survivors.filter((k) => Math.hypot(k.x - t.x, k.y - t.y) < 60).length).toBe(2);
+  });
+});

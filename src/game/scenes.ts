@@ -29,6 +29,7 @@ export function freeplayScene(seed: number, settings: MapSettings = DEFAULT_MAP_
   const p = new Player(0.5, 0.5);
   p.giveStart();
   world.player = p;
+  p.note('Kreis Aschland, nach dem Zusammenbruch. Setz dein Lagerfeuer, plündere die Haufen am Schuppen – und sei vor der zweiten Nacht befestigt.');
   return { world, creative: false, camera: { x: 0.5, y: 0.5, zoom: 1 }, title: `Freies Spiel · Karte ${seed}` };
 }
 

@@ -230,7 +230,11 @@ export class Minimap {
       }
     }
     ctx.fillStyle = '#9adf6a';
-    for (const k of world.scavengers.workers) if (k.state !== 'home') ctx.fillRect(toX(k.x) - 1.5, toY(k.y) - 1.5, 3, 3);
+    for (const k of world.scavengers.workers) {
+      if (k.state === 'home') continue;
+      ctx.fillStyle = k.camp === 0 ? '#8ab8ff' : '#9adf6a';
+      ctx.fillRect(toX(k.x) - 2, toY(k.y) - 2, 4, 4);
+    }
     ctx.strokeStyle = 'rgba(255,190,90,0.55)';
     ctx.lineWidth = 1;
     for (const n of world.noise.recent) {

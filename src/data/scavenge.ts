@@ -69,3 +69,18 @@ export const SCAVENGER = {
   /** Heilung je Sekunde in der Sammelstelle. */
   healPerSecond: 1,
 } as const;
+
+/**
+ * Überlebende (eigene Idee): warten in Orten. Kommt die Figur näher als joinDistance, folgt der Überlebende ihr
+ * (Tempo followSpeed, Abstand keep). Bleibt er mehr als lostDistance zurück, wartet er wieder. Erreicht er das
+ * Lagerfeuer (homeDistance), wird er Sammler: eine Sammler-Ausrüstung in die nächste Sammelstelle mit freiem Platz,
+ * sonst in das Inventar der Figur.
+ */
+export const SURVIVOR = {
+  joinDistance: 2.5,
+  followSpeed: 0.14,
+  keep: 2.2,
+  lostDistance: 40,
+  homeDistance: 6,
+  health: 50,
+} as const;

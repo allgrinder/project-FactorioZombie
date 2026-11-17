@@ -27,6 +27,7 @@ export const GOALS: readonly Goal[] = [
   { id: 'walls', title: 'Basis mit 20 Mauerteilen sichern', hint: 'Holzbarrikaden oder Steinmauern um das Lagerfeuer, ein Tor als Durchgang', done: (w) => count(w, (_n, k) => k === 'wall') >= 20 },
   { id: 'lab', title: 'Forschung beginnen', hint: 'Labor bauen, Werkstatt-Wissen herstellen, mit T forschen', done: (w) => w.research.done.size >= 4 },
   { id: 'crew', title: 'Einen Sammeltrupp losschicken', hint: 'Forschung „Sammeltrupps“, Sammelstelle bauen, Sammler-Ausrüstung und Verpflegung hinein', done: (w) => w.scavengers.workers.length > 0 },
+  { id: 'survivor', title: 'Einen Überlebenden retten', hint: 'In Dörfern und Städten warten Überlebende – hingehen, sie folgen dir zum Lagerfeuer', done: (w) => made(w, 'rescue.survivor') > 0 },
   { id: 'tower', title: 'Basis bewachen', hint: 'MG-Turm oder Wachturm mit Magazinen, Feuerschalen für die Nacht', done: (w) => count(w, (_n, k) => k === 'turret') >= 2 },
   { id: 'night', title: 'Drei Nächte überleben', hint: 'Jede Nacht kommt eine Horde – sie zieht zum Lagerfeuer', done: (w) => dayNumber(w.tick) >= 4 },
   { id: 'drop', title: 'Einen Versorgungsabwurf bergen', hint: 'Ab Tag 2 landen Kisten am Fallschirm – laut, also schnell sein', done: (w) => made(w, 'search.airdrop') > 0 },
