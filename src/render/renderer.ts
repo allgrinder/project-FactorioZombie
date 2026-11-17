@@ -922,22 +922,33 @@ export class GameRenderer {
         break;
       }
       case 'turret': {
-        if (!s.has('gun-turret.base')) {
+        const tb = `${e.name}.base`;
+        if (!s.has(tb)) {
           this.drawGeneric(e, cx, cy, z);
           break;
         }
-        if (s.has('gun-turret.base.shadow')) {
-          const sh = this.shadows.get(s.frame('gun-turret.base.shadow'));
+        if (s.has(`${tb}.shadow`)) {
+          const sh = this.shadows.get(s.frame(`${tb}.shadow`));
           sh.position.set(cx, cy);
+          sh.scale.set(s.info(`${tb}.shadow`)?.meta?.scale ?? 1);
         }
-        const b = this.ents.get(s.frame('gun-turret.base'));
+        const b = this.ents.get(s.frame(tb));
         b.position.set(cx, cy);
         b.zIndex = z;
-        const n = s.info('gun-turret.head')?.meta?.angles ?? 16;
+        const n = s.info(`${e.name}.head`)?.meta?.angles ?? 16;
         const k = ((Math.round(((e.angle + Math.PI / 2) / (Math.PI * 2)) * n) % n) + n) % n;
-        const hd = this.ents.get(s.frame('gun-turret.head', k));
+        const hd = this.ents.get(s.frame(`${e.name}.head`, k));
         hd.position.set(cx, cy);
         hd.zIndex = z + 1;
+        break;
+      }
+      case 'prop': {
+        // Zaun: Richtung nach den Nachbarn (waagerecht, wenn links oder rechts ein Zaun steht)
+        if (e.name === 'fence' && s.has('fence.h')) {
+          const n = (dx: number, dy: number) => world.entityAt(e.x + dx, e.y + dy)?.name === 'fence';
+          const hz = n(-1, 0) || n(1, 0) || !(n(0, -1) || n(0, 1));
+          this.drawNamed(hz ? 'fence.h' : 'fence.v', cx, cy, z);
+        } else this.drawGeneric(e, cx, cy, z);
         break;
       }
       case 'rail': {

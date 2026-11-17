@@ -24,6 +24,11 @@ export const FLOORS: readonly FloorDef[] = [
   { id: 5, item: 'refined-hazard-concrete', name: 'Veredelter Gefahrenbeton', speed: 1.5, sprite: 'floor.refined-hazard', mapColor: 0x7f6f3a },
   // Straßen verlassener Siedlungen (src/sim/sites.ts)
   { id: 6, item: 'stone', name: 'Rissiger Asphalt', speed: 1.3, sprite: 'floor.asphalt', mapColor: 0x4a4a4c, fixed: true },
+  // Ortsbild der festen Welt (src/sim/sites.ts): Gehweg, Acker, Mittellinie (am Süd- bzw. Ostrand des Feldes)
+  { id: 7, item: 'stone-brick', name: 'Gehweg', speed: 1.3, sprite: 'floor.pavement', mapColor: 0x6a675f, fixed: true },
+  { id: 8, item: 'wood', name: 'Acker', speed: 0.85, sprite: 'floor.field', mapColor: 0x6a5a38, fixed: true },
+  { id: 9, item: 'stone', name: 'Asphalt mit Mittellinie', speed: 1.3, sprite: 'floor.roadline-s', mapColor: 0x4a4a4c, fixed: true },
+  { id: 10, item: 'stone', name: 'Asphalt mit Mittellinie', speed: 1.3, sprite: 'floor.roadline-e', mapColor: 0x4a4a4c, fixed: true },
 ];
 
 export const FLOOR_BY_ID: Readonly<Record<number, FloorDef>> = Object.fromEntries(FLOORS.map((f) => [f.id, f]));
@@ -32,5 +37,9 @@ export const FLOOR_BY_ITEM: Readonly<Record<string, FloorDef>> = Object.fromEntr
 /** Abbauzeit eines Belags (s, Wiki „Mining“: Fliesen 0,1 s) und Pinselgröße beim Legen (Felder, Tasten +/-). */
 /** Asphalt (Straße). */
 export const ASPHALT = 6;
+export const PAVEMENT = 7;
+export const FIELD = 8;
+export const ROADLINE_S = 9;
+export const ROADLINE_E = 10;
 
 export const FLOOR = { mineTime: 0.1, brushDefault: 2, brushMin: 1, brushMax: 8 } as const;

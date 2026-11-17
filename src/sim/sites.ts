@@ -1,5 +1,5 @@
 import { type EntityDef, entityDef } from '../data/entities';
-import { ASPHALT } from '../data/floors';
+import { ASPHALT, FIELD, PAVEMENT, ROADLINE_E, ROADLINE_S } from '../data/floors';
 import { SITES } from '../data/loot';
 import { type TownDef, WORLD } from '../data/world';
 import { hash01 } from './rng';
@@ -89,6 +89,15 @@ export class SiteSystem {
     w.map.clearTrees(x - 1, y - 1, x + def.width, y + def.height);
     w.create(w.nextId++, name, x, y, 0);
     return true;
+  }
+
+  /** Belag setzen, wo Land ist (over: vorhandenen Belag ersetzen, z. B. Asphalt durch Mittellinie). */
+  private paint(w: World, x: number, y: number, id: number, over = false): void {
+    if (w.map.isBlocked(x, y) || w.map.resourceAt(x, y).amount > 0) return;
+    if (!over && w.map.floorAt(x, y)) return;
+    const e = w.entityAt(x, y);
+    if (e && e.kind !== 'wire' && e.kind !== 'trap') return;
+    w.map.setFloor(x, y, id);
   }
 
   private flatten(w: World, x: number, y: number): void {
@@ -188,6 +197,21 @@ export class SiteSystem {
     let special = 0;
     if (horizontal) this.asphalt(w, cx + a0, cy, cx + a0 + len, cy + 1, level);
     else this.asphalt(w, cx, cy + a0, cx + 1, cy + a0 + len, level);
+    if (level) {
+      // Ortsstraße: gestrichelte Mittellinie und Gehwege auf beiden Seiten
+      for (let a = a0; a <= a0 + len; a++) {
+        const dash = ((a % 4) + 4) % 4 < 2;
+        if (horizontal) {
+          if (dash) this.paint(w, cx + a, cy, ROADLINE_S, true);
+          this.paint(w, cx + a, cy - 1, PAVEMENT);
+          this.paint(w, cx + a, cy + 2, PAVEMENT);
+        } else {
+          if (dash) this.paint(w, cx, cy + a, ROADLINE_E, true);
+          this.paint(w, cx - 1, cy + a, PAVEMENT);
+          this.paint(w, cx + 2, cy + a, PAVEMENT);
+        }
+      }
+    }
     const pick = (r: number): string => {
       switch (profile) {
         case 'center': return r < 0.34 ? 'ruin-store' : r < 0.5 ? 'ruin-garage' : r < 0.62 ? 'ruin-shed' : 'ruin-house';
@@ -286,11 +310,17 @@ export class SiteSystem {
         const [bx, by] = road[k + 1];
         if (Math.max(ax, bx) < x0 - 2 || Math.min(ax, bx) > x1 + 2 || Math.max(ay, by) < y0 - 2 || Math.min(ay, by) > y1 + 2) continue;
         const L = Math.hypot(bx - ax, by - ay);
+        // runder Pinsel (Radius 1,3): gleichmäßig breite Straße auch schräg, ohne Treppenstufen
         for (let d = 0; d <= L; d += 0.5) {
-          const x = Math.floor(ax + ((bx - ax) * d) / L);
-          const y = Math.floor(ay + ((by - ay) * d) / L);
-          if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
-          this.asphalt(w, x, y, x + 1, y + 1, true);
+          const px = ax + ((bx - ax) * d) / L;
+          const py = ay + ((by - ay) * d) / L;
+          for (let y = Math.floor(py - 1.3); y <= Math.floor(py + 1.3); y++) {
+            for (let x = Math.floor(px - 1.3); x <= Math.floor(px + 1.3); x++) {
+              if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
+              if (Math.hypot(x + 0.5 - px, y + 0.5 - py) > 1.3) continue;
+              this.asphalt(w, x, y, x, y, true);
+            }
+          }
         }
         // Holzmasten am Straßenrand (alle 14 Felder, rechts der Fahrtrichtung), nicht in Orten
         const nx = -(by - ay) / L;
@@ -319,6 +349,8 @@ export class SiteSystem {
       // Hof: Holzstapel und Kohlenkeller bzw. Bauschutt einer eingestürzten Scheune
       placed += +this.put(w, 'wood-pile', x + 8, y + 2, true);
       placed += +this.put(w, h(3) < 0.5 ? 'coal-pile' : 'rubble-pile', x - 6, y - 5, true);
+      // Acker mit Zaun und Heuballen (auf der straßenabgewandten Seite)
+      this.field(w, x + (h(4) < 0.5 ? -20 : 10), y + (h(5) < 0.5 ? -16 : 7), 12, 8, h);
       if (placed) this.sites.push({ x, y, r: 9, weight: 1.5, kind: 'farm' });
     });
     // Wildnis: vereinzelt ein Wrack oder ein verlassenes Lager, nicht bei Orten
@@ -383,7 +415,9 @@ export class SiteSystem {
     const h = (n: number) => hash01(WORLD.seed, i, 870 + n);
     const W2 = 9;
     const H2 = 7;
-    this.asphalt(w, x - W2, y - H2, x + W2, y + H2, true);
+    // festgefahrener Boden; Wasser und Klippen eingeebnet
+    for (let b = -H2; b <= H2; b++) for (let a = -W2; a <= W2; a++) this.flatten(w, x + a, y + b);
+    w.map.clearTrees(x - W2 - 1, y - H2 - 1, x + W2 + 1, y + H2 + 1);
     const kinds = ['scrap-pile', 'parts-pile', 'scrap-pile', 'ewaste-pile', 'scrap-pile', 'parts-pile', 'rubble-pile', 'scrap-pile'];
     let k = 0;
     for (let row = 0; row < 2; row++) {
@@ -407,6 +441,25 @@ export class SiteSystem {
       this.put(w, 'fence', x + W2 + 1, y + b, true);
     }
     this.sites.push({ x, y, r: 10, weight: 2.5, kind: 'junkyard' });
+  }
+
+  /** Acker w×h mit Lattenzaun ringsum (Lücke als Tor) und ein paar Heuballen. */
+  private field(w: World, x0: number, y0: number, fw: number, fh: number, h: (n: number) => number): void {
+    for (let y = y0; y < y0 + fh; y++) for (let x = x0; x < x0 + fw; x++) {
+      if (w.map.isBlocked(x, y) || w.entityAt(x, y)) continue;
+      w.map.clearTrees(x, y, x, y);
+      this.paint(w, x, y, FIELD);
+    }
+    const gate = Math.floor(h(6) * (fw - 2)) + 1;
+    for (let x = x0 - 1; x <= x0 + fw; x++) {
+      this.put(w, 'fence', x, y0 - 1);
+      if (x !== x0 + gate && x !== x0 + gate + 1) this.put(w, 'fence', x, y0 + fh);
+    }
+    for (let y = y0; y < y0 + fh; y++) {
+      this.put(w, 'fence', x0 - 1, y);
+      this.put(w, 'fence', x0 + fw, y);
+    }
+    for (let i = 0; i < 3; i++) if (h(7 + i) < 0.6) this.put(w, 'hay-bale', x0 + 1 + Math.floor(h(10 + i) * (fw - 2)), y0 + 1 + Math.floor(h(13 + i) * (fh - 2)));
   }
 
   /** Militärposten: Kisten hinter Wracks, stark bewacht. */

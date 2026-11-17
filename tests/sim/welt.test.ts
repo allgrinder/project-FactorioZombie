@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { ASPHALT } from '../../src/data/floors';
 import { DEFAULT_MAP_SETTINGS } from '../../src/data/mapgen';
 import { WORLD } from '../../src/data/world';
 import { Player } from '../../src/sim/player';
@@ -65,7 +64,7 @@ describe('Feste Welt', () => {
           const y = Math.floor(ay + ((by - ay) * d) / L);
           if (Math.abs(x - t.x) > 180 || Math.abs(y - t.y) > 180) continue;
           expect(w.map.isBlocked(x, y), `${x},${y}`).toBe(false);
-          expect(w.map.floorAt(x, y) === ASPHALT || w.map.resourceAt(x, y).amount > 0 || !!w.entityAt(x, y)).toBe(true);
+          expect(w.map.floorAt(x, y) > 0 || w.map.resourceAt(x, y).amount > 0 || !!w.entityAt(x, y)).toBe(true);
         }
       }
     }

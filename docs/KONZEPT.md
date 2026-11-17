@@ -48,20 +48,53 @@ langsamer. Heilung nur satt, nicht durstig und ohne Blutung. Zombietreffer reiß
 (0,35 Leben/s bis zum Verband) und infizieren mit 4 % (tödlich nach 1,5 Tagen, nur Antibiotika heilen).
 Tod: endgültig (Standard) oder Wiedereinstieg am Lager.
 
-## Trümmerfelder (`RUBBLE` in `src/data/mapgen.ts`)
+## Plündern statt Bergbau (Wunsch 17.11.2026: „Minen klappen so nicht“)
 
-Wunsch 12.11.2026: Rohstoffe sollen wie Trümmer aussehen; jedes Feld kann alles enthalten, ist aber in einem
-Material ergiebiger; Förderer gibt es je Material.
+Es gibt keine Rohstofffelder und keine Förderer mehr. Material kommt aus drei Quellen:
 
-| Feldart | Eisenschrott | Kupferschrott | Bauschutt | Kohle |
-|---|---|---|---|---|
-| Schrottplatz | 66 % | 14 % | 15 % | 5 % |
-| Kabel- und Elektroschrott | 24 % | 60 % | 16 % | – |
-| Bauschutt | 20 % | 7 % | 64 % | 9 % |
-| Kohlehalde | 8 % | – | 20 % | 72 % |
+1. **Schrotthaufen** (`src/data/scavenge.ts`): von Hand Stück für Stück ausschlachten (rechte Maustaste halten),
+   mit Brecheisen doppelt so schnell. Jeder Zug ist etwas laut.
 
-Schrottgreifer: Eisen- und Kupferschrott. Schuttbrecher: Bauschutt und Kohle. Sortieranlage (elektrisch, Forschung):
-alles. Material liegt in Nestern von etwa 2×2 Feldern.
+   | Haufen | Ausbeute (gewichtet) | Menge |
+   |---|---|---|
+   | Schrotthaufen | Eisenschrott 55, Kupferschrott 14, Eisenstangen 10, Zahnräder 8, Kabel 7, Rohre 4, Stahl 2 | 50–90 |
+   | Schutthaufen | Bauschutt 64, Ziegel 14, Eisenschrott 12, Holz 10 | 50–90 |
+   | Kohlenhaufen | Kohle 88, Bauschutt 12 | 60–110 |
+   | Holzstapel | Holz 90, Eisenstangen 10 | 30–50 |
+   | Autoteile | Eisen 34, Kupfer 18, Zahnräder 16, Kabel 14, Rohre 10, Schaltkreise 5, Stahl 3 | 35–65 |
+   | Elektroschrott | Kupfer 42, Kabel 24, Eisen 18, Schaltkreise 12, Funkteile 1 | 35–65 |
+
+   Lage: fünf Haufen am Startfundort, Holz und Kohle bzw. Schutt an jedem Hof, Schutt hinter Häusern und Autoteile an
+   Werkstätten in den Orten, vereinzelt am Wegesrand – und auf eingezäunten **Schrottplätzen** (acht Haufen zwischen
+   Wracks): zwei nahe am Start, je einer bei jedem Ort.
+2. **Fundorte** (Häuser, Läden, Wracks, Kisten) durchsuchen und ausschlachten.
+3. **Sammeltrupps** (wie die Erntefahrzeuge eines Echtzeit-Strategiespiels, `src/sim/scavengers.ts`): Die
+   **Sammelstelle** (Forschung „Sammeltrupps“) stellt je **Sammler-Ausrüstung** (bis 3) einen Sammler. Er sucht den
+   nächsten Haufen im Umkreis von 80 Feldern, an dem kein Zombie steht, läuft hin (um Mauern herum, durch Tore),
+   sammelt 20 Stück und bringt sie ins Lager der Sammelstelle; Greifarme entnehmen sie. Jeder Gang kostet ein Stück
+   Verpflegung. Zombies sehen und jagen Sammler; kommt einer näher als 8 Felder, flieht der Sammler heim (und zieht die
+   Zombies womöglich hinter sich her). Stirbt er, liegt seine Last am Boden und die Ausrüstung ist verloren.
+
+## Basis (eigene Ideen)
+
+- **Lagerfeuer** (Startausrüstung): das älteste ist die Mitte der Basis – Neustartpunkt einer neuen Figur, Ziel der
+  Horden, Schlaf daneben so erholsam wie im Feldbett. Brennt ab der Dämmerung mit Holz oder Kohle und leuchtet.
+- **Licht:** Nachts schrumpft die Reichweite der Türme um bis zu 40 %, außer sie stehen im Licht eines Feuers, einer
+  Lampe, einer **Feuerschale** (ohne Strom) oder eines **Scheinwerfers** (16 Felder).
+- **Wachturm:** Holzgerüst mit Schützen; Reichweite 24, 1,3 Schuss/s, 2,6-facher Munitionsschaden, etwas leiser als
+  der MG-Turm.
+- **Versorgungsabwürfe** (`src/sim/drops.ts`): ab Tag 2 etwa alle 12 Minuten landet eine Kiste am Fallschirm 60–150
+  Felder von der Basis (Richtung und Entfernung werden gemeldet, Karte blinkt). Inhalt: Munition, Medizin,
+  Verpflegung, selten Sammler-Ausrüstung, Rucksack oder Maschinenpistole. Die Landung ist sehr laut.
+- **Ziele** (`src/sim/goals.ts`): zwölf Etappen von „Lagerfeuer entzünden“ bis „Die Rettung rufen“, links oben.
+- **Rucksack** (Beute oder Handwerk): +20 Inventarplätze; Grundinventar 50 Plätze, damit Ausflüge sich lohnen und man
+  zurückkehren muss.
+
+## Ortsbild
+
+Ortsstraßen haben Gehwege und eine gestrichelte Mittellinie, Ortsschilder an den Enden und Laternen; Landstraßen
+Holzmasten; Höfe einen eingezäunten Acker mit Heuballen; Schrottplätze einen Maschendrahtzaun mit Einfahrt.
+Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffen.
 
 ## Fundorte (`src/sim/sites.ts`, `src/data/loot.ts`)
 
@@ -98,7 +131,7 @@ Wunsch 12.11.2026: eine persistente, lebensechte Welt statt Zufallskarten. Das f
 ## Offen
 
 - **Aufräumen:** Code gestrichener Systeme entfernen (Züge, Roboter, Schaltungsnetz, Kernkraft, Öl, Module, Rakete).
-- **Schuttbrecher** nutzt vorerst das Bild des Schrottgreifers (getönt); eigenes Modell fehlt.
+- **Überlebende retten** (Sammler oder Wachen gewinnen) statt Ausrüstung herstellen.
 - **Feinschliff Kampf:** Angriffsanimation der Figur, Zombies ohne Überlappen, Sichtlinie (Mauern verdecken).
 - **Welt:** Felder und Zäune um Höfe, Ortsschilder, Brücken als eigenes Bauwerk, Bahnhof/Tankstelle als besondere Orte.
 - **Später:** Häuser betreten, Kochen, Fahrzeuge, Fähigkeiten, Scheinwerfer, Flammenwerfer-Turm.

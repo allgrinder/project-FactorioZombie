@@ -383,7 +383,6 @@ def asphalt(v):
     tar = gw_ground.pmat('as_tar', lin('#3b3b3c'), 0.95, 0.35, 0.6, 40 + v)
     o.append(eisen.box('base', (1.06, 1.06, 0.02), (0, 0, -0.01), tar))
     crack = eisen.material('as_crack', (0.012, 0.012, 0.012), rough=0.95)
-    patch = gw_ground.pmat('as_patch', lin('#2c2c2e'), 0.9, 0.3, 0.5, 30)
     weed = gw_ground.pmat('as_weed', lin('#55602f'), 0.95, 0.4, 0.5, 30)
     # Risse: gezackte Linienzüge, in manchen wächst Gras
     for c in range(rnd.randint(1, 3)):
@@ -397,9 +396,6 @@ def asphalt(v):
                 o.append(eisen.cylinder(f'wd{c}{k}', rnd.uniform(0.015, 0.035), 0.01, (x, y, 0.004), weed, segments=7))
             x += math.cos(a) * l
             y += math.sin(a) * l
-    if v % 2 == 0:
-        o.append(eisen.box('patch', (rnd.uniform(0.25, 0.45), rnd.uniform(0.2, 0.35), 0.003), (rnd.uniform(-0.2, 0.2), rnd.uniform(-0.2, 0.2), 0.0005), patch,
-                           rot=(0, 0, rnd.uniform(-0.3, 0.3))))
     # Staub/Kies am Rand
     grit = gw_ground.pmat('as_grit', lin('#6a6253'), 1.0, 0.3, 0.6, 30)
     for k in range(10):

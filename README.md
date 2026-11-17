@@ -36,19 +36,25 @@ dieselbe Welt zurück: Lager, geplünderte Häuser und die Leiche mit dem Invent
 
 ## So läuft eine Runde
 
-1. **Umsehen.** In Sichtweite des Starts stehen ein Schuppen, ein Autowrack und eine Kiste: Linksklick durchsucht,
-   Rechtsklick (halten) schlachtet aus. Weiter draußen liegen Dörfer, Höfe, Werkstätten – und Zombies.
-2. **Trümmerfelder.** Statt Erz liegt Schutt der alten Welt herum: Schrottplätze (vor allem Eisen), Kabel- und
-   Elektroschrott (Kupfer), Bauschutt (Stein), Kohlehalden. Jedes Feld enthält alles, nur in anderen Anteilen.
-   Der **Schrottgreifer** verwertet Metall, der **Schuttbrecher** Bauschutt und Kohle, die **Sortieranlage**
-   (Forschung) alles. Von Hand geht jedes Material.
+Die Schleife ist: **hinausgehen, plündern, kämpfen – und zurück zur bewachten Basis.**
+
+1. **Basis gründen.** Das Lagerfeuer aus der Startausrüstung ist die Mitte deiner Basis: Hier startet nach dem Tod
+   die nächste Figur, hierher ziehen die Horden, daneben schläft man gut. Die **Ziele** links oben führen durch die Runde.
+2. **Plündern statt Bergbau.** Es gibt keine Minen. Material liegt als **Schrotthaufen** herum (Schrott, Schutt,
+   Kohle, Holz, Autoteile, Elektroschrott) – am Startfundort, an Höfen, in Orten und auf eingezäunten
+   **Schrottplätzen**. Rechtsklick halten schlachtet aus, das Brecheisen verdoppelt das Tempo. Häuser, Läden und
+   Wracks werden durchsucht (Linksklick). Der Rucksack bringt 20 Plätze – trotzdem muss man oft heim.
+   **Sammeltrupps:** Eine *Sammelstelle* schickt Sammler zu den Haufen im Umkreis; sie bringen Schrott heim, kosten
+   Verpflegung und werden von Zombies gejagt.
 3. **Überleben.** Hunger, Durst und Müdigkeit sinken ständig. Konserven und Wasser gibt es als Beute; auf Dauer
    helfen Gemüsebeet und Regentonne. Geschlafen wird mit **N** (im Feldbett erholsamer). Blutungen stoppt ein
    Verband, ein infizierter Biss endet ohne Antibiotika tödlich.
-4. **Leise bleiben.** Lärm lockt Zombies an: Schüsse, Greifer, Dampfmaschinen, Montagemaschinen. Nahkampf ist
+4. **Leise bleiben.** Lärm lockt Zombies an: Schüsse, Ausschlachten, Dampfmaschinen, Montagemaschinen. Nahkampf ist
    leise, Solarstrom auch. Der Lockvogel (Wurf) zieht Zombies von dir weg – oder in deine Fallen.
-5. **Befestigen.** Ab Tag 2 zieht jede Nacht eine Horde zum Lager, jede siebte Nacht eine große. Holzbarrikade,
-   Steinmauer, Tor, Stacheldraht, Nagelfalle und MG-Turm halten sie auf.
+5. **Befestigen.** Ab Tag 2 zieht jede Nacht eine Horde zum Lagerfeuer, jede siebte Nacht eine große. Holzbarrikade,
+   Steinmauer, Tor, Stacheldraht, Nagelfalle, MG-Turm und Wachturm halten sie auf. Nachts sehen Türme nur im Licht
+   voll – Feuerschalen und Scheinwerfer aufstellen. **Versorgungsabwürfe** landen ab Tag 2 am Fallschirm: gute Beute,
+   aber laut.
 6. **Rettung.** Forschung „Funktechnik“, Funkteile aus Läden und Werkstätten, dann den Funkturm 15 Minuten unter
    Strom halten. Er ist sehr laut.
 

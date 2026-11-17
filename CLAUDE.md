@@ -9,7 +9,7 @@ Namen der Vorbilder nie im Spiel verwenden.
 - `src/sim/` kennt weder DOM noch PixiJS, läuft headless, deterministisch, 60 Ticks/s, ganzzahlige Bandlogik.
   Speichern/Laden muss den Lauf exakt fortsetzen (Eigenschaftstest in `tests/sim/properties.test.ts`).
 - Alle Zahlenwerte in `src/data/`. Werte des Vorgängers haben ihre Quelle in `docs/GAME_DATA.md`; neue Werte
-  (Zombies, Lärm, Überleben, Beute, Trümmerfelder) sind eigene Festlegungen und stehen in `docs/KONZEPT.md`.
+  (Zombies, Lärm, Überleben, Beute, Schrotthaufen, Sammler) sind eigene Festlegungen und stehen in `docs/KONZEPT.md`.
 - Produktion bewusst flach halten: keine neuen Fabrikstufen. Neue Tiefe gehört ins Überleben und in die Verteidigung.
 - Bänder: Transportlinien mit Abständen (`src/sim/belts.ts`), nie Items einzeln pro Tick bewegen.
 - Grafik nur aus Blender-Skripten (`assets/blender/`), keine fremden Grafiken/Icons/Sounds.
@@ -38,13 +38,19 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Fundorte (`src/sim/sites.ts`, Beute `src/data/loot.ts`, Gebäude `src/sim/entities/survival.ts`).
 - Feste Welt „Kreis Aschland“ (`src/data/world.ts`: Orte, Landstraßen, Posten; Aufbau in `SiteSystem.planCell/town/street`),
   fester Seed im freien Spiel; die Welt überdauert den Tod (`World.newCharacter`, neue Figur, Leiche und Lager bleiben).
-- Trümmerfelder (`RUBBLE` in `src/data/mapgen.ts`, `GameMap.rubbleAt`), Förderer je Material (`DrillDef.mines`).
-- Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Schuttbrecher.
+- Kein Bergbau (`MapSettings.ore = false`): Schrotthaufen (`kind: 'pile'`, `src/data/scavenge.ts`, `World.harvestPile`),
+  Sammelstelle + Sammler (`src/sim/scavengers.ts`, Zombies jagen sie über `Unit.prey`), Schrottplätze (`SiteSystem.junkyard`).
+- Basis: Lagerfeuer (`kind: 'fire'`, `World.base`: Neustart, Hordenziel), Licht (`World.isLit`, Türme nachts kürzer),
+  Wachturm (TurretDef-Werte), Versorgungsabwürfe (`src/sim/drops.ts`), Ziele (`src/sim/goals.ts`), Requisiten (`kind: 'prop'`).
+- Ortsbild: Gehwege, Mittellinien, Äcker (Beläge 7–10 in `src/data/floors.ts`), Zäune, Schilder, Masten, Laternen.
+- Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
+  Feuerschale, Scheinwerfer, Wachturm, Sammelstelle.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).
   Der Code gestrichener Systeme (Züge, Roboter, Schaltungsnetz, Kernkraft, Öl, Module, Rakete) liegt noch im Projekt,
   ist im Spiel nicht erreichbar und soll entfernt werden.
-- Modelle: `lib/zombie.py`, `ruinen.py`, `lager.py`, `kram.py`, `truemmer.py`; `models/zombies.py`, `ruinen.py`, `lager.py`.
-- Tests: `zombies.test.ts`, `survival.test.ts`, `rubble.test.ts`, `welt.test.ts`.
+- Modelle: `lib/zombie.py`, `ruinen.py`, `lager.py`, `kram.py`, `truemmer.py`, `basis.py`; `models/zombies.py`, `ruinen.py`,
+  `lager.py`, `basis.py`, `boden.py`.
+- Tests: `zombies.test.ts`, `survival.test.ts`, `welt.test.ts`, `basis.test.ts`, `freeplay.test.ts`.
 
 ## Stand des Vorgängers (Eisenwerk)
 - M1 Bänder: fertig.
