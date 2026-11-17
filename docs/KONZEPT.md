@@ -92,6 +92,13 @@ Es gibt keine Rohstofffelder und keine Förderer mehr. Material kommt aus drei Q
 - **Rucksack** (Beute oder Handwerk): +20 Inventarplätze; Grundinventar 50 Plätze, damit Ausflüge sich lohnen und man
   zurückkehren muss.
 
+## Besondere Orte
+
+Am Ortsrand stehen **Polizeiwache** (Munition, Pistole, selten Maschinenpistole und Schutzweste, Granaten),
+**Arztpraxis** (Verbände, Verbandskästen, Antibiotika) und **Tankstelle** (Knabberzeug, Limonade, Konserven, Kohle,
+Reparatursets): Aschbach und Moorbrück eine Tankstelle, Dornfeld eine Arztpraxis, Eisenrode Polizei und Tankstelle,
+Grauenfurt Polizei und Arztpraxis. Dort lungern mehr Zombies als an gewöhnlichen Häusern.
+
 ## Überlebende (eigene Idee)
 
 In jedem Dorf wartet ein Überlebender, in jeder Stadt zwei, einer am Militärposten (blau auf der Karte). Solange er

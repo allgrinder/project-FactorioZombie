@@ -15,6 +15,8 @@ export interface TownDef {
   readonly axis: 'x' | 'y';
   /** Gewerbeort: mehr Werkstätten und Wracks. */
   readonly industrial?: boolean;
+  /** Besondere Gebäude am Ortsrand (Polizeiwache, Arztpraxis, Tankstelle). */
+  readonly special?: readonly ('police-station' | 'clinic' | 'gas-station')[];
   readonly blurb: string;
 }
 
@@ -23,11 +25,11 @@ export const WORLD = {
   seed: 326,
   name: 'Kreis Aschland',
   towns: [
-    { id: 'aschbach', name: 'Aschbach', x: 96, y: -44, size: 1, axis: 'x', blurb: 'Weiler an der Kreuzung, der erste Ort hinter der Waldhütte' },
-    { id: 'dornfeld', name: 'Dornfeld', x: -196, y: 64, size: 2, axis: 'x', blurb: 'Bauerndorf zwischen Feldern' },
-    { id: 'moorbrueck', name: 'Moorbrück', x: 164, y: 216, size: 2, axis: 'y', blurb: 'Dorf am Wasser mit Laden und Werkstatt' },
-    { id: 'eisenrode', name: 'Eisenrode', x: 392, y: -124, size: 3, axis: 'x', industrial: true, blurb: 'Industriestadt: Werkstätten, Wracks, viel Schrott' },
-    { id: 'grauenfurt', name: 'Grauenfurt', x: -124, y: -336, size: 3, axis: 'y', blurb: 'Kreisstadt mit Läden – und den meisten Zombies' },
+    { id: 'aschbach', name: 'Aschbach', x: 96, y: -44, size: 1, axis: 'x', special: ['gas-station'], blurb: 'Weiler an der Kreuzung, der erste Ort hinter der Waldhütte' },
+    { id: 'dornfeld', name: 'Dornfeld', x: -196, y: 64, size: 2, axis: 'x', special: ['clinic'], blurb: 'Bauerndorf zwischen Feldern' },
+    { id: 'moorbrueck', name: 'Moorbrück', x: 164, y: 216, size: 2, axis: 'y', special: ['gas-station'], blurb: 'Dorf am Wasser mit Laden und Werkstatt' },
+    { id: 'eisenrode', name: 'Eisenrode', x: 392, y: -124, size: 3, axis: 'x', industrial: true, special: ['police-station', 'gas-station'], blurb: 'Industriestadt: Werkstätten, Wracks, viel Schrott' },
+    { id: 'grauenfurt', name: 'Grauenfurt', x: -124, y: -336, size: 3, axis: 'y', special: ['police-station', 'clinic'], blurb: 'Kreisstadt mit Läden – und den meisten Zombies' },
     { id: 'kaltenhain', name: 'Kaltenhain', x: -424, y: -152, size: 2, axis: 'y', blurb: 'abgelegenes Dorf im Westen' },
   ] as readonly TownDef[],
   /** Landstraßen: Wegpunkte von Ort zu Ort (zwei Felder breit; über Wasser als Damm bzw. Brücke). */

@@ -1563,6 +1563,20 @@
     "res.crude-oil.5.3"
    ]
   },
+  "orte": {
+   "hash": "6b10c1c32ab3733c",
+   "sprites": [
+    "police-station.v0",
+    "police-station.v0.nrm",
+    "police-station.v0.shadow",
+    "clinic.v0",
+    "clinic.v0.nrm",
+    "clinic.v0.shadow",
+    "gas-station.v0",
+    "gas-station.v0.nrm",
+    "gas-station.v0.shadow"
+   ]
+  },
   "pipe": {
    "hash": "d04e6fa05a303d6d",
    "sprites": [
@@ -6563,6 +6577,33 @@
     "scale": 2
    }
   },
+  "clinic.v0": {
+   "group": "entities",
+   "frames": [
+    "clinic.v0#0"
+   ],
+   "w": 432,
+   "h": 416,
+   "anchor": [
+    0.5,
+    0.5692307692307692
+   ]
+  },
+  "clinic.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "clinic.v0.shadow#0"
+   ],
+   "w": 368,
+   "h": 320,
+   "anchor": [
+    0.2826086956521739,
+    0.275
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "coal-pile.half": {
    "group": "entities",
    "frames": [
@@ -8187,6 +8228,33 @@
     0.22727272727272727,
     0.22727272727272727
    ]
+  },
+  "gas-station.v0": {
+   "group": "entities",
+   "frames": [
+    "gas-station.v0#0"
+   ],
+   "w": 432,
+   "h": 368,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "gas-station.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "gas-station.v0.shadow#0"
+   ],
+   "w": 368,
+   "h": 272,
+   "anchor": [
+    0.2826086956521739,
+    0.2647058823529412
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "gate": {
    "group": "entities",
@@ -11037,6 +11105,33 @@
     0.7000000000000001
    ],
    "fps": 24
+  },
+  "police-station.v0": {
+   "group": "entities",
+   "frames": [
+    "police-station.v0#0"
+   ],
+   "w": 432,
+   "h": 432,
+   "anchor": [
+    0.5,
+    0.5851851851851853
+   ]
+  },
+  "police-station.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "police-station.v0.shadow#0"
+   ],
+   "w": 368,
+   "h": 320,
+   "anchor": [
+    0.2826086956521739,
+    0.275
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "pump.0": {
    "group": "entities",
@@ -18113,6 +18208,18 @@
     0.5777777777777778
    ]
   },
+  "clinic.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "clinic.v0.nrm#0"
+   ],
+   "w": 432,
+   "h": 416,
+   "anchor": [
+    0.5,
+    0.5692307692307692
+   ]
+  },
   "coal-pile.half.nrm": {
    "group": "normals",
    "frames": [
@@ -19023,6 +19130,18 @@
    "anchor": [
     0.5,
     0.5666666666666668
+   ]
+  },
+  "gas-station.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "gas-station.v0.nrm#0"
+   ],
+   "w": 432,
+   "h": 368,
+   "anchor": [
+    0.5,
+    0.6
    ]
   },
   "gate.nrm": {
@@ -20379,6 +20498,18 @@
    "anchor": [
     0.5,
     0.7000000000000001
+   ]
+  },
+  "police-station.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "police-station.v0.nrm#0"
+   ],
+   "w": 432,
+   "h": 432,
+   "anchor": [
+    0.5,
+    0.5851851851851853
    ]
   },
   "pump.0.nrm": {

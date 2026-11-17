@@ -827,6 +827,22 @@ const list: EntityDef[] = [
     item: 'iron-ore', itemCount: 20, mineTime: 14, solid: true, rotatable: false, slots: 12, table: 'garage', searchTime: 5,
     salvage: [{ item: 'stone-brick', amount: 16 }, { item: 'iron-gear-wheel', amount: 6 }],
   },
+  // Besondere Orte (Polizeiwache, Arztpraxis, Tankstelle)
+  {
+    kind: 'loot', id: 'police-station', name: 'Polizeiwache', width: 6, height: 5, health: 3000,
+    item: 'iron-ore', itemCount: 12, mineTime: 16, solid: true, rotatable: false, slots: 16, table: 'police', searchTime: 6,
+    salvage: [{ item: 'stone-brick', amount: 30 }, { item: 'steel-plate', amount: 6 }],
+  },
+  {
+    kind: 'loot', id: 'clinic', name: 'Arztpraxis', width: 6, height: 5, health: 3000,
+    item: 'iron-ore', itemCount: 8, mineTime: 16, solid: true, rotatable: false, slots: 16, table: 'clinic', searchTime: 6,
+    salvage: [{ item: 'stone-brick', amount: 30 }, { item: 'cloth', amount: 8 }],
+  },
+  {
+    kind: 'loot', id: 'gas-station', name: 'Tankstelle', width: 6, height: 4, health: 2500,
+    item: 'iron-ore', itemCount: 16, mineTime: 14, solid: true, rotatable: false, slots: 14, table: 'gas', searchTime: 5,
+    salvage: [{ item: 'pipe', amount: 6 }, { item: 'steel-plate', amount: 4 }],
+  },
   {
     kind: 'loot', id: 'airdrop', name: 'Versorgungsabwurf', width: 2, height: 2, health: 400,
     item: 'cloth', itemCount: 6, mineTime: 2, solid: true, rotatable: false, slots: 12, table: 'airdrop', searchTime: 2,

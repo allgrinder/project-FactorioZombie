@@ -51,6 +51,9 @@ describe('Feste Welt', () => {
     expect(count('ruin-store')).toBeGreaterThanOrEqual(3);
     expect(count('ruin-house')).toBeGreaterThanOrEqual(10);
     expect(count('car-wreck')).toBeGreaterThanOrEqual(4);
+    // Kreisstadt: Polizeiwache und Arztpraxis am Ortsrand
+    expect(count('police-station')).toBe(1);
+    expect(count('clinic')).toBe(1);
     expect(w.sites.sites.filter((s) => s.kind === 'town').length).toBeGreaterThanOrEqual(6);
     // Landstraße: durchgehend begehbar und befestigt, auch wo vorher Wasser oder Klippen waren
     for (const [ax, ay, bx, by] of roadSegments()) {

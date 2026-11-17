@@ -45,6 +45,18 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
     R('firearm-magazine', 4, 12, 0.95), R('piercing-rounds-magazine', 2, 6, 0.3, true), R('pistol', 1, 1, 0.5), R('submachine-gun', 1, 1, 0.15, true),
     R('grenade', 1, 4, 0.35), R('first-aid-kit', 1, 2, 0.5), R('canned-food', 2, 4, 0.5), R('radio-parts', 1, 2, 0.3), R('antibiotics', 1, 1, 0.15),
   ],
+  police: [
+    R('firearm-magazine', 4, 12, 0.95), R('piercing-rounds-magazine', 2, 6, 0.45, true), R('pistol', 1, 1, 0.7), R('submachine-gun', 1, 1, 0.3, true),
+    R('heavy-armor', 1, 1, 0.35, true), R('grenade', 1, 3, 0.35), R('first-aid-kit', 1, 1, 0.4), R('radio-parts', 1, 2, 0.4), R('coffee', 1, 3, 0.5),
+  ],
+  clinic: [
+    R('bandage', 3, 8, 0.95), R('first-aid-kit', 1, 3, 0.8), R('antibiotics', 1, 3, 0.7), R('water-bottle', 2, 4, 0.6), R('cloth', 4, 10, 0.6),
+    R('empty-bottle', 2, 5, 0.5), R('canned-food', 1, 2, 0.3),
+  ],
+  gas: [
+    R('snack', 3, 8, 0.9), R('soda', 3, 8, 0.9), R('canned-food', 2, 5, 0.7), R('water-bottle', 2, 4, 0.6), R('coffee', 2, 4, 0.5),
+    R('coal', 10, 30, 0.6), R('repair-pack', 1, 3, 0.4), R('iron-gear-wheel', 2, 6, 0.4), R('noise-lure', 1, 1, 0.15),
+  ],
   airdrop: [
     R('firearm-magazine', 6, 15, 0.95), R('piercing-rounds-magazine', 2, 6, 0.35), R('grenade', 1, 3, 0.5), R('first-aid-kit', 1, 2, 0.6),
     R('antibiotics', 1, 1, 0.4), R('canned-food', 3, 6, 0.9), R('water-bottle', 2, 4, 0.8), R('radio-parts', 1, 2, 0.5),

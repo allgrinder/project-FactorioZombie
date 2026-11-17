@@ -380,6 +380,19 @@ export class SiteSystem {
     const len = WORLD.mainLength[t.size - 1];
     const weight = 2 + t.size * 1.5;
     this.street(w, t.x, t.y, horizontal, len, t.size === 1 ? 'village' : 'center', hs(0), true);
+    // besondere Gebäude hinter dem Ortsende (Hauptstraße verlängert)
+    (t.special ?? []).forEach((name, i) => {
+      const sgn = i % 2 === 0 ? 1 : -1;
+      const a = sgn * (len / 2 + 3) + (sgn < 0 ? -6 : 0);
+      // Straße vom Ortsende bis hinter das Gebäude verlängern
+      const lo = Math.min(Math.round((sgn * len) / 2), a) - 1;
+      const hi = Math.max(Math.round((sgn * len) / 2), a + 6) + 1;
+      if (horizontal) this.asphalt(w, t.x + lo, t.y, t.x + hi, t.y + 1, true);
+      else this.asphalt(w, t.x, t.y + lo, t.x + 1, t.y + hi, true);
+      const def = entityDef(name);
+      const ok = horizontal ? this.put(w, name, t.x + a, t.y - 1 - def.height, true) : this.put(w, name, t.x - 1 - def.width, t.y + a, true);
+      if (ok) this.sites.push({ x: t.x + (horizontal ? a + 3 : -4), y: t.y + (horizontal ? -3 : a + 3), r: 9, weight: weight * 1.3, kind: 'town' });
+    });
     // Überlebende: in Dörfern einer, in Städten zwei (vor einem Haus an der Hauptstraße)
     for (let i = 0; i < t.size - 1; i++) {
       const a = Math.round((i === 0 ? -0.25 : 0.3) * len);
