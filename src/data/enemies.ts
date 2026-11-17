@@ -167,6 +167,8 @@ export const TURRET = {
   cooldown: 6,
   /** Drehung je Tick (Bogenmaß). */
   turnSpeed: 0.15,
+  /** Nachts ohne Licht schrumpft die Reichweite um diesen Anteil (bei voller Dunkelheit). */
+  nightPenalty: 0.4,
 } as const;
 
 /** Schusswaffen der Spielfigur. */

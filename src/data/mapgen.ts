@@ -23,8 +23,11 @@ export interface MapSettings {
   readonly death?: DeathSetting;
   /** Fundorte (Häuser, Wracks) auf der Karte (fehlt: keine). */
   readonly sites?: boolean;
-  /** Trümmerfelder: gemischte Felder, Förderer je Material (fehlt: reine Felder wie beim Vorgänger – Tests, Demo). */
-  readonly rubble?: boolean;
+  /**
+   * Rohstofffelder (Erz, Kohle, Stein, Öl, Uran) wie beim Vorgänger; fehlt = ja (Tests, Demo). „Letzte Schicht“ hat keine:
+   * Material kommt aus Schrotthaufen, Fundorten und Sammeltrupps (src/data/scavenge.ts).
+   */
+  readonly ore?: boolean;
   /** Feste Welt mit benannten Orten und Landstraßen (src/data/world.ts); fehlt: verstreute Fundorte. */
   readonly plan?: boolean;
 }
@@ -65,21 +68,9 @@ export const CLIFF_SETTINGS: Readonly<Record<CliffSetting, { label: string; hint
 
 /** Neue Runden: deutlich größere Felder als die Grundwerte (Wunsch). Alte Spielstände ohne Einstellung: Größe 1. */
 export const DEFAULT_MAP_SETTINGS: MapSettings = {
-  resources: 'mittel', size: 2, enemies: 'normal', cliffs: 'normal', frequency: 'viel', needs: true, death: 'endgueltig', sites: true, rubble: true, plan: true,
+  resources: 'mittel', size: 2, enemies: 'normal', cliffs: 'normal', frequency: 'viel', needs: true, death: 'endgueltig', sites: true, ore: false, plan: true,
 };
 export const LEGACY_MAP_SETTINGS: MapSettings = { resources: 'schwer', size: 1, enemies: 'aus', cliffs: 'aus' };
-
-/**
- * Trümmerfelder (eigene Festlegung): Statt reiner Erzfelder liegen die Reste der alten Welt herum. Jede Feldart
- * (benannt nach ihrem Hauptmaterial) enthält alles, aber in anderen Anteilen – ein Schrottplatz vor allem Eisen,
- * Bauschutt vor allem Stein. Die Anteile sind Flächenanteile der Felder; Material liegt in kleinen Nestern.
- */
-export const RUBBLE: Readonly<Record<string, { readonly name: string; readonly mix: readonly { readonly resource: string; readonly share: number }[] }>> = {
-  'iron-ore': { name: 'Schrottplatz', mix: [{ resource: 'iron-ore', share: 0.66 }, { resource: 'copper-ore', share: 0.14 }, { resource: 'stone', share: 0.15 }, { resource: 'coal', share: 0.05 }] },
-  'copper-ore': { name: 'Kabel- und Elektroschrott', mix: [{ resource: 'copper-ore', share: 0.6 }, { resource: 'iron-ore', share: 0.24 }, { resource: 'stone', share: 0.16 }] },
-  stone: { name: 'Bauschutt', mix: [{ resource: 'stone', share: 0.64 }, { resource: 'iron-ore', share: 0.2 }, { resource: 'copper-ore', share: 0.07 }, { resource: 'coal', share: 0.09 }] },
-  coal: { name: 'Kohlehalde', mix: [{ resource: 'coal', share: 0.72 }, { resource: 'stone', share: 0.2 }, { resource: 'iron-ore', share: 0.08 }] },
-};
 
 /** Parameter der Kartengenerierung (eigene Werte, keine Vorlage). */
 export const MAPGEN = {

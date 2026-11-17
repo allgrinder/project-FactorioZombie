@@ -179,7 +179,7 @@ describe('Abgestimmte Baupläne (Vorlagen)', () => {
     const chests = [...w.entities.values()].filter((e) => e.name === 'iron-chest' && e.kind === 'container');
     const got = new Set<string>();
     for (const c of chests) for (const st of (c as { inventory: { slots: ({ item: string } | null)[] } }).inventory.slots) if (st) got.add(st.item);
-    for (const it of ['underground-belt', 'transport-belt', 'splitter', 'pipe', 'pipe-to-ground', 'inserter', 'long-handed-inserter', 'electric-mining-drill', 'assembling-machine-1', 'iron-chest']) {
+    for (const it of ['underground-belt', 'transport-belt', 'splitter', 'pipe', 'pipe-to-ground', 'inserter', 'long-handed-inserter', 'repair-pack', 'assembling-machine-1', 'iron-chest']) {
       expect(got.has(it), it).toBe(true);
     }
   }, 60_000);

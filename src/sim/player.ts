@@ -6,6 +6,7 @@ import { ITEMS, ITEM_IDS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
 import { AMMO, FISTS, HAZARD, MELEE, type MeleeDef, NOISE, PLAYER_COMBAT, REPAIR, type UnitDef, WEAPONS, ZOMBIE } from '../data/enemies';
 import { CONSUMABLES, SURVIVAL, perTick } from '../data/survival';
+import { CROWBAR_FACTOR } from '../data/scavenge';
 import { DAY } from '../data/time';
 import { hash01 } from './rng';
 import { GOD, PLAYER, START_INVENTORY } from '../data/player';
@@ -136,9 +137,9 @@ export class Player {
     for (const s of START_INVENTORY) this.inventory.add(s.item, s.amount);
     this.quickbar[0] = 'transport-belt';
     this.quickbar[1] = 'burner-inserter';
-    this.quickbar[2] = 'burner-mining-drill';
+    this.quickbar[2] = 'campfire';
     this.quickbar[3] = 'stone-furnace';
-    this.quickbar[4] = 'stone-crusher';
+    this.quickbar[4] = 'wooden-barricade';
     this.quickbar[5] = 'coal';
     this.quickbar[6] = 'canned-food';
     this.quickbar[7] = 'water-bottle';
@@ -162,6 +163,11 @@ export class Player {
     if (this.dead) return;
     // Forschungs-Boni der Figur: Stahlaxt, Werkzeuggürtel (+10 Inventarplätze)
     this.miningBonus = world.research.bonus('hand-mining');
+    if (!this.hasBackpack && this.inventory.count('backpack') > 0) {
+      this.inventory.remove('backpack', 1);
+      this.hasBackpack = true;
+      this.note('Rucksack umgeschnallt: 20 Plätze mehr');
+    }
     const slots = this.inventorySize(world);
     if (this.inventory.size < slots) this.inventory.resize(slots);
     this.grid?.update(1 - world.darkness);
@@ -188,9 +194,13 @@ export class Player {
 
   // ------------------------------------------------------------- Rüstung
 
-  /** Inventarplätze: Grundwert + Werkzeuggürtel + Rüstung. */
+  /** Rucksack: einmal im Inventar, bleibt umgeschnallt (die Plätze gehen nicht verloren). */
+  hasBackpack = false;
+
+  /** Inventarplätze: Grundwert + Werkzeuggürtel + Rüstung + Rucksack. */
   inventorySize(world: World): number {
-    return PLAYER.inventorySlots + world.research.bonus('toolbelt') + (this.armor ? ARMORS[this.armor].inventoryBonus : 0);
+    return PLAYER.inventorySlots + world.research.bonus('toolbelt') + (this.armor ? ARMORS[this.armor].inventoryBonus : 0)
+      + (this.hasBackpack ? PLAYER.backpackSlots : 0);
   }
 
   /** Rüstung aus dem Inventar anlegen (die bisherige kommt ins Inventar). Liefert eine Meldung bei Fehlschlag. */
@@ -399,9 +409,11 @@ export class Player {
     if (world.settings.needs && this.fatigue < SURVIVAL.sleepFrom) return 'Du bist nicht müde';
     if (world.enemies.nearestTarget(this.x, this.y, SURVIVAL.wakeDistance, world.tick)) return 'Zombies in der Nähe – hier kannst du nicht schlafen';
     this.inBed = false;
-    for (let ty = Math.floor(this.y - 1.5); ty <= Math.floor(this.y + 1.5) && !this.inBed; ty++) {
-      for (let tx = Math.floor(this.x - 1.5); tx <= Math.floor(this.x + 1.5); tx++) {
-        if (world.entityAt(tx, ty)?.kind === 'bed') {
+    for (let ty = Math.floor(this.y - 2.5); ty <= Math.floor(this.y + 2.5) && !this.inBed; ty++) {
+      for (let tx = Math.floor(this.x - 2.5); tx <= Math.floor(this.x + 2.5); tx++) {
+        const e = world.entityAt(tx, ty);
+        // Feldbett oder brennendes Lagerfeuer: erholsamer Schlaf
+        if (e?.kind === 'bed' || (e?.kind === 'fire' && e.def.base && e.lit)) {
           this.inBed = true;
           break;
         }
@@ -478,6 +490,7 @@ export class Player {
     if (++e.searchProgress >= (this.god ? 1 : e.searchTicks)) {
       e.searched = true;
       this.searchTarget = null;
+      world.stats.made(`search.${e.name}`, 1);
       world.events.push('search', e.cx, e.cy, { id: e.id });
       this.note(e.inventory.isEmpty() ? `${e.def.name}: nichts Brauchbares` : `${e.def.name} durchsucht`);
     }
@@ -492,7 +505,7 @@ export class Player {
   saveSurvival() {
     return {
       hu: this.hunger, th: this.thirst, fa: this.fatigue, wo: [...this.wounds], inf: this.infection, sl: this.sleeping, bed: this.inBed,
-      dead: this.dead, dt: this.deathTick, dc: this.deathCause, mw: { ...this.meleeWear }, ug: this.useGun, wa: [...this.warned], st: this.searchTarget,
+      bp: this.hasBackpack, dead: this.dead, dt: this.deathTick, dc: this.deathCause, mw: { ...this.meleeWear }, ug: this.useGun, wa: [...this.warned], st: this.searchTarget,
     };
   }
 
@@ -511,6 +524,7 @@ export class Player {
     this.sleeping = d.sl;
     this.inBed = d.bed;
     this.dead = d.dead;
+    this.hasBackpack = !!d.bp;
     this.deathTick = d.dt;
     this.deathCause = d.dc;
     this.meleeWear = { ...d.mw };
@@ -865,6 +879,29 @@ export class Player {
       const def = entityDef(e.name);
       if (!this.canReach(e.cx, e.cy)) {
         this.mineProgress = 0;
+        return;
+      }
+      // Schrotthaufen: Stück für Stück ausschlachten, solange die Taste gehalten wird
+      if (e.kind === 'pile') {
+        if (this.distanceToRect(e.x, e.y, e.w, e.h) > PLAYER.searchDistance) {
+          this.mineProgress = 0;
+          return;
+        }
+        // Ausschlachten geht schneller als der alte Handabbau: Sekunden je Stück direkt (Stahlaxt-Bonus, Zustand, Brecheisen)
+        const k = (1 + this.miningBonus) * this.condition * (this.inventory.count('crowbar') > 0 ? CROWBAR_FACTOR : 1);
+        this.mineTotal = this.god ? 1 : Math.max(1, secondsToTicks(e.spec.secondsPerItem / k));
+        if (++this.mineProgress < this.mineTotal) return;
+        this.mineProgress = 0;
+        const item = world.harvestPile(e, (it) => this.inventory.space(it) > 0);
+        if (item) this.inventory.add(item, 1);
+        else {
+          this.note('Inventar voll');
+          this.mineTarget = null;
+        }
+        if (!world.entities.has(e.id)) {
+          this.mineTarget = null;
+          this.note(`${e.def.name} ist leer`);
+        }
         return;
       }
       // Fundorte ausschlachten: nur aus der Nähe, mit Brecheisen schneller, und es macht Lärm

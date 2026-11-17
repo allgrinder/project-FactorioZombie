@@ -5,7 +5,7 @@ import { type TownDef, WORLD } from '../data/world';
 import { hash01 } from './rng';
 import type { World } from './world';
 
-export type SiteKind = 'starter' | 'village' | 'farm' | 'garage' | 'camp' | 'wreck' | 'town' | 'outpost';
+export type SiteKind = 'starter' | 'village' | 'farm' | 'garage' | 'camp' | 'wreck' | 'town' | 'outpost' | 'junkyard';
 
 /** Fundort: Mittelpunkt, Radius (Zombies lungern darin), Gewicht (Zahl der Zombies), Art. */
 export interface Site {
@@ -122,6 +122,10 @@ export class SiteSystem {
       this.put(w, 'car-wreck', x + 5, y + 2);
       this.put(w, 'supply-crate', x - 2, y + 1);
       this.asphalt(w, x + 4, y + 4, x + 9, y + 5);
+      // Material für den Anfang: Schrott, Schutt, Kohle, Holz (von Hand ausschlachten)
+      for (const [name, dx, dy] of [['scrap-pile', 9, -2], ['rubble-pile', -5, -3], ['coal-pile', -4, 4], ['wood-pile', 1, -3], ['scrap-pile', 11, 6]] as const) {
+        for (let t = 0; t < 4 && !this.put(w, name, x + dx + t * 2, y + dy); t++);
+      }
       this.sites.push({ x: x + 2, y: y + 2, r: 6, weight: 0, kind: 'starter' });
       return;
     }
@@ -213,6 +217,13 @@ export class SiteSystem {
             const ex = horizontal ? cx + a + along : cx + (side === 0 ? -2 : 3);
             const ey = horizontal ? cy + (side === 0 ? -2 : 3) : cy + a + along;
             placed += +this.put(w, extra < 0.15 ? 'dumpster' : 'supply-crate', ex, ey, level);
+          } else if (extra > 0.72 || name === 'ruin-garage') {
+            // hinter dem Haus: Schutt eines eingestürzten Anbaus, bei Werkstätten Autoteile
+            const back = side === 0 ? -2 : depth + 1;
+            const ex = horizontal ? cx + a : cx + off + (side === 0 ? -2 : depth);
+            const ey = horizontal ? cy + off + (side === 0 ? -2 : depth) : cy + a;
+            void back;
+            placed += +this.put(w, name === 'ruin-garage' ? 'parts-pile' : 'rubble-pile', ex, ey, level);
           }
         }
         a += along + 2 + Math.floor(h(60 + side * 40 + i) * 4);
@@ -281,11 +292,23 @@ export class SiteSystem {
           if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
           this.asphalt(w, x, y, x + 1, y + 1, true);
         }
+        // Holzmasten am Straßenrand (alle 14 Felder, rechts der Fahrtrichtung), nicht in Orten
+        const nx = -(by - ay) / L;
+        const ny = (bx - ax) / L;
+        for (let d = 7; d < L; d += 14) {
+          const x = Math.floor(ax + ((bx - ax) * d) / L + nx * 3);
+          const y = Math.floor(ay + ((by - ay) * d) / L + ny * 3);
+          if (x < x0 || x >= x1 || y < y0 || y >= y1 || this.nearTown(x, y, 45)) continue;
+          if (!w.map.floorAt(x, y)) this.put(w, 'utility-pole', x, y);
+        }
       }
     }
     const inCell = (x: number, y: number) => x >= x0 && x < x1 && y >= y0 && y < y1;
     for (const t of WORLD.towns) if (inCell(t.x, t.y)) this.town(w, t);
     for (const o of WORLD.outposts) if (inCell(o.x, o.y)) this.outpost(w, o.x, o.y);
+    WORLD.junkyards.forEach(([x, y], i) => {
+      if (inCell(x, y)) this.junkyard(w, x, y, i);
+    });
     this.farms().forEach(([x, y], i) => {
       if (!inCell(x, y)) return;
       const h = (n: number) => hash01(WORLD.seed, i, 850 + n);
@@ -293,6 +316,9 @@ export class SiteSystem {
       placed += +this.put(w, 'ruin-shed', x + 4, y - 1 + Math.round(h(1) * 3), true);
       placed += +this.put(w, 'supply-crate', x + 3, y + 3, true);
       if (h(2) < 0.5) placed += +this.put(w, 'car-wreck', x - 5, y + 3, true);
+      // Hof: Holzstapel und Kohlenkeller bzw. Bauschutt einer eingestürzten Scheune
+      placed += +this.put(w, 'wood-pile', x + 8, y + 2, true);
+      placed += +this.put(w, h(3) < 0.5 ? 'coal-pile' : 'rubble-pile', x - 6, y - 5, true);
       if (placed) this.sites.push({ x, y, r: 9, weight: 1.5, kind: 'farm' });
     });
     // Wildnis: vereinzelt ein Wrack oder ein verlassenes Lager, nicht bei Orten
@@ -301,7 +327,12 @@ export class SiteSystem {
     const x = Math.round((gx + 0.2 + hash01(s, gx, gy, 812) * 0.6) * c);
     const y = Math.round((gy + 0.2 + hash01(s, gx, gy, 813) * 0.6) * c);
     if (Math.hypot(x, y) < SITES.startFree || this.nearTown(x, y, WORLD.townClear)) return;
-    if (hash01(s, gx, gy, 814) < 0.3) {
+    if (hash01(s, gx, gy, 814) < 0.45) {
+      // Schrotthaufen am Wegesrand
+      let placed = +this.put(w, hash01(s, gx, gy, 815) < 0.7 ? 'scrap-pile' : 'rubble-pile', x, y);
+      if (hash01(s, gx, gy, 816) < 0.5) placed += +this.put(w, 'car-wreck', x + 3, y - 1);
+      if (placed) this.sites.push({ x, y, r: 5, weight: 0.8, kind: 'wreck' });
+    } else if (hash01(s, gx, gy, 814) < 0.6) {
       let placed = +this.put(w, 'supply-crate', x, y);
       placed += +this.put(w, 'supply-crate', x + 2, y + 1);
       placed += +this.put(w, 'car-wreck', x - 5, y - 1);
@@ -316,6 +347,14 @@ export class SiteSystem {
     const len = WORLD.mainLength[t.size - 1];
     const weight = 2 + t.size * 1.5;
     this.street(w, t.x, t.y, horizontal, len, t.size === 1 ? 'village' : 'center', hs(0), true);
+    // Ortsschilder an beiden Enden, Laternen auf dem Gehweg
+    for (const s of [-1, 1]) {
+      const a = s * (len / 2 + 2);
+      this.put(w, 'town-sign', t.x + (horizontal ? a : -2), t.y + (horizontal ? -2 : a), true);
+    }
+    for (let a = -len / 2 + 4; a < len / 2 - 2; a += 10) {
+      this.put(w, 'street-lamp', t.x + (horizontal ? a : 2), t.y + (horizontal ? 2 : a), true);
+    }
     // Fundort-Einträge entlang der Hauptstraße (Zombies lungern dort)
     for (let a = -len / 2 + 9; a < len / 2; a += 18) this.sites.push({ x: t.x + (horizontal ? a : 0), y: t.y + (horizontal ? 0 : a), r: 11, weight, kind: 'town' });
     const n = WORLD.crossStreets[t.size - 1];
@@ -334,6 +373,40 @@ export class SiteSystem {
       this.street(w, cx, cy, !horizontal, cl, profile, hs(k + 1), true);
       this.sites.push({ x: cx, y: cy, r: 13, weight: weight * 0.8, kind: 'town' });
     }
+  }
+
+  /**
+   * Schrottplatz: eingezäunter Platz mit Schrott-, Teile- und Elektroschrotthaufen zwischen Wracks – das Ziel der
+   * Sammeltrupps. Zaun mit einer Lücke als Einfahrt.
+   */
+  private junkyard(w: World, x: number, y: number, i: number): void {
+    const h = (n: number) => hash01(WORLD.seed, i, 870 + n);
+    const W2 = 9;
+    const H2 = 7;
+    this.asphalt(w, x - W2, y - H2, x + W2, y + H2, true);
+    const kinds = ['scrap-pile', 'parts-pile', 'scrap-pile', 'ewaste-pile', 'scrap-pile', 'parts-pile', 'rubble-pile', 'scrap-pile'];
+    let k = 0;
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 4; col++) {
+        const px = x - W2 + 2 + col * 4 + Math.round(h(k) * 1);
+        const py = y - H2 + 3 + row * 6 + Math.round(h(k + 20) * 1);
+        this.put(w, kinds[(k + i) % kinds.length], px, py, true);
+        k++;
+      }
+    }
+    this.put(w, 'car-wreck', x - W2 + 3, y + H2 - 3, true);
+    this.put(w, 'car-wreck', x + W2 - 6, y - 1, true);
+    this.put(w, 'dumpster', x + W2 - 3, y + H2 - 2, true);
+    // Zaun ringsum, Einfahrt im Süden
+    for (let a = -W2 - 1; a <= W2 + 1; a++) {
+      this.put(w, 'fence', x + a, y - H2 - 1, true);
+      if (Math.abs(a) > 2) this.put(w, 'fence', x + a, y + H2 + 1, true);
+    }
+    for (let b = -H2; b <= H2; b++) {
+      this.put(w, 'fence', x - W2 - 1, y + b, true);
+      this.put(w, 'fence', x + W2 + 1, y + b, true);
+    }
+    this.sites.push({ x, y, r: 10, weight: 2.5, kind: 'junkyard' });
   }
 
   /** Militärposten: Kisten hinter Wracks, stark bewacht. */

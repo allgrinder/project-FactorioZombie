@@ -5,20 +5,19 @@ type Any = any;
 
 const g = (page: Page) => page.evaluate.bind(page);
 
-async function find(page: Page, res: number): Promise<[number, number]> {
-  return g(page)((res: number) => {
+/** Nächster Schrotthaufen einer Art: linke obere Ecke und Größe. */
+async function findPile(page: Page, name: string): Promise<[number, number, number, number]> {
+  return g(page)((name: string) => {
     const w = (window as Any).letzteschicht.world;
-    let best: [number, number] = [0, 0];
+    let best: [number, number, number, number] = [0, 0, 0, 0];
     let bd = 1e9;
-    for (let y = -30; y <= 30; y++)
-      for (let x = -30; x <= 30; x++) {
-        if (w.map.resourceAt(x, y).res !== res) continue;
-        if (res === 1 && ![[1, 0], [0, 1], [1, 1]].every(([a, b]) => w.map.resourceAt(x + a, y + b).res === 1)) continue;
-        const d = Math.hypot(x, y);
-        if (d < bd) { bd = d; best = [x, y]; }
-      }
+    for (const e of w.entities.values()) {
+      if (e.kind !== 'pile' || e.name !== name) continue;
+      const d = Math.hypot(e.cx, e.cy);
+      if (d < bd) { bd = d; best = [e.x, e.y, e.w, e.h]; }
+    }
     return best;
-  }, res);
+  }, name);
 }
 
 async function toScreen(page: Page, x: number, y: number): Promise<[number, number]> {
@@ -53,36 +52,53 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await page.goto('/');
   await page.waitForSelector('body[data-ready="1"]');
 
-  // Kohle von Hand abbauen (rechte Maustaste halten)
-  const coal = await find(page, 2);
-  await walk(page, coal[0], coal[1] - 1);
-  let [sx, sy] = await toScreen(page, coal[0] + 0.5, coal[1] + 0.5);
+  // Kohle aus dem Kohlenhaufen am Startfundort (rechte Maustaste halten)
+  await page.waitForFunction(() => [...(window as Any).letzteschicht.world.entities.values()].some((e: Any) => e.kind === 'pile'), null, { timeout: 15_000 });
+  const coal = await findPile(page, 'coal-pile');
+  // zum Haufen (Figur direkt daneben setzen: der Weg dorthin ist nicht Gegenstand des Tests)
+  await g(page)(([x, y]: number[]) => {
+    const p = (window as Any).letzteschicht.world.player;
+    p.px = p.prevPx = Math.round(x * 256);
+    p.py = p.prevPy = Math.round(y * 256);
+  }, [coal[0] + coal[2] + 0.7, coal[1] + 0.5]);
+  await page.waitForTimeout(300);
+  let [sx, sy] = await toScreen(page, coal[0] + 1, coal[1] + 1);
   await page.mouse.move(sx, sy);
   await page.mouse.down({ button: 'right' });
-  await page.waitForFunction(() => (window as Any).letzteschicht.world.player.inventory.count('coal') >= 2, null, { timeout: 30_000 });
+  await page.waitForFunction(() => (window as Any).letzteschicht.world.player.inventory.count('coal') >= 3, null, { timeout: 30_000 });
   await page.mouse.up({ button: 'right' });
   expect(await g(page)(() => (window as Any).letzteschicht.world.player.inventory.count('coal'))).toBeGreaterThanOrEqual(1);
 
-  // Bohrer (Schnellleiste 3, zweimal drehen = Süden) und Ofen (4) bauen
-  const iron = await find(page, 1);
-  await walk(page, iron[0] + 3, iron[1] + 1);
+  // Lagerfeuer (Schnellleiste 3) und Ofen (4) auf freiem Boden südlich der Figur
+  const spot = await g(page)(() => {
+    const w = (window as Any).letzteschicht.world;
+    const p = w.player;
+    for (let r = 3; r < 20; r++) for (let dx = -r; dx <= r; dx++) {
+      const x = Math.floor(p.x) + dx;
+      const y = Math.floor(p.y) + r;
+      let ok = true;
+      for (let j = 0; j < 2 && ok; j++) for (let i = 0; i < 5 && ok; i++) if (!w.canPlace('stone-furnace', x + i, y + j, 0).ok) ok = false;
+      if (ok) return [x, y];
+    }
+    return [0, 0];
+  });
+  await walk(page, spot[0] + 2, spot[1] - 2);
   await page.keyboard.press('3');
-  await page.keyboard.press('r');
-  await page.keyboard.press('r');
-  [sx, sy] = await toScreen(page, iron[0] + 1, iron[1] + 1);
+  [sx, sy] = await toScreen(page, spot[0] + 1, spot[1] + 1);
   await page.mouse.move(sx, sy);
   await page.mouse.click(sx, sy);
   await page.keyboard.press('4');
-  [sx, sy] = await toScreen(page, iron[0] + 1, iron[1] + 3);
+  [sx, sy] = await toScreen(page, spot[0] + 4, spot[1] + 1);
   await page.mouse.move(sx, sy);
   await page.mouse.click(sx, sy);
   await page.keyboard.press('q');
   await page.waitForTimeout(200);
-  const kinds = await g(page)(() => [...(window as Any).letzteschicht.world.entities.values()].map((e: Any) => e.kind).filter((k: string) => k !== 'loot').sort());
-  expect(kinds).toEqual(['drill', 'furnace']);
+  const kinds = await g(page)(() => [...(window as Any).letzteschicht.world.entities.values()].map((e: Any) => e.kind).filter((k: string) => !['loot', 'pile', 'prop'].includes(k)).sort());
+  expect(kinds).toEqual(['fire', 'furnace']);
+  expect(await g(page)(() => !!(window as Any).letzteschicht.world.base)).toBe(true);
 
-  // Bohrer öffnen, Kohle per Strg+Klick übertragen
-  [sx, sy] = await toScreen(page, iron[0] + 1, iron[1] + 1);
+  // Ofen öffnen, Kohle per Strg+Klick übertragen
+  [sx, sy] = await toScreen(page, spot[0] + 4, spot[1] + 1);
   await page.mouse.click(sx, sy);
   await expect(page.locator('.window.entity')).toBeVisible();
   const slots = page.locator('.inventory .grid.inv .slot[data-item="coal"]');
@@ -104,7 +120,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await page.waitForTimeout(1000);
   await page.keyboard.press('Control+l');
   await expect(page.locator('.messages')).toHaveText('Geladen');
-  const after = await g(page)(() => ({ tick: (window as Any).letzteschicht.world.tick, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => e.kind !== 'loot').length }));
+  const after = await g(page)(() => ({ tick: (window as Any).letzteschicht.world.tick, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop'].includes(e.kind)).length }));
   expect(after.n).toBe(2);
   expect(after.tick).toBeLessThan(saved + 45);
   await page.keyboard.press('Alt');
@@ -121,7 +137,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await expect(cont).toBeVisible();
   await cont.click();
   await expect(page.locator('.messages')).toHaveText('Geladen');
-  const restored = await g(page)(() => ({ seed: (window as Any).letzteschicht.world.seed, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => e.kind !== 'loot').length }));
+  const restored = await g(page)(() => ({ seed: (window as Any).letzteschicht.world.seed, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop'].includes(e.kind)).length }));
   expect(restored).toEqual({ seed, n: 2 });
   expect(errors).toEqual([]);
 });

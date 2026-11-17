@@ -2,6 +2,7 @@ import { EquipmentGrid } from './armor';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import type { EnemySystem } from './enemies';
 import type { NoiseSystem } from './noise';
+import type { ScavengerSystem } from './scavengers';
 import type { SiteSystem } from './sites';
 import type { GhostSystem } from './blueprint';
 import type { ResearchData } from './research';
@@ -78,6 +79,8 @@ export interface SaveData {
   chars?: number;
   circuit?: ReturnType<CircuitSystem['serialize']>;
   noise?: ReturnType<NoiseSystem['serialize']>;
+  scav?: ReturnType<ScavengerSystem['serialize']>;
+  drops?: ReturnType<World['drops']['serialize']>;
   sites?: ReturnType<SiteSystem['serialize']>;
   /** Tick der Rettung (Funkturm), sonst nicht gesetzt. */
   rescued?: number;
@@ -150,6 +153,8 @@ export function serializeWorld(w: World): SaveData {
     rockets: w.rocketsLaunched,
     ...(w.characters > 1 ? { chars: w.characters } : {}),
     noise: w.noise.serialize(),
+    ...(w.scavengers.workers.length ? { scav: w.scavengers.serialize() } : {}),
+    drops: w.drops.serialize(),
     sites: w.sites.serialize(),
     ...(w.rescuedAt !== null ? { rescued: w.rescuedAt } : {}),
     chart: w.chart.serialize(),
@@ -212,6 +217,8 @@ export function deserializeWorld(d: SaveData): World {
   w.rocketsLaunched = d.rockets ?? 0;
   w.characters = d.chars ?? 1;
   w.noise.load(d.noise);
+  w.scavengers.load(d.scav);
+  w.drops.load(d.drops);
   w.sites.load(d.sites);
   w.rescuedAt = d.rescued ?? null;
   w.chart.load(d.chart);

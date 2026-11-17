@@ -42,6 +42,10 @@ export const WORLD = {
     [[164, 216], [290, 250], [432, 262]],
     [[392, -124], [440, 40], [432, 262]],
   ] as readonly (readonly (readonly [number, number])[])[],
+  /** Schrottplätze (Ziel der Sammeltrupps): zwei nahe am Start, je einer bei den Orten. */
+  junkyards: [
+    [-46, -38], [58, 52], [128, -12], [-160, 96], [196, 182], [356, -82], [430, -160], [-92, -300], [-160, -372], [-392, -120],
+  ] as readonly (readonly [number, number])[],
   /** Militärposten: Lager mit Militärkisten, stark bewacht. */
   outposts: [{ name: 'Posten 7', x: 432, y: 262 }] as readonly { name: string; x: number; y: number }[],
   /** Höfe an den Landstraßen: alle so viele Felder einer, so weit neben der Straße. */

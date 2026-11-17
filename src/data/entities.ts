@@ -62,11 +62,6 @@ export interface DrillDef extends EntityBase {
   readonly fuelSlots: number;
   /** Flüssigkeitseingang (Schwefelsäure für Uranerz, Wiki „Electric mining drill“: links, rechts, hinten). */
   readonly fluidInput?: MachineFluidBox;
-  /**
-   * Trümmerfelder: dieser Förderer verwertet nur diese Materialien (Ressourcen-IDs); fehlt = alles.
-   * Gilt nur in Karten mit Trümmerfeldern (MapSettings.rubble).
-   */
-  readonly mines?: readonly string[];
 }
 
 export interface FurnaceDef extends EntityBase {
@@ -293,6 +288,32 @@ export interface TurretDef extends EntityBase {
   readonly kind: 'turret';
   /** Greifarme füllen bis zu so vielen Magazinen auf (Wiki: automated_ammo_count 10). */
   readonly ammoFill: number;
+  /** Abweichende Werte (Wachturm): Reichweite, Ticks je Schuss, Schadensfaktor auf die Munition, Lärm. Fehlt = TURRET. */
+  readonly range?: number;
+  readonly cooldown?: number;
+  readonly damageFactor?: number;
+  readonly noise?: number;
+}
+
+/** Feuer (Lagerfeuer, Feuerschale): brennt in der Dämmerung und nachts mit Brennstoff und leuchtet. */
+export interface FireDef extends EntityBase {
+  readonly kind: 'fire';
+  readonly energyUsage: number;
+  readonly fuelSlots: number;
+  readonly lightRadius: number;
+  /** Lagerfeuer: Mitte der Basis (Neustart, Ziel der Horden, Rast wie im Bett). */
+  readonly base?: boolean;
+}
+
+/** Sammelstelle: schickt Sammler zu Schrotthaufen im Umkreis (src/sim/scavengers.ts). */
+export interface CampDef extends EntityBase {
+  readonly kind: 'camp';
+  /** Lagerplätze für die Ausbeute. */
+  readonly slots: number;
+  /** Höchstzahl Sammler (je Sammler-Ausrüstung einer). */
+  readonly workers: number;
+  /** Suchradius um die Sammelstelle (Felder). */
+  readonly radius: number;
 }
 
 /** Mauer: nur Hindernis mit Lebenspunkten. */
@@ -333,6 +354,16 @@ export interface RadioDef extends EntityBase {
   readonly callSeconds: number;
 }
 
+/** Requisite der alten Welt (Zaun, Mast, Schild, Heuballen): blockiert, wird nicht angegriffen, liefert beim Abbau Material. */
+export interface PropDef extends EntityBase {
+  readonly kind: 'prop';
+}
+
+/** Schrotthaufen: wird Stück für Stück ausgeschlachtet (Ausbeute in src/data/scavenge.ts), verschwindet leer. */
+export interface PileDef extends EntityBase {
+  readonly kind: 'pile';
+}
+
 /**
  * Fundort der alten Welt (Wrack, Haus, Kiste): nicht baubar, wird durchsucht (Beutetabelle in src/data/loot.ts)
  * und kann ausgeschlachtet werden (item × itemCount plus salvage). Zombies greifen Fundorte nicht an.
@@ -349,6 +380,8 @@ export interface LootDef extends EntityBase {
 export interface LampDef extends EntityBase {
   readonly kind: 'lamp';
   readonly energyUsage: number;
+  /** Lichtradius (Felder); fehlt = Lampe (NIGHT.lampRadius, src/data/look.ts). */
+  readonly lightRadius?: number;
 }
 
 /** Leuchtfeuer: überträgt Geschwindigkeits- und Effizienzmodule auf Maschinen im 9×9-Bereich. Quelle: Wiki „Beacon“. */
@@ -376,7 +409,7 @@ export interface AccumulatorDef extends EntityBase {
 
 export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef
   | PipeGroundDef | FluidPumpDef | TankDef | LampDef | PumpjackDef | SolarDef | AccumulatorDef | BeaconDef | RoboportDef | RocketSiloDef | RadarDef | CombinatorDef | RailDef | TrainStopDef
-  | TurretDef | WallDef | ReactorDef | HeatPipeDef | HeatExchangerDef | HazardDef | BedDef | ProducerDef | RadioDef | LootDef;
+  | TurretDef | WallDef | ReactorDef | HeatPipeDef | HeatExchangerDef | HazardDef | BedDef | ProducerDef | RadioDef | LootDef | PileDef | FireDef | CampDef | PropDef;
 
 const list: EntityDef[] = [
   {
@@ -404,17 +437,9 @@ const list: EntityDef[] = [
     item: 'fast-splitter', mineTime: 0.1, solid: false, rotatable: true, speed: 16,
   },
   {
-    kind: 'drill', id: 'burner-mining-drill', name: 'Schrottgreifer', width: 2, height: 2, health: 150,
+    kind: 'drill', id: 'burner-mining-drill', name: 'Brennstoff-Bohrer', width: 2, height: 2, health: 150,
     item: 'burner-mining-drill', mineTime: 0.3, solid: true, rotatable: true, energy: 'burner',
     miningSpeed: 0.25, energyUsage: 150_000, miningAreaSize: 2, outputVector: [-0.35, -1.3], fuelSlots: 1,
-    mines: ['iron-ore', 'copper-ore'],
-  },
-  {
-    // Schuttbrecher: wie der Schrottgreifer, aber für Bauschutt und Kohle (eigene Festlegung)
-    kind: 'drill', id: 'stone-crusher', name: 'Schuttbrecher', width: 2, height: 2, health: 150,
-    item: 'stone-crusher', mineTime: 0.3, solid: true, rotatable: true, energy: 'burner',
-    miningSpeed: 0.25, energyUsage: 150_000, miningAreaSize: 2, outputVector: [-0.35, -1.3], fuelSlots: 1,
-    mines: ['stone', 'coal'],
   },
   {
     kind: 'furnace', id: 'stone-furnace', name: 'Steinofen', width: 2, height: 2, health: 200,
@@ -429,7 +454,7 @@ const list: EntityDef[] = [
     fuelInsertLimit: 5,
   },
   {
-    kind: 'drill', id: 'electric-mining-drill', name: 'Sortieranlage', width: 3, height: 3, health: 300,
+    kind: 'drill', id: 'electric-mining-drill', name: 'Elektrischer Bohrer', width: 3, height: 3, health: 300,
     item: 'electric-mining-drill', mineTime: 0.3, solid: true, rotatable: true, energy: 'electric',
     miningSpeed: 0.5, energyUsage: 90_000, miningAreaSize: 5, outputVector: [0, -1.85], fuelSlots: 0, moduleSlots: 3,
     fluidInput: { type: 'input', volume: 200, ports: [[0, 1, 3], [2, 1, 1], [1, 2, 2]] },
@@ -742,6 +767,41 @@ const list: EntityDef[] = [
     kind: 'radio', id: 'radio-tower', name: 'Funkturm', width: 3, height: 3, health: 600,
     item: 'radio-tower', mineTime: 1, solid: true, rotatable: false, energyUsage: 400_000, callSeconds: 900,
   },
+  // Basis: Lagerfeuer, Feuerschale, Scheinwerfer, Wachturm, Sammelstelle (eigene Werte, docs/KONZEPT.md)
+  {
+    kind: 'fire', id: 'campfire', name: 'Lagerfeuer', width: 2, height: 2, health: 300,
+    item: 'campfire', mineTime: 0.5, solid: true, rotatable: false, energyUsage: 15_000, fuelSlots: 1, lightRadius: 9, base: true,
+  },
+  {
+    kind: 'fire', id: 'brazier', name: 'Feuerschale', width: 1, height: 1, health: 150,
+    item: 'brazier', mineTime: 0.3, solid: true, rotatable: false, energyUsage: 10_000, fuelSlots: 1, lightRadius: 7,
+  },
+  {
+    kind: 'lamp', id: 'floodlight', name: 'Scheinwerfer', width: 1, height: 1, health: 150,
+    item: 'floodlight', mineTime: 0.2, solid: true, rotatable: false, energyUsage: 60_000, lightRadius: 16,
+  },
+  {
+    kind: 'turret', id: 'watchtower', name: 'Wachturm', width: 2, height: 2, health: 500,
+    item: 'watchtower', mineTime: 0.6, solid: true, rotatable: false, ammoFill: 10, range: 24, cooldown: 45, damageFactor: 2.6, noise: 28,
+  },
+  {
+    kind: 'camp', id: 'scavenger-camp', name: 'Sammelstelle', width: 3, height: 3, health: 400,
+    item: 'scavenger-camp', mineTime: 0.6, solid: true, rotatable: false, slots: 24, workers: 3, radius: 80,
+  },
+  // Requisiten der alten Welt (Abbau liefert item × itemCount)
+  ...([
+    ['fence', 'Zaun', 1, 1, 'wood', 1], ['hay-bale', 'Heuballen', 1, 1, 'wood', 1], ['town-sign', 'Ortsschild', 1, 1, 'iron-plate', 2],
+    ['utility-pole', 'Holzmast', 1, 1, 'wood', 3], ['street-lamp', 'Straßenlaterne', 1, 1, 'iron-stick', 3],
+  ] as const).map(([id, name, w, h, item, n]): PropDef => ({
+    kind: 'prop', id, name, width: w, height: h, health: 200, item, itemCount: n, mineTime: 0.8, solid: true, rotatable: false,
+  })),
+  // Schrotthaufen (Ausbeute: PILES in src/data/scavenge.ts); item/mineTime ungenutzt (Ausschlachten Stück für Stück)
+  ...([
+    ['scrap-pile', 'Schrotthaufen', 2, 2], ['rubble-pile', 'Schutthaufen', 2, 2], ['coal-pile', 'Kohlenhaufen', 2, 2],
+    ['wood-pile', 'Holzstapel', 2, 1], ['parts-pile', 'Autoteile', 2, 2], ['ewaste-pile', 'Elektroschrott', 2, 2],
+  ] as const).map(([id, name, w, h]): PileDef => ({
+    kind: 'pile', id, name, width: w, height: h, health: 1000, item: 'iron-ore', itemCount: 0, mineTime: 1, solid: true, rotatable: false,
+  })),
   {
     kind: 'loot', id: 'car-wreck', name: 'Autowrack', width: 3, height: 2, health: 500,
     item: 'iron-ore', itemCount: 10, mineTime: 5, solid: true, rotatable: false, slots: 6, table: 'car', searchTime: 2.5,
@@ -766,6 +826,11 @@ const list: EntityDef[] = [
     kind: 'loot', id: 'ruin-garage', name: 'Werkstatt', width: 4, height: 4, health: 2000,
     item: 'iron-ore', itemCount: 20, mineTime: 14, solid: true, rotatable: false, slots: 12, table: 'garage', searchTime: 5,
     salvage: [{ item: 'stone-brick', amount: 16 }, { item: 'iron-gear-wheel', amount: 6 }],
+  },
+  {
+    kind: 'loot', id: 'airdrop', name: 'Versorgungsabwurf', width: 2, height: 2, health: 400,
+    item: 'cloth', itemCount: 6, mineTime: 2, solid: true, rotatable: false, slots: 12, table: 'airdrop', searchTime: 2,
+    salvage: [{ item: 'iron-plate', amount: 4 }],
   },
   {
     kind: 'loot', id: 'supply-crate', name: 'Vorratskiste', width: 1, height: 1, health: 100,

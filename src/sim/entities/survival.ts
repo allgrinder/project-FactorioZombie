@@ -1,4 +1,9 @@
-import type { BedDef, HazardDef, LootDef, ProducerDef, RadioDef } from '../../data/entities';
+import type { BedDef, CampDef, FireDef, HazardDef, LootDef, PileDef, ProducerDef, PropDef, RadioDef } from '../../data/entities';
+import { DAY } from '../../data/time';
+import { CONSUMABLES } from '../../data/survival';
+import { Burner } from '../burner';
+import { fuelAccept } from './basic';
+import { PILES } from '../../data/scavenge';
 import { LOOT, LOOT_TABLES } from '../../data/loot';
 import { secondsToTicks, wattsToJoulesPerTick } from '../../data/time';
 import { ElectricSource } from '../energy';
@@ -183,4 +188,169 @@ export class RadioEntity extends EntityBase {
     this.energy.load(d as { eb: number });
     this.sent = (d.sent as number) ?? 0;
   }
+}
+
+/**
+ * Schrotthaufen: enthält amount Stück; jeder Zug (Hand oder Sammler) liefert ein Stück nach der gewichteten Ausbeute,
+ * deterministisch aus Karten-Seed, Lage und Restmenge. Leer verschwindet er (World.harvestPile).
+ */
+export class PileEntity extends EntityBase {
+  readonly kind = 'pile' as const;
+  declare readonly def: PileDef;
+  amount = 0;
+  /** Menge beim Anlegen (Darstellung: voll/halb). */
+  total = 0;
+  constructor(id: number, name: string, x: number, y: number, dir: Dir) {
+    super(id, name, x, y, dir);
+  }
+  get spec() {
+    return PILES[this.name];
+  }
+  override onCreated(w: World): void {
+    if (this.total) return;
+    const s = this.spec;
+    this.total = this.amount = s.amountMin + Math.floor(hash01(w.seed, this.x, this.y, 977) * (s.amountMax - s.amountMin + 1));
+  }
+  /** Nächstes Stück (ohne es zu entnehmen). */
+  peek(w: World): string {
+    const ys = this.spec.yields;
+    const sum = ys.reduce((a, y) => a + y.weight, 0);
+    let t = hash01(w.seed, this.x * 31 + this.y, this.amount, 978) * sum;
+    for (const y of ys) {
+      if (t < y.weight) return y.item;
+      t -= y.weight;
+    }
+    return ys[0].item;
+  }
+  override contents(): Stack[] {
+    return [];
+  }
+  override save() {
+    return { am: this.amount, to: this.total };
+  }
+  override load(d: Record<string, unknown>): void {
+    this.amount = (d.am as number) ?? this.amount;
+    this.total = (d.to as number) ?? this.total;
+  }
+}
+
+/**
+ * Feuer (Lagerfeuer, Feuerschale): brennt ab der Dämmerung mit Brennstoff (Holz, Kohle) und leuchtet (lightRadius).
+ * Das erste Lagerfeuer ist die Mitte der Basis (World.base).
+ */
+export class FireEntity extends EntityBase {
+  readonly kind = 'fire' as const;
+  declare readonly def: FireDef;
+  readonly fuel: Burner;
+  workTicks = 0;
+  constructor(id: number, name: string, x: number, y: number, dir: Dir) {
+    super(id, name, x, y, dir);
+    this.fuel = new Burner(this.def.fuelSlots);
+  }
+  override get burner(): Burner {
+    return this.fuel;
+  }
+  /** Brennt gerade (leuchtet). */
+  get lit(): boolean {
+    return this.status === Status.Working;
+  }
+  override update(w: World): void {
+    if (w.darkness < DAY.lampOn * 0.5) {
+      this.status = Status.Idle;
+      return;
+    }
+    if (this.fuel.consume(wattsToJoulesPerTick(this.def.energyUsage))) {
+      this.status = Status.Working;
+      this.workTicks++;
+    } else this.status = Status.NoFuel;
+  }
+  override acceptAmount(item: string, mode: InsertMode): number {
+    return fuelAccept(this.fuel, item, mode);
+  }
+  protected override doInsert(item: string, n: number): number {
+    return this.fuel.fuel.add(item, n);
+  }
+  override contents(): Stack[] {
+    return invContents(this.fuel.fuel);
+  }
+  override guiSlots(): GuiSlots[] {
+    return [{ label: 'Brennstoff', inv: this.fuel.fuel }];
+  }
+  override save() {
+    return { b: this.fuel.serialize(), wt: this.workTicks };
+  }
+  override load(d: Record<string, unknown>): void {
+    if (d.b) this.fuel.load(d.b as { e: number; f: InvData });
+    this.workTicks = (d.wt as number) ?? 0;
+  }
+}
+
+export const isScavengerFood = (item: string): boolean => (CONSUMABLES[item]?.hunger ?? 0) > 0;
+
+/**
+ * Sammelstelle: Je Sammler-Ausrüstung im Ausrüstungsfach zieht ein Sammler los (src/sim/scavengers.ts). Jeder Gang
+ * kostet ein Stück Verpflegung (ohne Bedürfnisse frei). Die Ausbeute landet im Lager; Greifarme entnehmen sie.
+ */
+export class CampEntity extends EntityBase {
+  readonly kind = 'camp' as const;
+  declare readonly def: CampDef;
+  readonly kits: Inventory;
+  readonly food: Inventory;
+  readonly store: Inventory;
+  constructor(id: number, name: string, x: number, y: number, dir: Dir) {
+    super(id, name, x, y, dir);
+    this.kits = new Inventory(1, (it) => it === 'scavenger-kit');
+    this.food = new Inventory(2, isScavengerFood);
+    this.store = new Inventory(this.def.slots);
+  }
+  /** Sammler, die diese Stelle stellen kann. */
+  get crew(): number {
+    return Math.min(this.def.workers, this.kits.count('scavenger-kit'));
+  }
+  override update(w: World): void {
+    const out = w.scavengers.workersOf(this.id).length;
+    this.status = this.crew === 0 ? Status.NoInput : out > 0 ? Status.Working : Status.Idle;
+  }
+  override acceptAmount(item: string, mode: InsertMode): number {
+    if (item === 'scavenger-kit') return mode === 'inserter' ? 0 : Math.min(this.kits.space(item), this.def.workers - this.kits.count(item));
+    if (isScavengerFood(item)) return this.food.space(item);
+    return 0;
+  }
+  protected override doInsert(item: string, n: number): number {
+    return item === 'scavenger-kit' ? this.kits.add(item, n) : this.food.add(item, n);
+  }
+  override take(_w: World, accept: (item: string) => boolean): string | null {
+    for (let i = this.store.slots.length - 1; i >= 0; i--) {
+      const s = this.store.slots[i];
+      if (s && accept(s.item)) {
+        const it = s.item;
+        this.store.remove(it, 1);
+        return it;
+      }
+    }
+    return null;
+  }
+  override contents(): Stack[] {
+    return invContents(this.kits, this.food, this.store);
+  }
+  override guiSlots(): GuiSlots[] {
+    return [{ label: 'Sammler-Ausrüstung', inv: this.kits }, { label: 'Verpflegung', inv: this.food }, { label: 'Ausbeute', inv: this.store }];
+  }
+  override onRemoved(w: World): void {
+    w.scavengers.recall(w, this.id);
+  }
+  override save() {
+    return { k: this.kits.serialize(), f: this.food.serialize(), s: this.store.serialize() };
+  }
+  override load(d: Record<string, unknown>): void {
+    this.kits.load(d.k as InvData);
+    this.food.load(d.f as InvData);
+    this.store.load(d.s as InvData);
+  }
+}
+
+/** Requisite der alten Welt: Zaun, Mast, Schild, Heuballen. */
+export class PropEntity extends EntityBase {
+  readonly kind = 'prop' as const;
+  declare readonly def: PropDef;
 }

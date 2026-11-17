@@ -5,6 +5,7 @@ import { SURVIVAL, isConsumable } from '../data/survival';
 import { PLAYER } from '../data/player';
 import { DAY, dayNumber } from '../data/time';
 import { compassName } from '../sim/enemies';
+import { GOALS, goalStatus } from '../sim/goals';
 import { WORLD } from '../data/world';
 import { CLIFF_SETTINGS, type CliffSetting, DEATH_SETTINGS, type DeathSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, FREQUENCY_SETTINGS, type FrequencySetting, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
 import { EMPTY_ANY_BARREL, FILL_ANY_BARREL, RECIPES, RECIPE_LIST, isFluidBarrelRecipe } from '../data/recipes';
@@ -98,9 +99,12 @@ type CraftGroup = (typeof CRAFT_GROUPS)[number];
 const LOGISTIK_KINDS = new Set(['belt', 'underground', 'splitter', 'inserter', 'container', 'pole', 'pipe', 'pipe-ground', 'pump', 'tank', 'rail', 'train-stop', 'roboport', 'lamp', 'combinator']);
 const KAMPF = new Set([
   'firearm-magazine', 'piercing-rounds-magazine', 'pistol', 'submachine-gun', 'gun-turret', 'stone-wall', 'repair-pack', 'radar', 'grenade', 'heavy-armor',
-  'spear', 'knife', 'baseball-bat', 'axe', 'crowbar', 'wooden-barricade', 'gate', 'barbed-wire', 'spike-trap', 'noise-lure',
+  'spear', 'knife', 'baseball-bat', 'axe', 'crowbar', 'wooden-barricade', 'gate', 'barbed-wire', 'spike-trap', 'noise-lure', 'watchtower',
 ]);
-const UEBERLEBEN = new Set(['bandage', 'first-aid-kit', 'antibiotics', 'empty-bottle', 'stew', 'bed', 'garden', 'rain-barrel', 'radio-tower']);
+const UEBERLEBEN = new Set([
+  'bandage', 'first-aid-kit', 'antibiotics', 'empty-bottle', 'stew', 'bed', 'garden', 'rain-barrel', 'radio-tower', 'campfire', 'brazier', 'floodlight',
+  'scavenger-camp', 'scavenger-kit', 'backpack',
+]);
 function recipeGroup(item: string): CraftGroup {
   if (KAMPF.has(item)) return 'Kampf';
   if (UEBERLEBEN.has(item)) return 'Überleben';
@@ -150,6 +154,7 @@ export class Hud {
     this.layer = el('div', 'hud', root);
     this.info = el('div', 'hud-info', this.layer);
     this.survEl = el('div', 'hud-survival', this.layer);
+    this.goalsEl = el('div', 'hud-goals', this.layer);
     this.sleepEl = el('div', 'sleep-veil hidden', this.layer);
     this.endWin = el('div', 'window endscreen hidden', this.layer);
     this.debugBox = el('div', 'hud-debug', this.layer);
@@ -202,6 +207,8 @@ export class Hud {
 
   private craftTab: CraftGroup = 'Überleben';
   private survEl!: HTMLElement;
+  private goalsEl!: HTMLElement;
+  private goalsKey = '';
   private sleepEl!: HTMLElement;
   private endWin!: HTMLElement;
   private survKey = '';
@@ -238,6 +245,7 @@ export class Hud {
       this.mapView.update(w, { x0: r.x, y0: r.y, x1: r2.x, y1: r2.y });
     }
     this.info.textContent = `Letzte Schicht – ${this.title} · H: Hilfe`;
+    if (this.frame % 30 === 0) this.updateGoals();
     if (this.frame % 6 === 0) {
       this.updateSurvival();
       this.updateEndScreen();
@@ -353,6 +361,32 @@ export class Hud {
     if (horde) el('div', 'surv-line warn', this.survEl).textContent = horde;
     this.sleepEl.classList.toggle('hidden', !p.sleeping);
     if (p.sleeping) this.sleepEl.textContent = 'Du schläfst … (WASD oder N: aufstehen)';
+  }
+
+  /** Ziele: die nächsten zwei offenen, mit Hinweis; Fortschritt n/m. */
+  private updateGoals(): void {
+    const w = this.game.world;
+    if (!w.player || this.game.creative) {
+      this.goalsEl.style.display = 'none';
+      return;
+    }
+    const { open, done } = goalStatus(w);
+    const key = `${done}|${open.slice(0, 2).map((g) => g.id).join()}`;
+    if (key === this.goalsKey) return;
+    if (this.goalsKey && done > Number(this.goalsKey.split('|')[0])) this.flash(`Ziel erreicht (${done}/${GOALS.length})`);
+    this.goalsKey = key;
+    this.goalsEl.style.display = 'block';
+    this.goalsEl.replaceChildren();
+    el('div', 'goals-head', this.goalsEl).textContent = `Ziele ${done}/${GOALS.length}`;
+    if (!open.length) {
+      el('div', 'goal', this.goalsEl).textContent = 'Alle Ziele erreicht – du hast überlebt.';
+      return;
+    }
+    open.slice(0, 2).forEach((g, i) => {
+      const r = el('div', `goal${i === 0 ? ' first' : ''}`, this.goalsEl);
+      el('div', 'goal-title', r).textContent = g.title;
+      if (i === 0) el('div', 'goal-hint', r).textContent = g.hint;
+    });
   }
 
   /** Abschluss: Tod (endgültig) oder Rettung durch den Funkturm. */
@@ -1927,6 +1961,10 @@ export class Hud {
         <p><b>Ziel:</b> überleben. Plündere die Reste der alten Welt, baue ein befestigtes Lager mit einer kleinen Produktion (Munition, Mauern, Türme) und rufe am Ende mit dem <b>Funkturm</b> die Rettung.</p>
         <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen · <b>Leertaste</b> halten: angreifen (Nahkampf leise, Schusswaffe laut) · <b>X</b> Waffe wechseln · <b>N</b> schlafen/aufstehen</p>
         <p><b>Lärm</b> lockt Zombies an: Schüsse, Bohrer, Dampfmaschinen, Montagemaschinen. Solarstrom ist leise. Jede Nacht ab Tag 2 zieht eine <b>Horde</b> zum Lager – jede 7. Nacht eine große.</p>
+        <p><b>Kein Bergbau:</b> Material liegt als <b>Schrotthaufen</b> (Schrott, Schutt, Kohle, Holz, Autoteile, Elektroschrott) in Höfen, Orten und auf eingezäunten <b>Schrottplätzen</b> – <b>Rechtsklick halten</b> schlachtet aus, mit Brecheisen doppelt so schnell. Der Rucksack bringt 20 Plätze.</p>
+        <p><b>Sammeltrupps:</b> Eine <b>Sammelstelle</b> schickt je Sammler-Ausrüstung einen Sammler zu den Haufen im Umkreis (80 Felder); jeder Gang kostet Verpflegung. Zombies jagen Sammler – beschütze sie und die Sammelstelle.</p>
+        <p><b>Basis:</b> Das <b>Lagerfeuer</b> ist die Mitte deiner Basis: Neustartpunkt, Ziel der Horden, Schlaf wie im Bett. Nachts sehen Türme ohne Licht schlechter – Feuerschalen und Scheinwerfer helfen. Der <b>Wachturm</b> schießt weiter und stärker als der MG-Turm.</p>
+        <p><b>Versorgungsabwürfe</b> landen ab Tag 2 am Fallschirm – laut, mit Munition und Medizin.</p>
         <p><b>Fundorte</b> (Häuser, Wracks, Kisten): <b>Linksklick</b> durchsuchen und Beute nehmen · <b>Rechtsklick halten</b> ausschlachten (Schrott, Holz, Ziegel)</p>
         <p><b>Essen, Trinken, Verbinden:</b> Rechtsklick im Inventar – oder Gegenstand in die Hand nehmen (Schnellleiste) und ins Freie klicken. Leere Flaschen am Wasser füllen (Flasche in die Hand, aufs Wasser klicken) oder in die Regentonne legen.</p>
         <p><b>Bisse</b> können infizieren – nur Antibiotika heilen. <b>Blutungen</b> stoppt ein Verband.</p>

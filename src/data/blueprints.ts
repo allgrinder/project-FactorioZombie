@@ -161,7 +161,7 @@ export function mall(): Blueprint {
   const parts: Part[] = [];
   const am = (x: number, y: number, recipe: string) => parts.push({ name: 'assembling-machine-2', x, y, settings: { recipe } });
   const top = ['underground-belt', 'transport-belt', 'splitter', 'pipe', 'pipe-to-ground'];
-  const bottom = ['inserter', 'long-handed-inserter', 'electric-mining-drill', 'assembling-machine-1', 'iron-chest'];
+  const bottom = ['inserter', 'long-handed-inserter', 'repair-pack', 'assembling-machine-1', 'iron-chest'];
   top.forEach((r, i) => {
     const x = 4 * i;
     am(x, 0, r);

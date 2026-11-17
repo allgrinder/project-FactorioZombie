@@ -48,23 +48,5 @@ describe('Forschungs-Boni', () => {
     expect(b.player!.inventory.count('iron-plate')).toBe(p.inventory.count('iron-plate'));
   });
 
-  it('Bergbau-Produktivität: Bohrer liefert mehr, ohne mehr abzubauen', () => {
-    const run = (prod: boolean) => {
-      const w = new World(1);
-      for (let y = -4; y < 4; y++) for (let x = -4; x < 4; x++) {
-        w.map.setWater(x, y, false);
-        w.map.setResource(x, y, 0, 0);
-      }
-      for (let y = 0; y < 2; y++) for (let x = 0; x < 2; x++) w.map.setResource(x, y, 1, 10000);
-      if (prod) for (let i = 1; i <= 2; i++) w.research.complete(`mining-productivity-${i}`);
-      const d = w.place('burner-mining-drill', 0, 0, 0)!;
-      const c = w.place('iron-chest', 0, -1, 0)!;
-      (d as unknown as { insert: (i: string, n: number, m: string) => number }).insert?.('coal', 50, 'player');
-      w.run(60 * 120);
-      return c.contents().reduce((a, s) => a + s.count, 0);
-    };
-    const base = run(false);
-    expect(base).toBeGreaterThan(10);
-    expect(run(true) / base).toBeCloseTo(1.2, 1);
-  });
+
 });

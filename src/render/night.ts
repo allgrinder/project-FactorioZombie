@@ -195,7 +195,16 @@ export class NightLayer {
     const rest: Entity[] = [];
     for (const e of world.entities.values()) {
       if (e.kind === 'lamp') {
-        if (e.status === Status.Working) add(e.cx, e.cy, NIGHT.lampRadius, NIGHT.lampStrength, NIGHT.lampColor);
+        if (e.status === Status.Working) {
+          const r = e.def.lightRadius;
+          add(e.cx, e.cy, r ?? NIGHT.lampRadius, r ? NIGHT.lampStrength * 1.25 : NIGHT.lampStrength, r ? NIGHT.floodColor : NIGHT.lampColor);
+        }
+      } else if (e.kind === 'fire') {
+        // Feuer flackert
+        if (e.status === Status.Working) {
+          const fl = 0.85 + 0.15 * Math.sin(world.tick * 0.37 + e.id) * Math.sin(world.tick * 0.11 + e.id * 3);
+          add(e.cx, e.cy - 0.2, e.def.lightRadius * fl, 1.05, NIGHT.fireColor);
+        }
       } else if (e.status === Status.Working || e.kind === 'pole') rest.push(e);
     }
     for (const e of rest) {

@@ -480,3 +480,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .end-body { display: flex; flex-direction: column; gap: 6px; }
 .end-body p { margin: 0; }
 .end-lead { font-size: 15px; font-weight: 600; color: #ffd27a; margin-bottom: 6px !important; }
+
+/* Ziele (links oben, unter Forschung/Strom) */
+.hud-goals { position: absolute; left: 10px; top: 96px; width: 250px; padding: 7px 9px; background: #15120fd0; border: 1px solid #0c0b0a;
+  box-shadow: inset 1px 1px 0 #ffffff14; font-size: 12px; pointer-events: none; display: none; }
+.goals-head { color: var(--accent); font-weight: 700; margin-bottom: 4px; }
+.goal { margin-top: 3px; color: var(--dim); }
+.goal.first .goal-title { color: #f3e2b8; font-weight: 600; }
+.goal-title::before { content: '▸ '; color: var(--accent); }
+.goal-hint { color: var(--dim); margin-left: 12px; font-size: 11px; }

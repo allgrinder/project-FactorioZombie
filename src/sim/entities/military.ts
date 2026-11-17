@@ -32,7 +32,7 @@ export class TurretEntity extends EntityBase {
 
   override update(w: World): void {
     if (this.cooldown > 0) this.cooldown--;
-    const target = w.enemies.nearestTarget(this.cx, this.cy, TURRET.range, w.tick);
+    const target = w.enemies.nearestTarget(this.cx, this.cy, this.range(w), w.tick);
     if (!target) {
       this.status = this.rounds > 0 || !this.ammo.isEmpty() ? Status.Idle : Status.NoInput;
       return;
@@ -59,16 +59,24 @@ export class TurretEntity extends EntityBase {
     }
     this.rounds--;
     // Forschung: Feuerrate verkürzt die Abklingzeit, Projektilschaden × Turmschaden (Wiki)
-    this.cooldown = Math.max(1, Math.round(TURRET.cooldown / (1 + w.research.bonus('shooting-speed'))));
+    this.cooldown = Math.max(1, Math.round((this.def.cooldown ?? TURRET.cooldown) / (1 + w.research.bonus('shooting-speed'))));
     this.lastShot = w.tick;
     this.shotX = target.x;
     this.shotY = target.y;
     w.events.push('turret', this.cx, this.cy);
-    w.noise.emit(this.cx, this.cy, NOISE.turret);
-    const dmg = AMMO[this.roundsItem!].damage * (1 + w.research.bonus('bullet-damage')) * (1 + w.research.bonus('turret-damage'));
+    w.noise.emit(this.cx, this.cy, this.def.noise ?? NOISE.turret);
+    const dmg = AMMO[this.roundsItem!].damage * (this.def.damageFactor ?? 1) * (1 + w.research.bonus('bullet-damage')) * (1 + w.research.bonus('turret-damage'));
     w.enemies.damageTarget(w, target, dmg);
     if (this.rounds === 0) this.roundsItem = null;
     this.status = Status.Working;
+  }
+
+  /** Reichweite: nachts kürzer, außer der Turm steht im Licht (Feuer, Lampe, Scheinwerfer). */
+  range(w: World): number {
+    const base = this.def.range ?? TURRET.range;
+    const dark = w.darkness;
+    if (dark <= 0 || w.isLit(this.cx, this.cy)) return base;
+    return base * (1 - TURRET.nightPenalty * dark);
   }
 
   override acceptAmount(item: string, mode: InsertMode): number {

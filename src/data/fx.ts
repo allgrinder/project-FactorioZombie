@@ -73,6 +73,8 @@ export const NIGHT = {
   lampRadius: 22,
   lampStrength: 1.6,
   lampColor: 0xfff0d8,
+  /** Scheinwerfer: kaltweiß. */
+  floodColor: 0xe8f0ff,
   poleRadius: 10,
   poleStrength: 1,
   poleColor: 0xffe6c0,

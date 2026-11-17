@@ -79,7 +79,7 @@ export class SpriteLib {
 }
 
 /** Symbole, die noch kein eigenes Bild haben, leihen sich eines. */
-const ICON_FALLBACK: Readonly<Record<string, string>> = { 'item.stone-crusher': 'item.burner-mining-drill' };
+const ICON_FALLBACK: Readonly<Record<string, string>> = {};
 
 export type Quality = 'sd' | 'hd';
 

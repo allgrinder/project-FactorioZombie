@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_MAP_SETTINGS, LEGACY_MAP_SETTINGS } from '../../src/data/mapgen';
+import { DEFAULT_MAP_SETTINGS as DEFAULTS, LEGACY_MAP_SETTINGS } from '../../src/data/mapgen';
+
+/** Die Tests prüfen die Rohstofffelder des Vorgängers (in „Letzte Schicht“ abgeschaltet). */
+const DEFAULT_MAP_SETTINGS = { ...DEFAULTS, ore: true, sites: false, plan: false };
 import { deserializeWorld, serializeWorld } from '../../src/sim/serialize';
 import { World } from '../../src/sim/world';
 

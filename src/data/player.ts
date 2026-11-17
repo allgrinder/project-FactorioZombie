@@ -12,7 +12,9 @@ export const PLAYER = {
   resourceReachDistance: 2.7,
   /** Fundorte durchsuchen und ausschlachten: Abstand zur Grundfläche (Felder, eigener Wert). */
   searchDistance: 2.2,
-  inventorySlots: 80,
+  /** Inventarplätze (weniger als beim Vorgänger: Plündern heißt mehrmals gehen; Rucksack +20). */
+  inventorySlots: 50,
+  backpackSlots: 20,
   quickbarSlots: 10,
   /** Kollisionsradius in Feldern. */
   radius: 0.2,
@@ -42,8 +44,7 @@ export const GOD = {
 export const START_INVENTORY: readonly { item: string; amount: number }[] = [
   { item: 'iron-plate', amount: 8 },
   { item: 'wood', amount: 6 },
-  { item: 'burner-mining-drill', amount: 1 },
-  { item: 'stone-crusher', amount: 1 },
+  { item: 'campfire', amount: 1 },
   { item: 'stone-furnace', amount: 1 },
   { item: 'baseball-bat', amount: 1 },
   { item: 'pistol', amount: 1 },

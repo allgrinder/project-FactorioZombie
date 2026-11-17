@@ -45,12 +45,23 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
     R('firearm-magazine', 4, 12, 0.95), R('piercing-rounds-magazine', 2, 6, 0.3, true), R('pistol', 1, 1, 0.5), R('submachine-gun', 1, 1, 0.15, true),
     R('grenade', 1, 4, 0.35), R('first-aid-kit', 1, 2, 0.5), R('canned-food', 2, 4, 0.5), R('radio-parts', 1, 2, 0.3), R('antibiotics', 1, 1, 0.15),
   ],
+  airdrop: [
+    R('firearm-magazine', 6, 15, 0.95), R('piercing-rounds-magazine', 2, 6, 0.35), R('grenade', 1, 3, 0.5), R('first-aid-kit', 1, 2, 0.6),
+    R('antibiotics', 1, 1, 0.4), R('canned-food', 3, 6, 0.9), R('water-bottle', 2, 4, 0.8), R('radio-parts', 1, 2, 0.5),
+    R('scavenger-kit', 1, 1, 0.35), R('backpack', 1, 1, 0.2), R('submachine-gun', 1, 1, 0.15), R('noise-lure', 1, 2, 0.3),
+  ],
   trash: [
     R('iron-ore', 2, 8, 0.8), R('empty-bottle', 1, 4, 0.6), R('cloth', 1, 4, 0.5), R('wood', 1, 5, 0.4), R('snack', 1, 1, 0.15), R('iron-stick', 1, 4, 0.3),
   ],
 };
 
 export const LOOT = { farBoost: 2.5, farAt: 400 } as const;
+
+/**
+ * Versorgungsabwürfe (eigene Idee): ab Tag firstDay alle interval Ticks landet eine Kiste am Fallschirm in
+ * minDist…maxDist Feldern von der Basis. Die Landung ist laut (noise) – Zombies laufen hin. Höchstens maxOpen liegen.
+ */
+export const DROPS = { firstDay: 2, interval: 26_000, minDist: 60, maxDist: 150, noise: 60, maxOpen: 3, fallTicks: 360 } as const;
 
 /**
  * Fundorte auf der Karte (src/sim/sites.ts): Raster, Wahrscheinlichkeit je Zelle, Mindestabstand vom Start.

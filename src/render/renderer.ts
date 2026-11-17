@@ -19,6 +19,7 @@ import { LOOK } from '../data/look';
 import { AdvancedBloomFilter } from 'pixi-filters';
 import type { GameEvent } from '../sim/events';
 import { PLAYER_COMBAT, UNITS, type UnitKind } from '../data/enemies';
+import { DROPS } from '../data/loot';
 
 /** Ersatzfarben der Zombies, solange die Sprites fehlen (Kreise in drawCombat). */
 const ZOMBIE_COLOR: Record<UnitKind, number> = { walker: 0x6f7f4a, runner: 0x9a6a3a, brute: 0x4a5a3a, screamer: 0x8a4a6a };
@@ -890,6 +891,7 @@ export class GameRenderer {
       sp.position.set(px * TILE, py * TILE);
       sp.zIndex = py * TILE;
     }
+    this.drawWorkers(world, v, alpha);
     this.drawRobots(world);
     this.drawVehicles(world);
     this.drawEnemies(world, v, alpha);
@@ -907,8 +909,7 @@ export class GameRenderer {
     cx = Math.round(cx);
     switch (e.kind) {
       case 'drill': {
-        const crusher = e.name === 'stone-crusher' && !s.has(`stone-crusher.${e.dir}`);
-        const base = e.name === 'burner-mining-drill' || crusher ? 'drill' : e.name;
+        const base = e.name === 'burner-mining-drill' ? 'drill' : e.name;
         if (!s.has(`${base}.${e.dir}`)) {
           this.drawGeneric(e, cx, cy, z);
           break;
@@ -916,7 +917,6 @@ export class GameRenderer {
         const sh = this.shadows.get(s.frame(`${base}.${e.dir}.shadow`));
         sh.position.set(cx, cy);
         const sp = this.ents.get(s.frame(`${base}.${e.dir}`, Math.floor(e.workTicks / this.ticksPerFrame(`${base}.${e.dir}`))));
-        if (crusher) sp.tint = 0xb8c4b0;
         sp.position.set(cx, cy);
         sp.zIndex = z;
         break;
@@ -1088,10 +1088,33 @@ export class GameRenderer {
         break;
       }
       case 'loot': {
+        // Versorgungsabwurf: schwebt am Fallschirm herab
+        let lift = 0;
+        if (e.name === 'airdrop') {
+          const d = world.drops.drops.find((x) => x.id === e.id);
+          const f = d ? (world.tick + alpha - d.tick) / DROPS.fallTicks : 1;
+          if (f < 1) {
+            lift = (1 - f) * 9 * TILE;
+            if (s.has('airdrop.chute')) {
+              const ch = this.ents.get(s.frame('airdrop.chute'));
+              ch.position.set(cx + Math.sin((world.tick + alpha) / 25) * 10, cy - lift);
+              ch.zIndex = z + 2000;
+            }
+          }
+        }
         // Fundorte: Variante nach der Lage (gleiche Karte → gleiches Bild)
         const n = s.countPrefix(`${e.name}.v`);
-        if (!n) this.drawGeneric(e, cx, cy, z);
-        else this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy, z);
+        if (!n) this.drawGeneric(e, cx, cy - lift, z + (lift ? 2000 : 0));
+        else this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy - lift, z + (lift ? 2000 : 0));
+        break;
+      }
+      case 'pile': {
+        // Schrotthaufen: Variante nach der Lage; ab der Hälfte ausgeschlachtet kleiner (.half)
+        const n = s.countPrefix(`${e.name}.v`);
+        const half = e.amount < e.total / 2 && s.has(`${e.name}.half`);
+        if (half) this.drawNamed(`${e.name}.half`, cx, cy, z, `${e.name}.v0.shadow`);
+        else if (n) this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy, z);
+        else this.drawGeneric(e, cx, cy, z);
         break;
       }
       case 'wall': {
@@ -1328,7 +1351,7 @@ export class GameRenderer {
           tex = this.sprites.frame(this.sprites.has(`${b}.in.${g.dir}`) ? `${b}.in.${g.dir}` : `item.${def.item}`);
           break;
         }
-        case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break; // Schuttbrecher: Bohrerbild
+        case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break;
         case 'furnace': tex = this.sprites.frame(g.name !== 'stone-furnace' && this.sprites.has(`${g.name}.off`) ? `${g.name}.off` : 'furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;
         case 'rail': {
@@ -1451,6 +1474,30 @@ export class GameRenderer {
       const v8 = 200 + ((u.id * 37) % 56);
       sp.tint = (v8 << 16) | ((v8 - ((u.id * 13) % 24)) << 8) | (v8 - ((u.id * 7) % 30));
       sp.zIndex = u.y * TILE;
+    }
+  }
+
+  /** Sammler: Figur in Arbeitskleidung (getönt), mit Last über dem Kopf; daheim unsichtbar. */
+  private drawWorkers(world: World, v: ReturnType<GameRenderer['viewRect']>, alpha: number): void {
+    const s = this.sprites;
+    if (!s.has('player.walk.0')) return;
+    const t = world.tick + alpha;
+    for (const k of world.scavengers.workers) {
+      if (k.state === 'home' || k.x < v.x0 - 2 || k.x > v.x1 + 2 || k.y < v.y0 - 2 || k.y > v.y1 + 3) continue;
+      const dir = (Math.round((k.angle + Math.PI / 2) / (Math.PI / 4)) + 8) % 8;
+      const base = s.has('worker.walk.0') ? 'worker' : 'player';
+      const tex = k.state === 'gather' ? s.frame(`${base}.mine.${dir}`, Math.floor(t / 7.5)) : s.frame(`${base}.walk.${dir}`, Math.floor(k.phase * 6));
+      const sp = this.ents.get(tex);
+      sp.position.set(k.x * TILE, k.y * TILE);
+      sp.scale.set(0.92);
+      if (base === 'player') sp.tint = 0xb8c8a0;
+      sp.zIndex = k.y * TILE;
+      if (k.cargo.length) {
+        const it = this.ents.get(s.frame(`item.${k.cargo[k.cargo.length - 1]}`));
+        it.position.set(k.x * TILE, (k.y - 0.95) * TILE);
+        it.scale.set(0.32);
+        it.zIndex = k.y * TILE + 1;
+      }
     }
   }
 
@@ -1730,6 +1777,9 @@ export class GameRenderer {
       if (e.kind === 'turret' && t - e.lastShot < 3) {
         shot(e.cx + Math.cos(e.angle) * 1.1, e.cy - 0.35 + Math.sin(e.angle) * 1.1, e.shotX, e.shotY);
       }
+    }
+    for (const k of world.scavengers.workers) {
+      if (k.state !== 'home' && k.hp < 60) bar(k.x - 0.3, k.y + 0.3, 0.6, k.hp / 60);
     }
     for (const u of world.enemies.units.values()) {
       if (u.x < v.x0 || u.x > v.x1 || u.y < v.y0 || u.y > v.y1) continue;

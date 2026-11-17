@@ -17,7 +17,7 @@ export class FlowField {
     this.dist = dist;
   }
 
-  static build(world: World, goals: readonly [number, number][], x0: number, y0: number, w: number, h: number, ignore: number | null): FlowField {
+  static build(world: World, goals: readonly [number, number][], x0: number, y0: number, w: number, h: number, ignore: number | null, walker = false): FlowField {
     const N = w * h;
     const dist = new Float64Array(N).fill(Infinity);
     const cost = new Float32Array(N);
@@ -30,7 +30,13 @@ export class FlowField {
         else {
           const e = world.entityAt(tx, ty);
           // Fundorte der alten Welt (Häuser, Wracks) werden nie eingerissen: wie Fels
-          cost[k] = e && e.kind === 'loot' && e.id !== ignore ? Infinity : e && e.id !== ignore && e.kind !== 'rail' && entityDef(e.name).solid ? 1 + OBSTACLE_COST : 1;
+          if (walker) {
+            // Sammler: Gebäude sind Hindernisse (Tore, Masten, Bänder begehbar), Draht und Fallen meiden
+            const d = e && e.id !== ignore && e.kind !== 'rail' ? entityDef(e.name) : null;
+            cost[k] = d && d.solid && !d.walkable ? Infinity : e && (e.kind === 'wire' || e.kind === 'trap') ? 4 : 1;
+            continue;
+          }
+          cost[k] = e && (e.kind === 'loot' || e.kind === 'pile' || e.kind === 'prop') && e.id !== ignore ? Infinity : e && e.id !== ignore && e.kind !== 'rail' && entityDef(e.name).solid ? 1 + OBSTACLE_COST : 1;
         }
       }
     }
@@ -128,6 +134,8 @@ export class FlowField {
       for (let di = -1; di <= 1; di++) {
         if (!di && !dj) continue;
         const d = this.at(tx + di, ty + dj);
+        // keine Ecken schneiden: diagonal nur, wenn beide Kanten-Nachbarn passierbar sind
+        if (di && dj && (this.at(tx + di, ty) === Infinity || this.at(tx, ty + dj) === Infinity)) continue;
         if (d < best) {
           best = d;
           bx = tx + di;

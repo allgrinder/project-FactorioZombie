@@ -88,6 +88,9 @@ const RAW_TECHS: readonly TechDef[] = [
   },
   // Verteidigung
   { id: 'stone-wall', name: 'Befestigung', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['stone-wall', 'gate', 'barbed-wire', 'iron-stick'] },
+  { id: 'scavengers', name: 'Sammeltrupps', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['scavenger-camp', 'scavenger-kit'] },
+  { id: 'watchtower', name: 'Wachturm', count: 20, time: 10, packs: RED, prerequisites: ['military', 'stone-wall'], unlocks: ['watchtower'] },
+  { id: 'floodlight', name: 'Scheinwerfer', count: 30, time: 15, packs: RED_GREEN, prerequisites: ['lamp', 'logistic-science-pack'], unlocks: ['floodlight'] },
   { id: 'traps', name: 'Fallen und Köder', count: 20, time: 10, packs: RED, prerequisites: ['stone-wall'], unlocks: ['spike-trap', 'noise-lure'] },
   { id: 'military', name: 'Bewaffnung', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['submachine-gun'] },
   { id: 'gun-turret', name: 'MG-Turm', count: 15, time: 10, packs: RED, prerequisites: ['military'], unlocks: ['gun-turret'] },
@@ -113,7 +116,6 @@ const RAW_TECHS: readonly TechDef[] = [
   // Produktion (schlank)
   { id: 'automation', name: 'Automatisierung', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['assembling-machine-1', 'long-handed-inserter'] },
   { id: 'logistics', name: 'Logistik', count: 20, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['splitter', 'underground-belt'] },
-  { id: 'electric-mining-drill', name: 'Sortieranlage', count: 25, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['electric-mining-drill'] },
   { id: 'steel-processing', name: 'Stahlverarbeitung', count: 50, time: 5, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['steel-plate', 'steel-chest'] },
   { id: 'fast-inserter', name: 'Schneller Greifarm', count: 30, time: 15, packs: RED, prerequisites: ['automation'], unlocks: ['fast-inserter'] },
   { id: 'lamp', name: 'Lampe', count: 10, time: 15, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['lamp'],
@@ -147,10 +149,6 @@ const RAW_TECHS: readonly TechDef[] = [
   ...levels('research-speed', 'Laborgeschwindigkeit', ['logistic-science-pack'], [
     [100, 30, RED_GREEN, [E('lab-speed', 0.2)]],
     [200, 30, RED_GREEN, [E('lab-speed', 0.3)]],
-  ]),
-  ...levels('mining-productivity', 'Bergbau-Produktivität', ['electric-mining-drill', 'logistic-science-pack'], [
-    [150, 60, RED_GREEN, [E('mining-productivity', 0.1)]],
-    [300, 60, RED_GREEN, [E('mining-productivity', 0.1)]],
   ]),
   ...levels('physical-projectile-damage', 'Geschossschaden', ['military'], [
     [50, 30, RED, dmg(0.1, 0.1)],

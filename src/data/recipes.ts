@@ -538,10 +538,10 @@ const ORIGINAL: RecipeDef[] = [
  */
 const KEPT: ReadonlySet<string> = new Set([
   'iron-plate', 'copper-plate', 'stone-brick', 'copper-cable', 'iron-stick', 'stone-furnace', 'iron-gear-wheel', 'burner-inserter',
-  'burner-mining-drill', 'transport-belt', 'underground-belt', 'splitter', 'steel-plate', 'steel-chest', 'steel-furnace', 'fast-inserter',
+  'transport-belt', 'underground-belt', 'splitter', 'steel-plate', 'steel-chest', 'steel-furnace', 'fast-inserter',
   'military-science-pack', 'medium-electric-pole', 'firearm-magazine', 'piercing-rounds-magazine', 'pistol', 'submachine-gun', 'gun-turret',
   'repair-pack', 'grenade', 'stone-wall', 'lamp', 'landfill', 'pipe-to-ground', 'solar-panel', 'wooden-chest', 'electronic-circuit', 'pipe',
-  'offshore-pump', 'boiler', 'steam-engine', 'small-electric-pole', 'electric-mining-drill', 'inserter', 'long-handed-inserter',
+  'offshore-pump', 'boiler', 'steam-engine', 'small-electric-pole', 'inserter', 'long-handed-inserter',
   'assembling-machine-1', 'lab', 'automation-science-pack', 'logistic-science-pack', 'iron-chest', 'heavy-armor', 'radar',
 ]);
 
@@ -550,8 +550,6 @@ const craft = (id: string, time: number, ingredients: ItemAmount[], amount = 1):
 
 /** Neue Rezepte (eigene Werte, docs/GAME_DATA.md Abschnitt „Überleben“ und „Verteidigung“). */
 const SURVIVAL: RecipeDef[] = [
-  // Schuttbrecher: Gegenstück zum Schrottgreifer für Bauschutt und Kohle
-  craft('stone-crusher', 2, [I('iron-gear-wheel', 3), I('iron-plate', 3), I('stone-furnace', 1)]),
   // Akku ohne Chemie (das Batterie-Rezept des Vorgängers entfällt)
   craft('accumulator', 10, [I('iron-plate', 4), I('copper-cable', 20), I('electronic-circuit', 5)]),
   // Nahkampf
@@ -575,6 +573,13 @@ const SURVIVAL: RecipeDef[] = [
   craft('bed', 2, [I('wood', 6), I('cloth', 3)]),
   craft('garden', 3, [I('wood', 8), I('vegetables', 2)]),
   craft('rain-barrel', 2, [I('wood', 6), I('iron-plate', 4)]),
+  craft('campfire', 1, [I('stone', 10), I('wood', 4)]),
+  craft('brazier', 1, [I('iron-plate', 4), I('iron-stick', 2)]),
+  craft('floodlight', 2, [I('iron-plate', 5), I('copper-cable', 6), I('electronic-circuit', 2)]),
+  craft('watchtower', 4, [I('wood', 30), I('iron-plate', 10), I('stone-brick', 10)]),
+  craft('scavenger-camp', 3, [I('wood', 20), I('iron-plate', 10), I('iron-gear-wheel', 5)]),
+  craft('scavenger-kit', 2, [I('crowbar', 1), I('cloth', 4), I('iron-plate', 2)]),
+  craft('backpack', 3, [I('cloth', 10), I('iron-stick', 2)]),
   craft('radio-tower', 20, [I('steel-plate', 50), I('electronic-circuit', 50), I('copper-cable', 100), I('radio-parts', 5)]),
 ];
 

@@ -1,89 +1,84 @@
 import { describe, expect, it } from 'vitest';
 import { freeplayScene } from '../../src/game/scenes';
-import type { Dir } from '../../src/sim/geom';
-import { type DrillEntity, type FurnaceEntity, insertInto } from '../../src/sim/machines';
+import { type FurnaceEntity, type PileEntity, insertInto } from '../../src/sim/machines';
 import type { Player } from '../../src/sim/player';
 import type { World } from '../../src/sim/world';
 
-function nearest(w: World, resId: number, from: [number, number], need2x2 = false): [number, number] {
-  let best: [number, number] = [0, 0];
+/** Nächster Schrotthaufen einer Art. */
+function nearestPile(w: World, name: string, from: [number, number]): PileEntity {
+  let best: PileEntity | null = null;
   let bd = Infinity;
-  for (let y = -40; y <= 40; y++)
-    for (let x = -40; x <= 40; x++) {
-      const ok = need2x2
-        ? [[0, 0], [1, 0], [0, 1], [1, 1]].every(([dx, dy]) => w.map.resourceAt(x + dx, y + dy).res === resId)
-        : w.map.resourceAt(x, y).res === resId;
-      if (!ok) continue;
-      const d = Math.hypot(x - from[0], y - from[1]);
-      if (d < bd) { bd = d; best = [x, y]; }
+  for (const e of w.entities.values()) {
+    if (e.kind !== 'pile' || e.name !== name) continue;
+    const d = Math.hypot(e.cx - from[0], e.cy - from[1]);
+    if (d < bd) {
+      bd = d;
+      best = e;
     }
-  expect(bd).toBeLessThan(25);
-  return best;
-}
-
-/** Spieler zu einem Feld laufen lassen (über die normale Bewegung). */
-function walkTo(w: World, p: Player, x: number, y: number) {
-  for (let i = 0; i < 2000; i++) {
-    const dx = x + 0.5 - p.x;
-    const dy = y + 0.5 - p.y;
-    if (Math.hypot(dx, dy) < 0.4) break;
-    p.moveX = Math.abs(dx) > 0.2 ? Math.sign(dx) : 0;
-    p.moveY = Math.abs(dy) > 0.2 ? Math.sign(dy) : 0;
-    w.step();
   }
-  p.moveX = p.moveY = 0;
+  expect(best, name).toBeTruthy();
+  expect(bd).toBeLessThan(45);
+  return best!;
 }
 
-function mine(w: World, p: Player, x: number, y: number, count: number) {
-  p.setMineTarget({ kind: 'resource', x, y });
-  // Handabbau 6× schneller als im Original (PLAYER.handMiningFactor): 1 s Abbauzeit → 20 Ticks je Stück
-  for (let i = 0; i < count * 20 + 5; i++) w.step();
+/** Spieler neben ein Gebäude laufen lassen (über die normale Bewegung, ohne Kollision zu prüfen). */
+function standBeside(w: World, p: Player, e: PileEntity) {
+  p.px = Math.round((e.x + e.w + 0.6) * 256);
+  p.py = Math.round((e.y + 0.5) * 256);
+  w.step();
+}
+
+function salvage(w: World, p: Player, e: PileEntity, ticks: number) {
+  p.setMineTarget({ kind: 'entity', id: e.id });
+  for (let i = 0; i < ticks; i++) w.step();
   p.setMineTarget(null);
 }
 
 describe('Freies Spiel', () => {
-  it('Startausrüstung, Startfelder in der Nähe, Weg zur automatischen Plattenproduktion', () => {
+  it('Start ohne Bergbau: Haufen am Startfundort ausschlachten, schmelzen, herstellen', () => {
     const { world: w } = freeplayScene(12345);
     const p = w.player!;
+    w.settings = { ...w.settings, enemies: 'aus' };
     expect(p.inventory.count('iron-plate')).toBe(8);
-    expect(p.inventory.count('burner-mining-drill')).toBe(1);
     expect(p.inventory.count('stone-furnace')).toBe(1);
-    const IRON = 1, COAL = 2, STONE = 3;
-    for (const r of [IRON, COAL, STONE]) nearest(w, r, [0, 0]);
+    expect(p.inventory.count('campfire')).toBe(1);
+    expect(p.inventory.count('burner-mining-drill')).toBe(0);
+    w.step();
+    // keine Rohstofffelder mehr
+    let ore = 0;
+    for (let y = -60; y <= 60; y += 2) for (let x = -60; x <= 60; x += 2) if (w.map.resourceAt(x, y).amount > 0) ore++;
+    expect(ore).toBe(0);
 
-    // Kohle von Hand abbauen
-    const coal = nearest(w, COAL, [0, 0]);
-    walkTo(w, p, coal[0], coal[1]);
-    mine(w, p, coal[0], coal[1], 10);
-    expect(p.inventory.count('coal')).toBe(10);
+    // Kohle und Schrott von Hand
+    const coal = nearestPile(w, 'coal-pile', [0, 0]);
+    standBeside(w, p, coal);
+    salvage(w, p, coal, 60 * 8);
+    expect(p.inventory.count('coal')).toBeGreaterThanOrEqual(8);
+    const scrap = nearestPile(w, 'scrap-pile', [0, 0]);
+    const before = scrap.amount;
+    standBeside(w, p, scrap);
+    salvage(w, p, scrap, 60 * 20);
+    expect(scrap.amount).toBeLessThan(before - 15);
+    expect(p.inventory.count('iron-ore')).toBeGreaterThanOrEqual(8);
 
-    // Stein abbauen und einen zweiten Ofen herstellen
-    const stone = nearest(w, STONE, [p.x, p.y]);
-    walkTo(w, p, stone[0], stone[1]);
-    mine(w, p, stone[0], stone[1], 5);
-    expect(p.craft('stone-furnace', 1)).toBe(1);
-    w.run(40);
-    expect(p.inventory.count('stone-furnace')).toBe(2);
-
-    // Bohrer auf Eisenerz, Ofen direkt an der Ausgabe (Süden)
-    const iron = nearest(w, IRON, [p.x, p.y], true);
-    walkTo(w, p, iron[0] + 3, iron[1] + 1);
-    const dir: Dir = 2;
-    const drill = w.place('burner-mining-drill', iron[0], iron[1], dir) as DrillEntity;
-    expect(drill).toBeTruthy();
-    p.inventory.remove('burner-mining-drill', 1);
-    const [ox, oy] = w.drillOutputPoint(drill);
-    const furnace = w.place('stone-furnace', Math.floor(ox) - 1, Math.floor(oy), 0) as FurnaceEntity;
-    expect(furnace).toBeTruthy();
+    // Ofen setzen, Schrott einschmelzen
+    const f = w.place('stone-furnace', Math.floor(p.x) + 3, Math.floor(p.y) + 3, 0) as FurnaceEntity;
+    expect(f).toBeTruthy();
     p.inventory.remove('stone-furnace', 1);
-    p.inventory.remove('coal', insertInto(drill, 'coal', 5, 'player'));
-    p.inventory.remove('coal', insertInto(furnace, 'coal', 5, 'player'));
-    w.run(60 * 60);
-    // 60 s: 15 Erz -> etwa 14 Platten
-    expect(furnace.result.count('iron-plate')).toBeGreaterThanOrEqual(13);
+    p.inventory.remove('coal', insertInto(f, 'coal', 4, 'player'));
+    p.inventory.remove('iron-ore', insertInto(f, 'iron-ore', 8, 'player'));
+    w.run(60 * 30);
+    expect(f.result.count('iron-plate')).toBe(8);
+
+    // Lagerfeuer setzen: Mitte der Basis
+    expect(w.base).toBeNull();
+    const fire = w.place('campfire', Math.floor(p.x) - 4, Math.floor(p.y) + 3, 0)!;
+    expect(fire).toBeTruthy();
+    expect(w.base?.id).toBe(fire.id);
+    expect(w.enemies.baseCenter(w)).toEqual([fire.cx, fire.cy]);
 
     // Aus Platten: Zahnräder, Greifarm und Bänder herstellen (inkl. Zwischenprodukten)
-    p.inventory.add('iron-plate', furnace.result.remove('iron-plate', 100));
+    p.inventory.add('iron-plate', f.result.remove('iron-plate', 100));
     expect(p.craft('burner-inserter', 1)).toBe(1);
     expect(p.craft('transport-belt', 2)).toBe(2);
     w.run(60 * 5);

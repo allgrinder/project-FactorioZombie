@@ -6,10 +6,12 @@ import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import { EnemySystem } from './enemies';
 import { NoiseSystem } from './noise';
 import { SiteSystem } from './sites';
+import { ScavengerSystem } from './scavengers';
+import { DropSystem } from './drops';
 import { ChartSystem } from './chart';
 import { EventQueue } from './events';
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
-import { RESOURCES, RESOURCE_BY_INDEX } from '../data/resources';
+import { RESOURCE_BY_INDEX } from '../data/resources';
 import { DAY, darknessAt } from '../data/time';
 import { BeltSystem } from './belts';
 import type { InsertMode } from './entities/base';
@@ -27,6 +29,7 @@ import { RobotSystem } from './robots';
 import { CircuitSystem } from './circuit';
 import { TrainSystem } from './trains';
 import { Burner } from './burner';
+import { Status } from './entity';
 import { Player } from './player';
 
 export interface PlaceCheck {
@@ -72,6 +75,10 @@ export class World {
   readonly noise = new NoiseSystem();
   /** Fundorte der alten Welt (Dörfer, Wracks). */
   readonly sites = new SiteSystem();
+  /** Sammeltrupps der Sammelstellen. */
+  readonly scavengers = new ScavengerSystem();
+  /** Versorgungsabwürfe. */
+  readonly drops = new DropSystem();
   /** Aufgedeckte Kartenabschnitte (Figur, Radar, Roboterhangar). */
   readonly chart = new ChartSystem();
   /** Ereignisse für Ton/Effekte (nicht gespeichert). */
@@ -107,6 +114,31 @@ export class World {
   }
   /** Gestartete Raketen (Vorgänger, ungenutzt). */
   rocketsLaunched = 0;
+  /** Leuchtende Lichtquellen (alle 30 Ticks neu): [x, y, Radius]. */
+  private lights: [number, number, number][] = [];
+  private lightsTick = -1;
+
+  /** Liegt der Punkt im Licht einer brennenden bzw. eingeschalteten Lichtquelle? */
+  isLit(x: number, y: number): boolean {
+    if (this.lightsTick < 0 || this.tick - this.lightsTick >= 30 || this.tick < this.lightsTick) {
+      this.lights = [];
+      for (const e of this.entities.values()) {
+        if ((e.kind === 'fire' || e.kind === 'lamp') && e.status === Status.Working) {
+          this.lights.push([e.cx, e.cy, e.kind === 'fire' ? e.def.lightRadius : e.def.lightRadius ?? 6]);
+        }
+      }
+      this.lightsTick = this.tick;
+    }
+    return this.lights.some(([lx, ly, r]) => Math.hypot(lx - x, ly - y) <= r);
+  }
+
+  /** Mitte der Basis: das älteste Lagerfeuer, sonst null. */
+  get base(): Entity | null {
+    let best: Entity | null = null;
+    for (const e of this.entities.values()) if (e.kind === 'fire' && e.def.base && (!best || e.id < best.id)) best = e;
+    return best;
+  }
+
   /** Wie viele Figuren diese Welt schon gesehen hat (die Welt überdauert den Tod). */
   characters = 1;
   /** Tick, in dem der Funkturm die Rettung erreicht hat (Spielziel), sonst null. */
@@ -205,10 +237,11 @@ export class World {
     }
     if (def.kind === 'drill') {
       const tmp = new DrillEntity(0, name, x, y, dir);
-      const tiles = tmp.areaTiles().map(([tx, ty]) => this.map.resourceAt(tx, ty)).filter((r) => r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid);
-      if (!tiles.length) return { ok: false, reason: 'Keine Trümmer' };
-      if (!tiles.some((r) => tmp.canMine(this, RESOURCE_BY_INDEX[r.res]?.id))) {
-        return { ok: false, reason: `Hier liegt nichts für den ${def.name} (verwertet ${(def.mines ?? []).map((m) => RESOURCES.find((x) => x.id === m)?.name ?? m).join(', ')})` };
+      if (!tmp.areaTiles().some(([tx, ty]) => {
+        const r = this.map.resourceAt(tx, ty);
+        return r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid;
+      })) {
+        return { ok: false, reason: 'Keine Ressourcen' };
       }
     }
     return { ok: true };
@@ -286,13 +319,17 @@ export class World {
     const old = this._player;
     if (!old || !old.dead) return null;
     if (this.settings.enemies !== 'aus') this.enemies.spawnAt(old.x, old.y, 'walker');
-    let sx = 0.5;
-    let sy = 0.5;
-    for (let k = 0; k < 24; k++) {
+    // Neustart am Lagerfeuer der Basis (sonst am Ursprung)
+    const b = this.base;
+    const ox = b ? Math.floor(b.cx) + 0.5 : 0.5;
+    const oy = b ? Math.floor(b.y + b.h) + 1.5 : 0.5;
+    let sx = ox;
+    let sy = oy;
+    for (let k = 0; k < 32; k++) {
       const a = (k * Math.PI) / 4;
-      const r = Math.floor(k / 8) * 14;
-      const x = 0.5 + Math.round(Math.cos(a) * r);
-      const y = 0.5 + Math.round(Math.sin(a) * r);
+      const r = Math.floor(k / 8) * (b ? 3 : 14);
+      const x = ox + Math.round(Math.cos(a) * r);
+      const y = oy + Math.round(Math.sin(a) * r);
       if (this.map.isBlocked(Math.floor(x), Math.floor(y)) || this.entityAt(x, y)?.def.solid) continue;
       if (this.enemies.nearestTarget(x, y, 16, this.tick)) continue;
       sx = x;
@@ -305,6 +342,25 @@ export class World {
     this.characters++;
     p.note(`Eine neue Überlebende erreicht die Gegend (Figur ${this.characters}). Die Welt ist geblieben, wie sie war.`);
     return p;
+  }
+
+  /**
+   * Ein Stück aus einem Schrotthaufen nehmen (Hand oder Sammler); leer verschwindet der Haufen. Lärm am Haufen.
+   * accept: passt das Stück noch (Inventar)? Liefert das Item oder null.
+   */
+  harvestPile(e: Entity, accept: (item: string) => boolean = () => true): string | null {
+    if (e.kind !== 'pile' || e.amount <= 0) return null;
+    const item = e.peek(this);
+    if (!accept(item)) return null;
+    e.amount--;
+    this.stats.made(item, 1);
+    this.noise.emit(e.cx, e.cy, e.spec.noise);
+    this.events.push('mine', e.cx, e.cy, { item });
+    if (e.amount <= 0) {
+      this.enemies.remnants.push({ x: e.cx, y: e.cy, kind: 'building', size: Math.max(e.w, e.h), tick: this.tick });
+      this.remove(e.id);
+    }
+    return item;
   }
 
   // ------------------------------------------------------------ Simulation
@@ -350,6 +406,8 @@ export class World {
       this.sites.ensureArea(this, p.x - r, p.y - r, p.x + r, p.y + r);
     }
     this.enemies.update(this);
+    this.scavengers.update(this);
+    this.drops.update(this);
     this.capsules.update(this);
     this.player?.update(this);
     this.noise.update(this);

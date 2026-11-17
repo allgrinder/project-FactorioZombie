@@ -47,6 +47,8 @@ export interface Unit {
   scream: number;
   /** nächste Zielsuche frühestens in diesem Tick (nur Rechenaufwand). */
   retry: number;
+  /** Verfolgt: 0 = die Figur, sonst ein Sammler (ID). */
+  prey: number;
 }
 
 export type Target = { kind: 'unit'; id: number; x: number; y: number };
@@ -75,7 +77,7 @@ export interface HordeInfo {
 const cellKey = (gx: number, gy: number) => gx * 100003 + gy;
 
 /** Gebäude, die Zombies angreifen (keine Gleise, keine Fundorte der alten Welt). */
-export const isTargetable = (e: Entity): boolean => e.kind !== 'rail' && e.kind !== 'loot';
+export const isTargetable = (e: Entity): boolean => e.kind !== 'rail' && e.kind !== 'loot' && e.kind !== 'pile' && e.kind !== 'prop';
 
 const COMPASS = ['Osten', 'Südosten', 'Süden', 'Südwesten', 'Westen', 'Nordwesten', 'Norden', 'Nordosten'];
 export function compassName(angle: number): string {
@@ -159,7 +161,7 @@ export class EnemySystem {
   spawnAt(x: number, y: number, kind: UnitKind, mode: UnitMode = 'idle'): Unit {
     const u: Unit = {
       id: this.nextUnit++, kind, x, y, hp: UNITS[kind].health, mode, target: null, tx: x, ty: y, hx: x, hy: y,
-      cd: 0, angle: 0, phase: 0, stuck: 0, side: 0, sideUntil: 0, stun: 0, lost: 0, wait: 0, hz: 0, scream: 0, retry: 0,
+      cd: 0, angle: 0, phase: 0, stuck: 0, side: 0, sideUntil: 0, stun: 0, lost: 0, wait: 0, hz: 0, scream: 0, retry: 0, prey: 0,
     };
     u.angle = hash01(u.id, 17) * Math.PI * 2;
     this.units.set(u.id, u);
@@ -197,8 +199,10 @@ export class EnemySystem {
     return Math.min(HORDE.maxSize, Math.round((HORDE.base + HORDE.perDay * (day - HORDE.firstDay)) * f * big));
   }
 
-  /** Mittelpunkt des Lagers: Schwerpunkt der eigenen Gebäude um die Figur, sonst die Figur. */
+  /** Mittelpunkt des Lagers: das Lagerfeuer, sonst Schwerpunkt der eigenen Gebäude um die Figur, sonst die Figur. */
   baseCenter(w: World): [number, number] | null {
+    const b = w.base;
+    if (b) return [b.cx, b.cy];
     const p = w.player;
     if (!p) return null;
     let sx = 0;
@@ -293,17 +297,29 @@ export class EnemySystem {
     const p0 = w.player;
     const p = p0 && !p0.dead && !p0.god ? p0 : null;
     const pd = p ? Math.hypot(p.x - u.x, p.y - u.y) : Infinity;
-    // weit entfernte, ruhende Zombies schlafen
-    if (u.mode === 'idle' && pd > ZOMBIE.sleepDistance) return;
+    // weit entfernte, ruhende Zombies schlafen (außer Sammler sind in der Nähe)
+    if (u.mode === 'idle' && pd > ZOMBIE.sleepDistance && !w.scavengers.nearest(u.x, u.y, ZOMBIE.sightDay * 2)) return;
     if (u.cd > 0) u.cd--;
     if (u.stun > 0) {
       u.stun--;
       return;
     }
-    // Wahrnehmung: Figur in Sichtweite → Verfolgung
-    if (p && u.mode !== 'chase' && (w.tick + u.id) % ZOMBIE.senseInterval === 0 && pd < sight) this.startChase(w, u);
+    // Wahrnehmung: Figur (vorrangig) oder Sammler in Sichtweite → Verfolgung
+    if ((u.mode !== 'chase' || u.prey !== 0) && (w.tick + u.id) % ZOMBIE.senseInterval === 0) {
+      if (p && pd < sight) {
+        if (u.mode !== 'chase') this.startChase(w, u);
+        u.prey = 0;
+      } else if (u.mode !== 'chase') {
+        const k = w.scavengers.nearest(u.x, u.y, sight);
+        if (k) {
+          this.startChase(w, u);
+          u.prey = k.id;
+        }
+      }
+    }
     switch (u.mode) {
-      case 'chase': this.stepChase(w, u, def, p, pd, sight); break;
+      case 'chase': if (u.prey) this.stepChaseWorker(w, u, def, sight);
+      else this.stepChase(w, u, def, p, pd, sight); break;
       case 'investigate':
       case 'horde': this.stepMarch(w, u, def, p, pd); break;
       default: this.stepIdle(w, u, def);
@@ -358,6 +374,40 @@ export class EnemySystem {
     }
     const f = this.chaseField(w, p.x, p.y);
     this.follow(w, u, f, u.tx, u.ty, def.speed);
+  }
+
+  /** Verfolgung eines Sammlers: direkt hinterher, Hindernisse einreißen; ist er daheim oder fort, nachsehen. */
+  private stepChaseWorker(w: World, u: Unit, def: (typeof UNITS)[UnitKind], sight: number): void {
+    const k = w.scavengers.get(u.prey);
+    if (!k || k.state === 'home') {
+      u.prey = 0;
+      u.mode = 'investigate';
+      u.target = null;
+      return;
+    }
+    const d = Math.hypot(k.x - u.x, k.y - u.y);
+    if (d > sight * ZOMBIE.loseFactor) {
+      if (++u.lost > ZOMBIE.loseTicks) {
+        u.prey = 0;
+        u.mode = 'investigate';
+        u.target = null;
+      }
+      return this.move(w, u, u.tx, u.ty, def.speed, true);
+    }
+    u.lost = 0;
+    u.tx = k.x;
+    u.ty = k.y;
+    if (d <= def.radius + 0.25 + def.reach) {
+      u.phase = 0;
+      u.angle = Math.atan2(k.y - u.y, k.x - u.x);
+      if (u.cd === 0) {
+        w.scavengers.hurt(w, k, def.damage);
+        u.cd = def.cooldown;
+      }
+      return;
+    }
+    if (u.target !== null && this.attackEntity(w, u, def)) return;
+    this.move(w, u, k.x, k.y, def.speed, true);
   }
 
   /** Marsch zu einem Geräusch bzw. als Horde zum Lager; am Ziel Gebäude einreißen. */
@@ -714,7 +764,7 @@ export class EnemySystem {
       cells: [...this.cells].sort((a, b) => a - b),
       units: [...this.units.values()].map((u) => [
         u.id, u.kind, u.x, u.y, u.hp, u.mode, u.target, u.tx, u.ty, u.hx, u.hy, u.cd, u.angle, u.phase, u.stuck, u.side, u.sideUntil,
-        u.stun, u.lost, u.wait, u.hz, u.scream, u.retry,
+        u.stun, u.lost, u.wait, u.hz, u.scream, u.retry, u.prey,
       ]),
     };
   }
@@ -735,9 +785,9 @@ export class EnemySystem {
     this.lastHorde = d.lh ?? null;
     for (const c of d.cells) this.cells.add(c);
     for (const r of d.units as [number, UnitKind, number, number, number, UnitMode, number | null, ...number[]][]) {
-      const [id, kind, x, y, hp, mode, target, tx, ty, hx, hy, cd, angle, phase, stuck, side, sideUntil, stun, lost, wait, hz, scream, retry] = r;
+      const [id, kind, x, y, hp, mode, target, tx, ty, hx, hy, cd, angle, phase, stuck, side, sideUntil, stun, lost, wait, hz, scream, retry, prey] = r;
       if (!UNITS[kind]) continue;
-      this.units.set(id, { id, kind, x, y, hp, mode, target, tx, ty, hx, hy, cd, angle, phase, stuck, side, sideUntil, stun, lost, wait, hz, scream, retry });
+      this.units.set(id, { id, kind, x, y, hp, mode, target, tx, ty, hx, hy, cd, angle, phase, stuck, side, sideUntil, stun, lost, wait, hz, scream, retry, prey: prey ?? 0 });
     }
     // Verfolgungsfeld wie vor dem Speichern (Gebäude sind beim Laden schon angelegt)
     if (d.ch) this.buildChase(w, d.ch[0], d.ch[1], d.ch[2]);

@@ -221,6 +221,16 @@ export class Minimap {
       const r = Math.max(2, st.r * 0.35 * scale);
       ctx.fillRect(toX(st.x) - r, toY(st.y) - r, r * 2, r * 2);
     }
+    // Versorgungsabwürfe (blinkend) und Sammler
+    if (Math.floor(world.tick / 30) % 2 === 0) {
+      ctx.fillStyle = '#ff4a3a';
+      for (const d of world.drops.drops) {
+        const e = world.entities.get(d.id);
+        if (e) ctx.fillRect(toX(e.cx) - 3, toY(e.cy) - 3, 6, 6);
+      }
+    }
+    ctx.fillStyle = '#9adf6a';
+    for (const k of world.scavengers.workers) if (k.state !== 'home') ctx.fillRect(toX(k.x) - 1.5, toY(k.y) - 1.5, 3, 3);
     ctx.strokeStyle = 'rgba(255,190,90,0.55)';
     ctx.lineWidth = 1;
     for (const n of world.noise.recent) {

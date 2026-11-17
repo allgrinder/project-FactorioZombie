@@ -1005,10 +1005,15 @@ export class Game {
   hoverInfo(): string {
     const m = this.mouseWorld();
     const e = this.world.entityAt(m.x, m.y);
+    if (e?.kind === 'pile') return `${e.def.name} – noch ${e.amount} Stück · Rechtsklick halten: ausschlachten${this.world.player?.inventory.count('crowbar') ? ' (Brecheisen: schneller)' : ''}`;
+    if (e?.kind === 'camp') return `Sammelstelle – ${this.world.scavengers.workersOf(e.id).length} Sammler · Umkreis ${e.def.radius} Felder · Klick: öffnen`;
+    if (e?.kind === 'fire') return `${e.def.name}${e.def.base ? ' (Mitte der Basis)' : ''} – ${e.lit ? 'brennt' : 'aus'} · brennt nachts mit Holz oder Kohle`;
     if (e?.kind === 'loot') {
       return `${e.def.name} – ${e.searched ? (e.inventory.isEmpty() ? 'leer' : 'durchsucht (Klick: öffnen)') : 'Klick: durchsuchen'} · Rechtsklick halten: ausschlachten`;
     }
     if (e) return entityDef(e.name).name + this.fluidHover(e);
+    const wk = this.world.scavengers.nearest(m.x, m.y, 0.7);
+    if (wk) return `Sammler – ${wk.state === 'gather' ? 'sammelt' : wk.flee ? 'auf der Flucht' : wk.state === 'back' ? 'auf dem Heimweg' : 'unterwegs'} · ${wk.cargo.length} Stück · Leben ${Math.ceil(wk.hp)}`;
     const z = this.world.enemies.nearestTarget(m.x, m.y, 0.6, this.world.tick);
     if (z) {
       const u = this.world.enemies.units.get(z.id)!;
@@ -1024,8 +1029,7 @@ export class Game {
     const r = this.world.map.resourceAt(Math.floor(m.x), Math.floor(m.y));
     if (r.amount > 0) {
       const def = RESOURCE_BY_INDEX[r.res]!;
-      const field = this.world.map.rubbleName(Math.floor(m.x), Math.floor(m.y));
-      return def.fluid ? `${def.name}: ${(r.amount / 1000).toFixed(1)} % Ergiebigkeit` : `${def.name}: ${r.amount}${field ? ` · ${field}` : ''}`;
+      return def.fluid ? `${def.name}: ${(r.amount / 1000).toFixed(1)} % Ergiebigkeit` : `${def.name}: ${r.amount}`;
     }
     return '';
   }
