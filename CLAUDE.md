@@ -69,6 +69,9 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Flur/Stätten: Feldfrüchte je Acker und Jahreszeit (`drawCrops`, `models/flur.py`), Hecken, Seerosen; Friedhof an der
   Kirche (`SiteSystem.cemetery`), Sammelstellen (`kind: 'evac'`, `SiteSystem.evac`, `lib/staetten.py`), Leichen (`corpse`).
   Kriecher (`crawler`, `lib/kriecher.py`), Rauch/Bodennebel in `ambient.ts`, Kerzen/Fackeln in `night.ts`.
+- Bahnstrecke (`RAILWAY`, Belag 14, `SiteSystem.station/train`, `lib/strecke.py`, Renderer in `drawRoads`); Jahreszeit-Bäume
+  (`models/jahreszeit*.py`: Herbst, kahl, Obstblüte, Sträucher), Hubschrauber (`lib/himmel.py`), Ufer/Zeltplätze (`lib/ufer.py`),
+  Innenräume (`models/innen.py`), Hilferufe (`models/schrift.py`), Trampelpfade (`TRAILS`), Freileitungen (`drawWires`).
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
   Feuerschale, Scheinwerfer, Wachturm, Vorratslager.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).

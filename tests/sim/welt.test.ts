@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_MAP_SETTINGS } from '../../src/data/mapgen';
-import { WORLD, roadPaths } from '../../src/data/world';
+import { RAILWAY, WORLD, roadPaths } from '../../src/data/world';
 import { Player } from '../../src/sim/player';
 import { deserializeWorld, serializeWorld } from '../../src/sim/serialize';
 import { World } from '../../src/sim/world';
@@ -220,5 +220,24 @@ describe('Vielfalt', () => {
     expect(camp).toContain('medical-tent');
     expect(camp).toContain('army-truck');
     expect(camp.filter((n) => n === 'site-fence').length).toBeGreaterThan(80);
+  });
+
+  it('Bahnstrecke mit Gleisbett, Bahnhof und entgleistem Güterzug', () => {
+    const w = new World(WORLD.seed, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
+    w.player = new Player(0.5, 0.5);
+    w.player.px = (RAILWAY.train.x + 20) * 256;
+    w.player.py = (RAILWAY.y + 20) * 256;
+    w.run(61);
+    let rail = 0;
+    for (let x = RAILWAY.train.x - 60; x < RAILWAY.train.x - 20; x++) if (w.map.floorAt(x, RAILWAY.y) === 14) rail++;
+    expect(rail).toBeGreaterThan(30);
+    const names = [...w.entities.values()].filter((e) => Math.abs(e.cy - RAILWAY.y) < 6 && e.cx > RAILWAY.train.x - 2 && e.cx < RAILWAY.train.x + 60).map((e) => e.name);
+    expect(names).toContain('locomotive');
+    expect(names.filter((n) => n === 'freight-car' || n === 'tank-car').length).toBeGreaterThanOrEqual(5);
+    w.player.px = RAILWAY.station.x * 256;
+    w.player.py = (RAILWAY.y + 20) * 256;
+    w.run(61);
+    const st = [...w.entities.values()].filter((e) => Math.hypot(e.cx - RAILWAY.station.x, e.cy - RAILWAY.y) < 16).map((e) => e.name);
+    expect(st).toContain('platform-roof');
   });
 });

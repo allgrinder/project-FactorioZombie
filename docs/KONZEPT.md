@@ -265,6 +265,12 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
   Hause, Fackeln der Plünderer, Pfützen nur nach Regen satt, Flachdächer mit Unkraut/Laub/Unrat, verkohlte Möbel,
   großräumige Wiesenfarben (grün bis strohgelb, `LOOK.macro.hue*`).
 
+## Stillgelegte Bahn (`RAILWAY` in `src/data/world.ts`, `lib/strecke.py`)
+- Gerade West–Ost-Strecke (y 174, x −520 … 520) im Schotterbett (Belag 14), über Seen als Bahndamm, an Straßen ebenerdig.
+- Bahnhof Moorbrück: Ziegel-Empfangsgebäude, Bahnsteig mit zwei Dächern, Bänken, Schild.
+- Entgleister Güterzug: Diesellok und sechs Wagen (Güter- und Kesselwagen als Fundorte, Tabellen `freight`, `loco`,
+  `drums`), manche aus dem Gleis gesprungen, verstreute Fracht; Zombie-Gewicht 4.
+
 ## Feinschliff Welt
 - Laub aller Bäume und Sträucher um gut ein Fünftel aufgehellt (Wälder wirkten fast schwarz).
 - Trampelpfade (nur Darstellung, `TRAILS`): wo Figur und Bewohner oft gehen, wird das Gras zu Erde; verblasst langsam.

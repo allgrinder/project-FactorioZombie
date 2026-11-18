@@ -34,6 +34,8 @@ export const FLOORS: readonly FloorDef[] = [
   { id: 12, item: 'stone', name: 'Fliesen', speed: 1.1, sprite: 'floor.tiles', mapColor: 0x8a8880, fixed: true },
   // Landstraße (geschwungen): Belag nur für Tempo und Karte; gezeichnet wird sie entlang der Kurve (renderer drawRoads)
   { id: 13, item: 'stone', name: 'Landstraße', speed: 1.3, sprite: '', mapColor: 0x4a4a4c, fixed: true },
+  // Gleisbett der stillgelegten Bahn (gezeichnet entlang der Strecke im Renderer)
+  { id: 14, item: 'stone', name: 'Gleisbett', speed: 1.0, sprite: '', mapColor: 0x5e584e, fixed: true },
 ];
 
 export const FLOOR_BY_ID: Readonly<Record<number, FloorDef>> = Object.fromEntries(FLOORS.map((f) => [f.id, f]));
@@ -49,6 +51,7 @@ export const ROADLINE_E = 10;
 export const PLANKS = 11;
 export const TILES = 12;
 export const ROAD_FLOOR = 13;
+export const RAIL_FLOOR = 14;
 export const CONCRETE = 2;
 
 export const FLOOR = { mineTime: 0.1, brushDefault: 2, brushMin: 1, brushMax: 8 } as const;

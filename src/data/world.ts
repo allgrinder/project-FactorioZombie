@@ -93,6 +93,18 @@ export const WORLD = {
   townClear: 80,
 } as const;
 
+/**
+ * Stillgelegte Bahnstrecke (eigene Idee): gerade West–Ost-Linie nördlich von Moorbrück, mit Bahnhof und einem
+ * entgleisten Güterzug (Wagen als Fundorte). y = Gleismitte (Bett y−1 … y+1).
+ */
+export const RAILWAY = {
+  y: 174,
+  x0: -520,
+  x1: 520,
+  station: { x: 150, name: 'Bahnhof Moorbrück' },
+  train: { x: 296, cars: ['locomotive', 'freight-car', 'tank-car', 'freight-car', 'freight-car', 'tank-car', 'freight-car'] as const },
+} as const;
+
 /** Geschwungene Landstraße: Mittellinie in Abständen von ROAD_STEP Feldern (x, y je Punkt) mit Richtung (Bogenmaß). */
 export interface RoadPath {
   readonly pts: readonly number[];

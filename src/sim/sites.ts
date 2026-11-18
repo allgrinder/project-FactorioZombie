@@ -1,7 +1,7 @@
 import { type EntityDef, entityDef } from '../data/entities';
-import { ASPHALT, CONCRETE, FIELD, PAVEMENT, PLANKS, ROAD_FLOOR, ROADLINE_E, ROADLINE_S, TILES } from '../data/floors';
+import { ASPHALT, CONCRETE, FIELD, PAVEMENT, PLANKS, RAIL_FLOOR, ROAD_FLOOR, ROADLINE_E, ROADLINE_S, TILES } from '../data/floors';
 import { SITES } from '../data/loot';
-import { type PlaceDef, ROAD, type TownDef, WORLD, roadPaths } from '../data/world';
+import { type PlaceDef, RAILWAY, ROAD, type TownDef, WORLD, roadPaths } from '../data/world';
 import { TREE_GROUP_IDS, type TreeGroup } from '../data/decor';
 import { hash01 } from './rng';
 import { RAIDER } from '../data/strangers';
@@ -531,6 +531,25 @@ export class SiteSystem {
       }
     });
     const inCell = (x: number, y: number) => x >= x0 && x < x1 && y >= y0 && y < y1;
+    // Stillgelegte Bahn: Gleisbett (Straßen kreuzen ebenerdig), Bahnhof, entgleister Güterzug
+    const RY = RAILWAY.y;
+    if (RY + 1 >= y0 && RY - 1 < y1) {
+      for (let tx = Math.max(x0, RAILWAY.x0); tx < Math.min(x1, RAILWAY.x1); tx++) {
+        // Böschung des Damms
+        for (const ty of [RY - 2, RY + 2]) if (inside(tx, ty) && !w.map.floorAt(tx, ty)) this.flatten(w, tx, ty);
+        for (let ty = RY - 1; ty <= RY + 1; ty++) {
+          if (!inside(tx, ty)) continue;
+          const f = w.map.floorAt(tx, ty);
+          if (f && f !== RAIL_FLOOR) continue;
+          // über Wasser als Bahndamm aufgeschüttet
+          this.flatten(w, tx, ty);
+          w.map.clearTrees(tx, ty, tx, ty);
+          if (!w.entityAt(tx, ty)) w.map.setFloor(tx, ty, RAIL_FLOOR);
+        }
+      }
+      if (inCell(RAILWAY.station.x, RY)) this.station(w);
+      if (inCell(RAILWAY.train.x, RY)) this.train(w);
+    }
     for (const t of WORLD.towns) if (inCell(t.x, t.y)) this.town(w, t);
     for (const o of WORLD.outposts) if (inCell(o.x, o.y)) this.outpost(w, o.x, o.y);
     for (const pl of WORLD.places) if (inCell(pl.x, pl.y)) this.place(w, pl);
@@ -1041,6 +1060,45 @@ export class SiteSystem {
     this.put(w, 'ambulance-wreck', p.x + 6, gy + out * 6, true);
     this.sites.push({ x: p.x, y: p.y, r: 16, weight: 6, kind: 'outpost' });
     if (h(60) < 0.6) w.community.addSurvivor(x0 + 2.5, y0 + 2.5, w.seed);
+  }
+
+  /** Bahnhof: Empfangsgebäude, Bahnsteig mit Dach und Bänken, Ortsschild, ein paar Koffer (Kisten). */
+  private station(w: World): void {
+    const x = RAILWAY.station.x;
+    const y = RAILWAY.y;
+    for (let tx = x - 12; tx <= x + 12; tx++) for (let ty = y - 4; ty <= y - 2; ty++) {
+      this.flatten(w, tx, ty);
+      w.map.clearTrees(tx, ty, tx, ty);
+      w.map.setFloor(tx, ty, PAVEMENT);
+    }
+    this.house(w, x - 6, y - 12, 12, 7, 'office', 2, 'brick', 'slate', (n) => hash01(WORLD.seed, x, y, 4000 + n), true);
+    this.put(w, 'platform-roof', x - 9, y - 4, true);
+    this.put(w, 'platform-roof', x + 3, y - 4, true);
+    for (const dx of [-11, -2, 7]) this.put(w, 'bench', x + dx, y - 2, true);
+    this.put(w, 'trash-bin', x - 3, y - 4, true);
+    this.put(w, 'town-sign', x + 10, y - 3, true);
+    this.put(w, 'corpse', x + 1, y - 3, true);
+    this.put(w, 'supply-crate', x - 7, y - 2, true);
+    this.sites.push({ x, y: y - 6, r: 12, weight: 2.5, kind: 'town' });
+  }
+
+  /** Entgleister Güterzug: Lok und Wagen, manche aus dem Gleis gesprungen, Fracht verstreut. */
+  private train(w: World): void {
+    let x = RAILWAY.train.x;
+    const y = RAILWAY.y;
+    RAILWAY.train.cars.forEach((car, i) => {
+      const len = car === 'locomotive' ? 7 : 6;
+      const h = (n: number) => hash01(WORLD.seed, x, i, 4100 + n);
+      let off = i > 1 && h(1) < 0.45 ? (h(2) < 0.5 ? -3 : 2) : 0;
+      // nur aufs Land springen, nicht in den See
+      for (let tx = x; tx < x + len && off; tx++) if (w.map.isWater(tx, y - 1 + off) || w.map.isWater(tx, y + off)) off = 0;
+      for (let ty = y - 1 + off; ty <= y + off; ty++) for (let tx = x; tx < x + len; tx++) w.map.clearTrees(tx, ty, tx, ty);
+      this.put(w, car, x, y - 1 + off, true);
+      if (off && h(3) < 0.7) this.put(w, h(4) < 0.5 ? 'scrap-pile' : 'pallets', x + 2, y + (off < 0 ? 1 : -3), true);
+      x += len + 1;
+    });
+    this.put(w, 'corpse', RAILWAY.train.x + 3, y + 2, true);
+    this.sites.push({ x: RAILWAY.train.x + 22, y, r: 22, weight: 4, kind: 'wreck' });
   }
 
   private outpost(w: World, x: number, y: number): void {

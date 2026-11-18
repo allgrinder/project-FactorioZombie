@@ -2206,6 +2206,36 @@
     "track.slice.3"
    ]
   },
+  "strecke": {
+   "hash": "a68662d09a0ba2e5",
+   "sprites": [
+    "rail.slice.0",
+    "rail.slice.1",
+    "rail.slice.2",
+    "rail.slice.3",
+    "freight-car.v0",
+    "freight-car.v0.nrm",
+    "freight-car.v0.shadow",
+    "freight-car.v1",
+    "freight-car.v1.nrm",
+    "freight-car.v1.shadow",
+    "freight-car.v2",
+    "freight-car.v2.nrm",
+    "freight-car.v2.shadow",
+    "tank-car.v0",
+    "tank-car.v0.nrm",
+    "tank-car.v0.shadow",
+    "tank-car.v1",
+    "tank-car.v1.nrm",
+    "tank-car.v1.shadow",
+    "locomotive.v0",
+    "locomotive.v0.nrm",
+    "locomotive.v0.shadow",
+    "platform-roof.v0",
+    "platform-roof.v0.nrm",
+    "platform-roof.v0.shadow"
+   ]
+  },
   "tiere": {
    "hash": "dea2a39dfc4f3672",
    "sprites": [
@@ -3487,6 +3517,10 @@
   {
    "group": "entities",
    "file": "atlas-entities-13.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-14.json"
   },
   {
    "group": "flora",
@@ -6608,6 +6642,54 @@
    ],
    "w": 8,
    "h": 8,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "rail.slice.0": {
+   "group": "decals",
+   "frames": [
+    "rail.slice.0#0"
+   ],
+   "w": 64,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "rail.slice.1": {
+   "group": "decals",
+   "frames": [
+    "rail.slice.1#0"
+   ],
+   "w": 64,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "rail.slice.2": {
+   "group": "decals",
+   "frames": [
+    "rail.slice.2#0"
+   ],
+   "w": 64,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "rail.slice.3": {
+   "group": "decals",
+   "frames": [
+    "rail.slice.3#0"
+   ],
+   "w": 64,
+   "h": 192,
    "anchor": [
     0.5,
     0.5
@@ -10930,6 +11012,87 @@
     0.1875
    ]
   },
+  "freight-car.v0": {
+   "group": "entities",
+   "frames": [
+    "freight-car.v0#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
+  "freight-car.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "freight-car.v0.shadow#0"
+   ],
+   "w": 368,
+   "h": 176,
+   "anchor": [
+    0.2826086956521739,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "freight-car.v1": {
+   "group": "entities",
+   "frames": [
+    "freight-car.v1#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
+  "freight-car.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "freight-car.v1.shadow#0"
+   ],
+   "w": 368,
+   "h": 176,
+   "anchor": [
+    0.2826086956521739,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "freight-car.v2": {
+   "group": "entities",
+   "frames": [
+    "freight-car.v2#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
+  "freight-car.v2.shadow": {
+   "group": "entities",
+   "frames": [
+    "freight-car.v2.shadow#0"
+   ],
+   "w": 368,
+   "h": 176,
+   "anchor": [
+    0.2826086956521739,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "fridge": {
    "group": "entities",
    "frames": [
@@ -13465,6 +13628,33 @@
     0.1875
    ]
   },
+  "locomotive.v0": {
+   "group": "entities",
+   "frames": [
+    "locomotive.v0#0"
+   ],
+   "w": 496,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.675
+   ]
+  },
+  "locomotive.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "locomotive.v0.shadow#0"
+   ],
+   "w": 416,
+   "h": 176,
+   "anchor": [
+    0.28846153846153844,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "mailbox.v0": {
    "group": "entities",
    "frames": [
@@ -14610,6 +14800,33 @@
     0.5,
     0.5333333333333333
    ]
+  },
+  "platform-roof.v0": {
+   "group": "entities",
+   "frames": [
+    "platform-roof.v0#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
+  "platform-roof.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "platform-roof.v0.shadow#0"
+   ],
+   "w": 368,
+   "h": 176,
+   "anchor": [
+    0.2826086956521739,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "player.idle.0": {
    "group": "entities",
@@ -16869,6 +17086,60 @@
     0.1875,
     0.1875
    ]
+  },
+  "tank-car.v0": {
+   "group": "entities",
+   "frames": [
+    "tank-car.v0#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
+  "tank-car.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "tank-car.v0.shadow#0"
+   ],
+   "w": 368,
+   "h": 176,
+   "anchor": [
+    0.2826086956521739,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "tank-car.v1": {
+   "group": "entities",
+   "frames": [
+    "tank-car.v1#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
+  "tank-car.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "tank-car.v1.shadow#0"
+   ],
+   "w": 368,
+   "h": 176,
+   "anchor": [
+    0.2826086956521739,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "tire-pile.v0": {
    "group": "entities",
@@ -28916,6 +29187,42 @@
     0.7090909090909091
    ]
   },
+  "freight-car.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "freight-car.v0.nrm#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
+  "freight-car.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "freight-car.v1.nrm#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
+  "freight-car.v2.nrm": {
+   "group": "normals",
+   "frames": [
+    "freight-car.v2.nrm#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
   "fridge.nrm": {
    "group": "normals",
    "frames": [
@@ -30524,6 +30831,18 @@
     0.69
    ]
   },
+  "locomotive.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "locomotive.v0.nrm#0"
+   ],
+   "w": 496,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.675
+   ]
+  },
   "mailbox.v0.nrm": {
    "group": "normals",
    "frames": [
@@ -31170,6 +31489,18 @@
    "anchor": [
     0.5,
     0.5333333333333333
+   ]
+  },
+  "platform-roof.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "platform-roof.v0.nrm#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
    ]
   },
   "player.idle.0.nrm": {
@@ -32250,6 +32581,30 @@
    "anchor": [
     0.5,
     0.6457142857142857
+   ]
+  },
+  "tank-car.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "tank-car.v0.nrm#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
+   ]
+  },
+  "tank-car.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "tank-car.v1.nrm#0"
+   ],
+   "w": 432,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6533333333333334
    ]
   },
   "tire-pile.v0.nrm": {

@@ -1,5 +1,5 @@
 import { FLOOR_BY_ID } from '../data/floors';
-import { roadPaths } from '../data/world';
+import { RAILWAY, roadPaths } from '../data/world';
 import { Application, Container, type Filter, Graphics, Sprite, Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
 import { type DrillDef, type InserterDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
@@ -786,6 +786,13 @@ export class GameRenderer {
         }
       }
       if (s.has('track.slice.0')) for (const t of world.sites.tracks) lay(t, null, 'track.slice', false);
+    }
+    // Stillgelegte Bahn: Gleisstücke entlang der Strecke (über Straßen: ebenerdiger Übergang, über Wasser: Brücke)
+    if (world.settings.plan && s.has('rail.slice.0') && RAILWAY.y >= v.y0 - 3 && RAILWAY.y <= v.y1 + 3) {
+      for (let tx = Math.max(v.x0 - 1, RAILWAY.x0); tx < Math.min(v.x1 + 2, RAILWAY.x1); tx++) {
+        const sp = p.get(s.frame(`rail.slice.${(Math.imul(tx, 2654435761) >>> 28) & 3}`));
+        sp.position.set((tx + 0.5) * TILE, (RAILWAY.y + 0.5) * TILE);
+      }
     }
     p.end();
   }

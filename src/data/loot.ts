@@ -83,6 +83,8 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
     R('iron-gear-wheel', 2, 8, 0.3), R('pipe', 2, 8, 0.25), R('fuel-can', 1, 2, 0.15), R('repair-pack', 1, 3, 0.2), R('electronic-circuit', 1, 4, 0.2),
   ],
   boat: [R('cloth', 1, 3, 0.5), R('empty-bottle', 1, 2, 0.4), R('raw-meat', 1, 2, 0.25), R('snack', 1, 1, 0.2), R('fuel-can', 1, 1, 0.08, true)],
+  freight: [R('canned-food', 2, 6, 0.6), R('cloth', 2, 8, 0.6), R('iron-plate', 2, 8, 0.5), R('copper-cable', 2, 10, 0.4), R('water-bottle', 1, 4, 0.4), R('backpack', 1, 1, 0.1, true)],
+  loco: [R('fuel-can', 1, 2, 0.6), R('repair-pack', 1, 3, 0.5), R('iron-gear-wheel', 2, 6, 0.6), R('radio-parts', 1, 1, 0.3, true), R('crowbar', 1, 1, 0.25)],
   camping: [R('canned-food', 1, 2, 0.5), R('water-bottle', 1, 2, 0.5), R('cloth', 1, 3, 0.5), R('knife', 1, 1, 0.15), R('backpack', 1, 1, 0.08, true), R('coffee', 1, 1, 0.3)],
   tent: [R('canned-food', 1, 3, 0.6), R('water-bottle', 1, 3, 0.6), R('cloth', 2, 5, 0.6), R('bandage', 1, 2, 0.35), R('backpack', 1, 1, 0.06, true), R('firearm-magazine', 1, 2, 0.15)],
   medtent: [R('bandage', 2, 6, 0.9), R('first-aid-kit', 1, 3, 0.6), R('antibiotics', 1, 3, 0.5, true), R('water-bottle', 1, 2, 0.5)],
