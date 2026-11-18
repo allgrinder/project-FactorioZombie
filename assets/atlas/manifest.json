@@ -1223,6 +1223,21 @@
     "icon.blocked"
    ]
   },
+  "innen": {
+   "hash": "43a47b4352da1394",
+   "sprites": [
+    "decal.rug.0",
+    "decal.rug.1",
+    "decal.rug.2",
+    "decal.rug.3",
+    "decal.papers.0",
+    "decal.papers.1",
+    "decal.papers.2",
+    "decal.glass.0",
+    "decal.glass.1",
+    "decal.glass.2"
+   ]
+  },
   "inserter": {
    "hash": "203fa9178cf9ac57",
    "sprites": [
@@ -5013,6 +5028,42 @@
     0.5
    ]
   },
+  "decal.glass.0": {
+   "group": "decals",
+   "frames": [
+    "decal.glass.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.glass.1": {
+   "group": "decals",
+   "frames": [
+    "decal.glass.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.glass.2": {
+   "group": "decals",
+   "frames": [
+    "decal.glass.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "decal.gravel.0": {
    "group": "decals",
    "frames": [
@@ -5325,6 +5376,42 @@
     0.5
    ]
   },
+  "decal.papers.0": {
+   "group": "decals",
+   "frames": [
+    "decal.papers.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.papers.1": {
+   "group": "decals",
+   "frames": [
+    "decal.papers.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.papers.2": {
+   "group": "decals",
+   "frames": [
+    "decal.papers.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "decal.pebbles.0": {
    "group": "decals",
    "frames": [
@@ -5477,6 +5564,54 @@
    "meta": {
     "scale": 2
    }
+  },
+  "decal.rug.0": {
+   "group": "decals",
+   "frames": [
+    "decal.rug.0#0"
+   ],
+   "w": 128,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.rug.1": {
+   "group": "decals",
+   "frames": [
+    "decal.rug.1#0"
+   ],
+   "w": 128,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.rug.2": {
+   "group": "decals",
+   "frames": [
+    "decal.rug.2#0"
+   ],
+   "w": 128,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.rug.3": {
+   "group": "decals",
+   "frames": [
+    "decal.rug.3#0"
+   ],
+   "w": 128,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.5
+   ]
   },
   "decal.sand.0": {
    "group": "decals",

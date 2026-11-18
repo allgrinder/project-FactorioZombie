@@ -40,6 +40,9 @@ function mulTint(a: number, b: number): number {
 const ZOMBIE_TINTS = [0xffffff, 0xe6ccb8, 0xb8c6dc, 0xdcb0a8, 0xc8d2b0, 0xd8d8d2, 0xb4a490, 0xeedcc4, 0xc0b0c8];
 const PEOPLE_TINTS = [0xffffff, 0xeedcc8, 0xd0dcec, 0xe8c8c0, 0xd8e4cc, 0xe0e0e0];
 const AUTUMN = [0xf0c070, 0xe8a060, 0xd88a58, 0xf0d888, 0xd8b070, 0xe0e0a0];
+/** Hausböden je Haus: Dielen (hell bis dunkel), Fliesen (Weiß, Beige, Grün, Blau). */
+const FLOOR_TINTS = { planks: [0xffffff, 0xe8d8c4, 0xc8b49c, 0xf0e4d4, 0xb8a088], tiles: [0xffffff, 0xece4d4, 0xd4e0d0, 0xd0dce8, 0xe8d8d0] };
+
 const WALL_TINTS: Record<string, number[]> = {
   plaster: [0xffffff, 0xf6e8c0, 0xecd2c4, 0xd8e0ea, 0xe2ecd6, 0xf2d8b0, 0xe8e4dc],
   brick: [0xffffff, 0xecd4cc, 0xdcc8c0, 0xf0e0d0],
@@ -129,7 +132,7 @@ const PAINT_SHARE = 0.08;
 const ROOF_GRIME = ['decal.weeds', 'decal.leaves', 'decal.weeds', 'decal.trash'] as const;
 
 /** Flecken, die auch auf Straße, Gehweg und Hausboden liegen. */
-const URBAN_DECALS = new Set(['blood', 'trash', 'burnt', 'tracks', 'puddle', 'weeds', 'leaves']);
+const URBAN_DECALS = new Set(['blood', 'trash', 'burnt', 'tracks', 'puddle', 'weeds', 'leaves', 'papers', 'glass']);
 const BUSHY = new Set(['rocks', 'shrub', 'thicket', 'bramble', 'boulder']);
 const LEAFY = new Set(['shrub', 'fern', 'bramble', 'thicket', 'tallgrass', 'wild', 'reed']);
 
@@ -811,7 +814,16 @@ export class GameRenderer {
         sp.position.set((x + 0.5) * TILE, (y + 0.5) * TILE);
         return;
       }
-      p.get(s.frame(name)).position.set((x + 0.5) * TILE, (y + 0.5) * TILE);
+      const fs = p.get(s.frame(name));
+      fs.position.set((x + 0.5) * TILE, (y + 0.5) * TILE);
+      // Hausböden: Holzton bzw. Fliesenfarbe je Haus
+      if (id === 11 || id === 12) {
+        const hs = this.houseOf(world, x, y);
+        if (hs) {
+          const pal = id === 11 ? FLOOR_TINTS.planks : FLOOR_TINTS.tiles;
+          fs.tint = hs.burnt ? 0x5a5048 : pal[(hs.hue >> 5) % pal.length];
+        }
+      }
     });
     p.end();
   }
@@ -858,6 +870,25 @@ export class GameRenderer {
         sp.scale.set((this.sprites.info(name)?.meta?.scale ?? 1) * 0.55);
         sp.rotation = (hh >> 8) % 7;
         sp.alpha = Math.min(TRAILS.maxAlpha, (wv - TRAILS.show) * 1.2);
+        n++;
+      }
+    }
+    // Teppiche in Wohnhäusern (Dielenboden in der Hausmitte)
+    if (this.sprites.has('decal.rug.0')) {
+      for (const h of world.sites.houses) {
+        if (h.g !== undefined || h.w < 6 || h.h < 5) continue;
+        if (h.x > v.x1 + 2 || h.x + h.w < v.x0 - 2 || h.y > v.y1 + 2 || h.y + h.h < v.y0 - 2) continue;
+        const rx = Math.floor(h.x + h.w / 2);
+        const ry = Math.floor(h.y + h.h / 2);
+        if (world.map.floorAt(rx, ry) !== 11) continue;
+        const rh = ((Math.imul(h.x, 2654435761) ^ Math.imul(h.y, 40503)) >>> 0) % 100;
+        if (rh >= 70) continue;
+        const name = `decal.rug.${rh % 4}`;
+        const sp = q.get(this.sprites.frame(name));
+        sp.position.set(rx * TILE, (ry + 0.5) * TILE);
+        sp.scale.set(this.sprites.info(name)?.meta?.scale ?? 1);
+        sp.rotation = h.w > h.h ? Math.PI / 2 : 0;
+        if (GameRenderer.burnt(h)) sp.tint = 0x3a3430;
         n++;
       }
     }
