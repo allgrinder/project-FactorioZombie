@@ -40,6 +40,8 @@ export class TreeField {
   private readonly fert = new Map<number, Float32Array>();
   /** Gefällte Bäume je Chunk (Indizes). */
   private readonly removed = new Map<number, Set<number>>();
+  /** Gepflanzte Bäume (Alleen, Hecken, Gärten der Orte) in Pflanzreihenfolge: x, y, Art, Variante. */
+  private readonly planted: [number, number, number, number][] = [];
 
   constructor(private readonly map: TreeMapView) {}
 
@@ -113,6 +115,34 @@ export class TreeField {
     const t = this.chunk(cx, cy).byTile.get((ty - cy * CS) * CS + (tx - cx * CS));
     if (!t) return undefined;
     return this.removed.get(TreeField.key(cx, cy))?.has(t.i) ? undefined : t;
+  }
+
+  /**
+   * Baum pflanzen (Weltaufbau: Alleen, Hecken, Gärten). Er hängt hinten an die Liste seines Chunks an, damit gefällte
+   * Indizes gültig bleiben; die Pflanzliste wird gespeichert und beim Laden in gleicher Reihenfolge wiederholt.
+   */
+  plant(x: number, y: number, kind: number, variant: number): boolean {
+    const CS = MAPGEN.chunkSize;
+    const tx = Math.floor(x);
+    const ty = Math.floor(y);
+    const cx = Math.floor(tx / CS);
+    const cy = Math.floor(ty / CS);
+    const c = this.chunk(cx, cy);
+    const local = (ty - cy * CS) * CS + (tx - cx * CS);
+    if (c.byTile.has(local) || this.map.isWater(tx, ty)) return false;
+    const t: Tree = { i: c.list.length, cx, cy, kind, variant, x, y, tx, ty };
+    c.list.push(t);
+    c.byTile.set(local, t);
+    this.planted.push([x, y, kind, variant]);
+    return true;
+  }
+
+  serializePlanted(): [number, number, number, number][] {
+    return this.planted.map((p) => [...p] as [number, number, number, number]);
+  }
+
+  loadPlanted(list: [number, number, number, number][] | undefined): void {
+    for (const [x, y, k, v] of list ?? []) this.plant(x, y, k, v);
   }
 
   /** Baum fällen. Gibt false zurück, wenn er nicht (mehr) steht. */

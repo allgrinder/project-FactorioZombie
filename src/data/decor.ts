@@ -37,24 +37,24 @@ export interface DecorKind {
 export const DECOR: readonly DecorKind[] = [
   { id: 'tint', sprite: 'decal.tint', layer: 'decal', cell: 11, chance: 0.7, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
   // Bodenarten (große, weich auslaufende Flecken): Übergänge Gras → Sand/Erde/Fels
-  { id: 'sand', sprite: 'decal.sand', layer: 'decal', cell: 12, chance: 0.28, waterBoost: 3.5, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.6 },
-  { id: 'earth', sprite: 'decal.earth', layer: 'decal', cell: 13, chance: 0.32, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.9 },
-  { id: 'rock', sprite: 'decal.rock', layer: 'decal', cell: 22, chance: 0.22, clearOfResources: 2, clearOfSpawn: 6, shadow: false, warp: true, fertility: -1.2 },
-  { id: 'dirt', sprite: 'decal.dirt', layer: 'decal', cell: 10, chance: 0.3, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.8 },
-  { id: 'gravel', sprite: 'decal.gravel', layer: 'decal', cell: 17, chance: 0.18, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -1.0 },
+  { id: 'sand', sprite: 'decal.sand', layer: 'decal', cell: 16, chance: 0.06, waterBoost: 3.5, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.6 },
+  { id: 'earth', sprite: 'decal.earth', layer: 'decal', cell: 15, chance: 0.12, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.9 },
+  { id: 'rock', sprite: 'decal.rock', layer: 'decal', cell: 24, chance: 0.12, clearOfResources: 2, clearOfSpawn: 6, shadow: false, warp: true, fertility: -1.2 },
+  { id: 'dirt', sprite: 'decal.dirt', layer: 'decal', cell: 11, chance: 0.12, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.8 },
+  { id: 'gravel', sprite: 'decal.gravel', layer: 'decal', cell: 19, chance: 0.08, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -1.0 },
   { id: 'pebbles', sprite: 'decal.pebbles', layer: 'decal', cell: 3, chance: 0.22, clearOfResources: 0, clearOfSpawn: 0, shadow: false, fertility: -0.5 },
   { id: 'tuft', sprite: 'decal.tuft', layer: 'decal', cell: 3, chance: 0.3, clearOfResources: 1, clearOfSpawn: 0, shadow: false, fertility: 0.2 },
   { id: 'flowers', sprite: 'decal.flowers', layer: 'decal', cell: 5, chance: 0.18, clearOfResources: 1, clearOfSpawn: 0, shadow: false, fertility: 0.9 },
   { id: 'reed', sprite: 'flora.reed', layer: 'flora', cell: 2, chance: 0.85, shore: true, clearOfResources: 1, clearOfSpawn: 0, shadow: true },
-  { id: 'shrub', sprite: 'flora.shrub', layer: 'flora', cell: 7, chance: 0.1, groveBoost: 3, waterBoost: 3, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: 1.0 },
+  { id: 'shrub', sprite: 'flora.shrub', layer: 'flora', cell: 6, chance: 0.12, groveBoost: 4, waterBoost: 3, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: 1.0 },
   { id: 'boulder', sprite: 'flora.boulder', layer: 'flora', cell: 11, chance: 0.12, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: -0.7 },
   { id: 'rocks', sprite: 'flora.rocks', layer: 'flora', cell: 23, chance: 0.12, clearOfResources: 2, clearOfSpawn: 10, shadow: true, fertility: -1.0 },
 ];
 
 /** Haine: großräumiges Rauschen bestimmt, wo Bäume und Sträucher gehäuft stehen. */
 export const GROVE = {
-  scale: 45,
-  threshold: 0.58,
+  scale: 60,
+  threshold: 0.5,
 } as const;
 
 /** Radius (Felder), in dem Wasser als „in der Nähe“ gilt. */

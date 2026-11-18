@@ -8,8 +8,8 @@ import { World } from '../../src/sim/world';
 
 function clearWorld(seed = 3): World {
   const w = new World(seed);
-  w.map.clearTrees(-30, -30, 30, 30);
-  for (let y = -20; y < 20; y++) for (let x = -20; x < 20; x++) {
+  w.map.clearTrees(-40, -40, 40, 40);
+  for (let y = -20; y < 20; y++) for (let x = -20; x < 40; x++) {
     w.map.setWater(x, y, false);
     w.map.setResource(x, y, 0, 0);
   }

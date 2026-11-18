@@ -66,6 +66,7 @@ export interface SaveData {
   beltStop?: number[];
   /** gefällte Bäume [Chunk-x, Chunk-y, Index] */
   trees?: [number, number, number][];
+  planted?: [number, number, number, number][];
   /** Feldschlüssel -> [Item, x, y] (1/256 Felder) */
   ground?: [number, [string, number, number][]][];
   player: PlayerData | null;
@@ -146,6 +147,7 @@ export function serializeWorld(w: World): SaveData {
     ...(w.corpses.all.length ? { corpses: w.corpses.serialize() } : {}),
     ...(w.beltStopped.size ? { beltStop: [...w.beltStopped].sort((a, b) => a - b) } : {}),
     trees: w.map.trees.serialize(),
+    planted: w.map.trees.serializePlanted(),
     research: w.research.serialize(),
     ghosts: w.ghosts.serialize(),
     stats: w.stats.serialize(),
@@ -202,6 +204,7 @@ export function deserializeWorld(d: SaveData): World {
   w.capsules.load(d.capsules);
   w.corpses.load(d.corpses);
   for (const id of d.beltStop ?? []) w.beltStopped.add(id);
+  w.map.trees.loadPlanted(d.planted);
   if (d.trees) w.map.trees.load(d.trees);
   if (d.research) w.research.load(d.research);
   w.circuit.load(d.circuit);

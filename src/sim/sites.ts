@@ -91,6 +91,33 @@ export class SiteSystem {
     return true;
   }
 
+  /** Baum pflanzen (Allee, Hecke, Garten), wo Land frei ist: kein Belag, kein Gebäude in der Nähe. kind 0 Laub-, 1 Nadelbaum. */
+  private tree(w: World, x: number, y: number, kind = 0): void {
+    const tx = Math.floor(x);
+    const ty = Math.floor(y);
+    if (w.map.isBlocked(tx, ty) || w.map.floorAt(tx, ty) || w.map.resourceAt(tx, ty).amount > 0) return;
+    for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) if (w.entityAt(tx + i, ty + j)) return;
+    if (Math.hypot(x, y) < SITES.startFree * 0.5) return;
+    w.map.trees.plant(x, y, kind, Math.floor(hash01(WORLD.seed, tx, ty, 77) * 8));
+  }
+
+  /** Baumreihe von (ax, ay) nach (bx, by): alle step Felder, mit Lücken (gap = Anteil fehlender Bäume) und leichtem Versatz. */
+  private treeRow(w: World, ax: number, ay: number, bx: number, by: number, step: number, gap: number, kind = 0, inside?: (x: number, y: number) => boolean): void {
+    const len = Math.hypot(bx - ax, by - ay);
+    const n = Math.floor(len / step);
+    for (let i = 0; i <= n; i++) {
+      const f = n ? i / n : 0;
+      const x = ax + (bx - ax) * f;
+      const y = ay + (by - ay) * f;
+      const h = hash01(WORLD.seed, Math.round(x * 3), Math.round(y * 3), 78);
+      if (h < gap) continue;
+      const jx = x + (hash01(WORLD.seed, Math.round(x), Math.round(y), 79) - 0.5) * 0.9;
+      const jy = y + (hash01(WORLD.seed, Math.round(x), Math.round(y), 80) - 0.5) * 0.9;
+      if (inside && !inside(Math.floor(jx), Math.floor(jy))) continue;
+      this.tree(w, jx, jy, h > 0.93 ? 1 - kind : kind);
+    }
+  }
+
   /** Belag setzen, wo Land ist (over: vorhandenen Belag ersetzen, z. B. Asphalt durch Mittellinie). */
   private paint(w: World, x: number, y: number, id: number, over = false): void {
     if (w.map.isBlocked(x, y) || w.map.resourceAt(x, y).amount > 0) return;
@@ -132,9 +159,7 @@ export class SiteSystem {
       w.community.addSurvivor(x + 1.5, y + 4.5, w.seed);
       // defekter Pritschenwagen (zu reparieren): ein paar Ausweichstellen, falls etwas im Weg steht
       for (const [dx, dy] of [[5, 2], [5, 5], [-6, 1], [1, 6], [6, -3], [-3, -6]]) {
-        if (!this.put(w, 'pickup-wreck', x + dx, y + dy, true)) continue;
-        this.asphalt(w, x + dx - 1, y + dy - 1, x + dx + 4, y + dy + 3);
-        break;
+        if (this.put(w, 'pickup-wreck', x + dx, y + dy, true)) break;
       }
       this.put(w, 'supply-crate', x - 2, y + 1);
       // Material für den Anfang: Schrott, Schutt, Kohle, Holz (von Hand ausschlachten)
@@ -256,6 +281,16 @@ export class SiteSystem {
             placed += +this.put(w, name === 'ruin-garage' ? 'parts-pile' : 'rubble-pile', ex, ey, level);
           }
         }
+        // Garten hinter dem Haus: ein, zwei Bäume (manche Grundstücke bleiben leer und verwildern)
+        if (ok && level) {
+          const back = side === 0 ? -1 - depth - 2.5 : 3 + depth + 2.5;
+          for (let t = 0; t < 2; t++) {
+            if (h(140 + side * 40 + i + t * 7) > (t === 0 ? 0.65 : 0.3)) continue;
+            const along2 = a + h(150 + side * 40 + i + t) * along;
+            const deep = back + (side === 0 ? -1 : 1) * h(160 + side * 40 + i + t) * 2;
+            this.tree(w, horizontal ? cx + along2 : cx + deep, horizontal ? cy + deep : cy + along2, h(170 + i) < 0.2 ? 1 : 0);
+          }
+        }
         a += along + 2 + Math.floor(h(60 + side * 40 + i) * 4);
         i++;
       }
@@ -332,6 +367,22 @@ export class SiteSystem {
         if (!inside(x, y) || this.nearTown(x, y, 50)) continue;
         if (this.put(w, 'car-wreck', x, y, true) && hash01(WORLD.seed, x, y, 881) < 0.4) this.put(w, 'scrap-pile', x + (horiz ? 4 : 0), y + (horiz ? 0 : 3), true);
       }
+      // Alleen: manche Abschnitte mit Laubbäumen auf beiden Seiten, sonst einzelne Bäume am Rand
+      {
+        const allee = hash01(WORLD.seed, ax, ay, 870) < 0.7;
+        const step = allee ? 6 : 13;
+        const gap = allee ? 0.15 : 0.5;
+        for (let a = lo + 6; a < hi - 5; a += step) {
+          if (this.nearTown(horiz ? a : bx, horiz ? ay : a, 42)) continue;
+          for (const s of [-1, 1]) {
+            const x = horiz ? a + 0.5 : s < 0 ? bx - 3.5 : bx + 5.5;
+            const y = horiz ? (s < 0 ? ay - 3.5 : ay + 5.5) : a + 0.5;
+            if (!inside(Math.floor(x), Math.floor(y))) continue;
+            if (hash01(WORLD.seed, Math.floor(x), Math.floor(y), 871) < gap) continue;
+            this.tree(w, x + (hash01(WORLD.seed, a, s, 872) - 0.5) * 0.8, y + (hash01(WORLD.seed, a, s, 873) - 0.5) * 0.8);
+          }
+        }
+      }
       // Holzmasten am Straßenrand (alle 14 Felder, auf der Süd- bzw. Ostseite), nicht in Orten
       for (let a = lo + 7; a < hi; a += 14) {
         const x = horiz ? a : bx + 3;
@@ -358,6 +409,10 @@ export class SiteSystem {
       placed += +this.put(w, h(3) < 0.5 ? 'coal-pile' : 'rubble-pile', x - 6, y - 5, true);
       // Acker mit Zaun und Heuballen (auf der straßenabgewandten Seite)
       this.field(w, x + (h(4) < 0.5 ? -20 : 10), y + (h(5) < 0.5 ? -16 : 7), 12, 8, h);
+      // Hofbäume: alte Linde/Eiche am Haus, Obstbäume dahinter
+      this.tree(w, x - 6 + h(20) * 2, y - 1 + h(21) * 2);
+      this.tree(w, x + 1 + h(22) * 2, y - 6 + h(23));
+      for (let i = 0; i < 4; i++) if (h(24 + i) < 0.6) this.tree(w, x - 2 + i * 3 + h(30 + i), y - 9 + h(34 + i) * 2);
       if (placed) this.sites.push({ x, y, r: 9, weight: 1.5, kind: 'farm' });
     });
     // Wildnis: vereinzelt ein Wrack oder ein verlassenes Lager, nicht bei Orten
@@ -485,6 +540,11 @@ export class SiteSystem {
       this.put(w, 'fence', x0 + fw, y);
     }
     for (let i = 0; i < 3; i++) if (h(7 + i) < 0.6) this.put(w, 'hay-bale', x0 + 1 + Math.floor(h(10 + i) * (fw - 2)), y0 + 1 + Math.floor(h(13 + i) * (fh - 2)));
+    // Feldhecke: Baumreihe mit Lücken auf zwei Seiten des Ackers
+    const g = 2.6;
+    if (h(16) < 0.7) this.treeRow(w, x0 - g, y0 - g, x0 + fw + g, y0 - g, 3.2, 0.3);
+    if (h(17) < 0.7) this.treeRow(w, x0 + fw + g, y0 - g, x0 + fw + g, y0 + fh + g, 3.2, 0.3);
+    if (h(18) < 0.4) this.treeRow(w, x0 - g, y0 - g, x0 - g, y0 + fh + g, 3.2, 0.35);
   }
 
   /** Militärposten: Kisten hinter Wracks, stark bewacht. */

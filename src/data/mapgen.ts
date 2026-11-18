@@ -157,15 +157,15 @@ export const MAPGEN = {
    */
   trees: {
     kinds: [
-      { id: 'tree', sprite: 'flora.tree', cell: 5, chance: 0.008, groveBoost: 45, waterBoost: 6, fertility: 1.4, wood: 4, mineTime: 0.55 },
-      { id: 'conifer', sprite: 'flora.conifer', cell: 6, chance: 0.004, groveBoost: 35, waterBoost: 2, fertility: 0.9, wood: 4, mineTime: 0.55 },
+      { id: 'tree', sprite: 'flora.tree', cell: 5, chance: 0.01, groveBoost: 60, waterBoost: 6, fertility: 1.4, wood: 4, mineTime: 0.55 },
+      { id: 'conifer', sprite: 'flora.conifer', cell: 6, chance: 0.005, groveBoost: 45, waterBoost: 2, fertility: 0.9, wood: 4, mineTime: 0.55 },
       { id: 'dead', sprite: 'flora.deadtree', cell: 13, chance: 0.05, groveBoost: 0, waterBoost: 0, fertility: -1.3, wood: 2, mineTime: 0.5 },
     ],
     /** Varianten je Art (Anzahl Sprites); die Darstellung nimmt variant % vorhandene Sprites. */
     variants: 8,
     clearOfSpawn: 14,
     clearOfResources: 3,
-    grove: { scale: 45, threshold: 0.58 },
+    grove: { scale: 60, threshold: 0.5 },
     waterNear: 5,
   },
 } as const;

@@ -115,3 +115,26 @@ describe('Die Welt überdauert den Tod', () => {
     expect(JSON.stringify(serializeWorld(b))).toBe(JSON.stringify(serializeWorld(w)));
   });
 });
+
+describe('Natürliche Welt', () => {
+  it('Alleen, Hecken und Gartenbäume werden gepflanzt und überstehen Speichern/Laden samt gefällter Bäume', () => {
+    const w = new World(WORLD.seed, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
+    w.player = new Player(0.5, 0.5);
+    const t = WORLD.towns.find((x) => x.id === 'dornfeld')!;
+    w.player.px = t.x * 256;
+    w.player.py = t.y * 256;
+    w.step();
+    const planted = w.map.trees.serializePlanted();
+    expect(planted.length).toBeGreaterThan(20);
+    // einen gepflanzten Baum fällen
+    const [px, py] = planted[3];
+    const tree = w.map.trees.treeAt(Math.floor(px), Math.floor(py))!;
+    expect(tree).toBeTruthy();
+    w.map.trees.remove(tree.cx, tree.cy, tree.i);
+    const b = deserializeWorld(JSON.parse(JSON.stringify(serializeWorld(w))));
+    expect(b.map.trees.treeAt(Math.floor(px), Math.floor(py))).toBeUndefined();
+    const [qx, qy] = planted[5];
+    expect(b.map.trees.treeAt(Math.floor(qx), Math.floor(qy))).toBeTruthy();
+    expect(JSON.stringify(serializeWorld(b))).toBe(JSON.stringify(serializeWorld(w)));
+  });
+});

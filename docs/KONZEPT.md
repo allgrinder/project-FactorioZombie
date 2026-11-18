@@ -70,12 +70,11 @@ Es gibt keine Rohstofffelder und keine Förderer mehr. Material kommt aus drei Q
    Werkstätten in den Orten, vereinzelt am Wegesrand – und auf eingezäunten **Schrottplätzen** (acht Haufen zwischen
    Wracks): zwei nahe am Start, je einer bei jedem Ort.
 2. **Fundorte** (Häuser, Läden, Wracks, Kisten) durchsuchen und ausschlachten.
-3. **Sammeltrupps** (wie die Erntefahrzeuge eines Echtzeit-Strategiespiels, `src/sim/scavengers.ts`): Die
-   **Sammelstelle** (Forschung „Sammeltrupps“) stellt je **Sammler-Ausrüstung** (bis 3) einen Sammler. Er sucht den
-   nächsten Haufen im Umkreis von 80 Feldern, an dem kein Zombie steht, läuft hin (um Mauern herum, durch Tore),
-   sammelt 20 Stück und bringt sie ins Lager der Sammelstelle; Greifarme entnehmen sie. Jeder Gang kostet ein Stück
-   Verpflegung. Zombies sehen und jagen Sammler; kommt einer näher als 8 Felder, flieht der Sammler heim (und zieht die
-   Zombies womöglich hinter sich her). Stirbt er, liegt seine Last am Boden und die Ausrüstung ist verloren.
+3. **Sammler der Gemeinschaft** (`src/sim/community.ts`): Bewohner mit der Aufgabe „Sammeln“ suchen selbstständig
+   den nächsten Haufen im Umkreis (80 Felder um das Vorratslager, ohne Lager 60 um das Feuer), an dem kein Zombie
+   steht, laufen hin (um Mauern herum, durch Tore), sammeln 20 Stück und bringen sie ins Vorratslager (sonst in Kisten
+   am Feuer). Zombies jagen Sammler; kommt einer näher als 8 Felder, flieht der Sammler heim. Stirbt er, liegt seine
+   Last am Boden.
 
 ## Basis (eigene Ideen)
 
@@ -99,12 +98,33 @@ Am Ortsrand stehen **Polizeiwache** (Munition, Pistole, selten Maschinenpistole 
 Reparatursets): Aschbach und Moorbrück eine Tankstelle, Dornfeld eine Arztpraxis, Eisenrode Polizei und Tankstelle,
 Grauenfurt Polizei und Arztpraxis. Dort lungern mehr Zombies als an gewöhnlichen Häusern.
 
-## Überlebende (eigene Idee)
+## Gemeinschaft (Wunsch 18.11.2026, `src/sim/community.ts`, Werte `src/data/scavenge.ts`)
 
-In jedem Dorf wartet ein Überlebender, in jeder Stadt zwei, einer am Militärposten (blau auf der Karte). Solange er
-wartet, ist er verbarrikadiert und sicher. Geht man zu ihm, folgt er der Figur – jetzt sehen und jagen ihn Zombies.
-Erreicht er das Lagerfeuer, wird er Sammler: eine Sammler-Ausrüstung landet in der Sammelstelle (sonst im Inventar).
-Bleibt er mehr als 40 Felder zurück, wartet er wieder.
+Am Startschuppen wartet der erste Überlebende, in jedem Dorf einer, in jeder Stadt zwei, einer am Militärposten (blau
+auf der Karte). Solange er wartet, ist er verbarrikadiert und sicher. Geht man zu ihm, folgt er der Figur – jetzt
+jagen ihn Zombies. Bleibt er mehr als 40 Felder zurück, wartet er wieder. Erreicht er das Lagerfeuer, wird er
+**Bewohner** mit Namen, früherem Beruf und einer **Aufgabe** (Fenster „Gemeinschaft“, Taste K):
+
+| Aufgabe | Wirkung |
+|---|---|
+| Sammeln | wie oben (Sammler) |
+| Wache | Posten im Ring (5 Felder) ums Feuer; Reichweite 13 (nachts ohne Licht kürzer wie Türme), 9 Schaden je 40 Ticks, 10 Schuss je Magazin aus dem Vorrat (panzerbrechend 20); ohne Munition Nahkampf 6 |
+| Gärtnern | pflegt Beete im Lager (+100 % Wachstum), erntet ins Vorratslager (3 Stück je Gang); ohne Beet alle 150 s ein Gemüse (Wildkräuter) |
+| Ausbessern | bessert das am stärksten beschädigte Gebäude im Lager (22 Felder) aus, 8 LP/s |
+| Sanitäter | heilt die Figur im Lager 2 LP/s, verbindet Wunden (Verband aus dem Vorrat), gibt Antibiotika; Bewohner am Feuer +1 LP/s |
+| Ruhen | bleibt am Feuer |
+
+Passt die Aufgabe zum früheren Beruf (★), arbeitet er 50 % besser. Morgens (Tageszeit 0,75) isst jeder Bewohner ein
+Essen aus dem Vorrat (Vorratslager, Kisten im Lager); wer leer ausgeht, ist hungrig (60 % Leistung) und verlässt die
+Gemeinschaft nach drei Tagen ohne Essen. Bewohner haben 60 LP, heilen am Feuer 0,5 LP/s und werden von Zombies
+gejagt – auch am Lager. Die Sammelstelle heißt jetzt **Vorratslager** (Verpflegung 4 Plätze, Vorrat 24).
+
+## Natürliche Welt
+
+Bäume (`MAPGEN.trees`) stehen gehäuft in Wäldern (Rauschen Maßstab 60, Schwelle 0,5), dazu pflanzt der Weltaufbau
+(`TreeField.plant`, im Spielstand als Pflanzliste): Alleen an 70 % der Landstraßenabschnitte (alle 6 Felder, beidseitig,
+15 % Lücken; sonst einzelne Bäume alle 13 Felder), Feldhecken auf zwei bis drei Seiten der Äcker, Hof- und Obstbäume
+an den Höfen, Gartenbäume hinter den Häusern der Orte. Boden-Flecken (Sand, Erde, Kies) sind seltener.
 
 ## Pritschenwagen (eigene Idee, `src/sim/cars.ts`, Werte `src/data/vehicles.ts`)
 

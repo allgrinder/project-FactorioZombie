@@ -44,8 +44,8 @@ Die Schleife ist: **hinausgehen, plündern, kämpfen – und zurück zur bewacht
    Kohle, Holz, Autoteile, Elektroschrott) – am Startfundort, an Höfen, in Orten und auf eingezäunten
    **Schrottplätzen**. Rechtsklick halten schlachtet aus, das Brecheisen verdoppelt das Tempo. Häuser, Läden und
    Wracks werden durchsucht (Linksklick). Der Rucksack bringt 20 Plätze – trotzdem muss man oft heim.
-   **Sammeltrupps:** Eine *Sammelstelle* schickt Sammler zu den Haufen im Umkreis; sie bringen Schrott heim, kosten
-   Verpflegung und werden von Zombies gejagt.
+   **Gemeinschaft (K):** Gerettete Überlebende werden Bewohner mit Aufgabe – Sammeln, Wache, Gärtnern, Ausbessern,
+   Sanitäter – und arbeiten selbstständig. Sie essen aus dem *Vorratslager* und werden von Zombies gejagt.
 3. **Überleben.** Hunger, Durst und Müdigkeit sinken ständig. Konserven und Wasser gibt es als Beute; auf Dauer
    helfen Gemüsebeet und Regentonne. Geschlafen wird mit **N** (im Feldbett erholsamer). Blutungen stoppt ein
    Verband, ein infizierter Biss endet ohne Antibiotika tödlich.

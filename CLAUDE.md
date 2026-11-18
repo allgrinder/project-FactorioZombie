@@ -39,14 +39,18 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Feste Welt „Kreis Aschland“ (`src/data/world.ts`: Orte, Landstraßen, Posten; Aufbau in `SiteSystem.planCell/town/street`),
   fester Seed im freien Spiel; die Welt überdauert den Tod (`World.newCharacter`, neue Figur, Leiche und Lager bleiben).
 - Kein Bergbau (`MapSettings.ore = false`): Schrotthaufen (`kind: 'pile'`, `src/data/scavenge.ts`, `World.harvestPile`),
-  Sammelstelle + Sammler (`src/sim/scavengers.ts`, Zombies jagen sie über `Unit.prey`), Schrottplätze (`SiteSystem.junkyard`).
+  Schrottplätze (`SiteSystem.junkyard`).
+- Gemeinschaft (`src/sim/community.ts`, Werte `COMMUNITY/GUARD/MEDIC/REPAIR/FARM` in `src/data/scavenge.ts`, Fenster
+  `src/ui/community.ts`, Taste K): Überlebende → Bewohner mit Beruf und Aufgabe (Sammeln, Wache, Gärtnern, Ausbessern,
+  Sanitäter, Ruhen); Zombies jagen sie über `Unit.prey`; Vorratslager (`kind: 'camp'`), Essen morgens. Test `gemeinschaft.test.ts`.
+- Natürliche Welt: gepflanzte Bäume (`TreeField.plant`, Spielstand `planted`): Alleen, Feldhecken, Hof- und Gartenbäume.
 - Basis: Lagerfeuer (`kind: 'fire'`, `World.base`: Neustart, Hordenziel), Licht (`World.isLit`, Türme nachts kürzer),
   Wachturm (TurretDef-Werte), Versorgungsabwürfe (`src/sim/drops.ts`), Ziele (`src/sim/goals.ts`), Requisiten (`kind: 'prop'`).
 - Pritschenwagen (`src/sim/cars.ts`, `src/data/vehicles.ts`, Modell `lib/fahrzeug.py`): Wrack am Start reparieren,
   Benzinkanister, Ladefläche, überfährt Zombies, Taste V. Test `fahrzeug.test.ts`.
 - Ortsbild: Gehwege, Mittellinien, Äcker (Beläge 7–10 in `src/data/floors.ts`), Zäune, Schilder, Masten, Laternen.
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
-  Feuerschale, Scheinwerfer, Wachturm, Sammelstelle.
+  Feuerschale, Scheinwerfer, Wachturm, Vorratslager.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).
   Der Code gestrichener Systeme (Züge, Roboter, Schaltungsnetz, Kernkraft, Öl, Module, Rakete) liegt noch im Projekt,
   ist im Spiel nicht erreichbar und soll entfernt werden.
