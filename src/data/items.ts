@@ -171,6 +171,7 @@ const list: ItemDef[] = [
   { id: 'snack', name: 'Knabberzeug', stackSize: 20, order: 151 },
   { id: 'vegetables', name: 'Gemüse', stackSize: 20, order: 152 },
   { id: 'stew', name: 'Eintopf', stackSize: 10, order: 153 },
+  { id: 'fruit', name: 'Obst', stackSize: 30, order: 153.1 },
   { id: 'raw-meat', name: 'Rohes Fleisch', stackSize: 20, order: 153.2 },
   { id: 'cooked-meat', name: 'Braten', stackSize: 20, order: 153.4 },
   { id: 'hide', name: 'Fell', stackSize: 20, order: 153.6 },

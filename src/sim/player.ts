@@ -5,7 +5,7 @@ import { entityDef } from '../data/entities';
 import { ITEMS, ITEM_IDS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
 import { AMMO, FISTS, HAZARD, MELEE, type MeleeDef, NOISE, PLAYER_COMBAT, REPAIR, type UnitDef, WEAPONS, ZOMBIE } from '../data/enemies';
-import { CONSUMABLES, SURVIVAL, perTick } from '../data/survival';
+import { FRUIT_TREE, CONSUMABLES, SURVIVAL, perTick } from '../data/survival';
 import { WINTER } from '../data/weather';
 import { CROWBAR_FACTOR } from '../data/scavenge';
 import { CAR } from '../data/vehicles';
@@ -804,6 +804,13 @@ export class Player {
         if (world.map.trees.remove(tree.cx, tree.cy, tree.i)) {
           this.inventory.add('wood', kind.wood);
           world.stats.made('wood', kind.wood);
+          // Obstbaum (Streuobst, Gärten): im Sommer und Herbst hängt Obst daran
+          const season = world.settings.plan ? world.weather.season(world.tick) : 'summer';
+          if (tree.variant >= FRUIT_TREE.variantMin && tree.variant < FRUIT_TREE.variantMax && (season === 'summer' || season === 'autumn')) {
+            const n = FRUIT_TREE.min + (tree.i % (FRUIT_TREE.max - FRUIT_TREE.min + 1));
+            this.inventory.add('fruit', n);
+            world.stats.made('fruit', n);
+          }
         }
         this.mineTarget = null;
       }

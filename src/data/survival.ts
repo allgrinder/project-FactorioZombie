@@ -65,6 +65,7 @@ export const CONSUMABLES: Readonly<Record<string, ConsumableDef>> = {
   'snack': { hunger: 14, thirst: -4, verb: 'gegessen' },
   'vegetables': { hunger: 18, thirst: 5, verb: 'gegessen' },
   'stew': { hunger: 60, thirst: 12, verb: 'gegessen' },
+  'fruit': { hunger: 10, thirst: 6, verb: 'gegessen' },
   'raw-meat': { hunger: 8, thirst: -6, verb: 'roh hinuntergewürgt' },
   'cooked-meat': { hunger: 42, thirst: -4, verb: 'gegessen' },
   'water-bottle': { thirst: 45, returns: 'empty-bottle', verb: 'getrunken' },
@@ -76,3 +77,6 @@ export const CONSUMABLES: Readonly<Record<string, ConsumableDef>> = {
 };
 
 export const isConsumable = (item: string): boolean => item in CONSUMABLES;
+
+/** Obstbäume (gepflanzte Gruppe „orchard“, Variante 160–169): Obst beim Fällen im Sommer und Herbst. */
+export const FRUIT_TREE = { variantMin: 160, variantMax: 170, min: 3, max: 6 } as const;

@@ -50,6 +50,18 @@ describe('Bäume und Holz', () => {
     expect(b.map.trees.treesIn(t.cx, t.cy).length).toBe(w.map.trees.treesIn(t.cx, t.cy).length);
   });
 
+  it('Obstbaum gibt im Sommer zusätzlich Obst', () => {
+    const w = new World(7);
+    let x = 40;
+    while (!w.map.trees.plant(x + 0.5, 42.5, 0, 163)) x++;
+    const t = w.map.trees.treeAt(x, 42)!;
+    const p = new Player(t.x, t.y + 1);
+    w.player = p;
+    p.setMineTarget({ kind: 'tree', cx: t.cx, cy: t.cy, i: t.i, x: t.x, y: t.y });
+    w.run(200);
+    expect(p.inventory.count('fruit')).toBeGreaterThanOrEqual(3);
+  });
+
   it('Holz ist Brennstoff, Strommast braucht Holz, Holzkiste hat 16 Plätze', async () => {
     const { ITEMS } = await import('../../src/data/items');
     const { RECIPES } = await import('../../src/data/recipes');

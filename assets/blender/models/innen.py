@@ -55,3 +55,13 @@ def render(out):
             fn(v)
             eisen.camera(1.0, 1.0, tilt=0.0)
             out.add(f'decal.{kind}.{v}', 'decals', [out.render_frame(f'decal.{kind}.{v}', 0)], (0.5, 0.5))
+    # Symbol: Obst (Äpfel und eine Birne)
+    eisen.reset(samples=40)
+    red = gw_ground.pmat('apple_r', lin('#b8382a'), 0.45, 0.2, 0.2, 40)
+    yel = gw_ground.pmat('apple_y', lin('#c8a838'), 0.45, 0.2, 0.2, 40)
+    stem = gw_ground.pmat('apple_s', lin('#4a3424'), 0.8, 0.1, 0.1, 40)
+    for k, (x, y, m) in enumerate(((-0.18, 0.05, red), (0.16, 0.1, red), (0.0, -0.18, yel))):
+        eisen.rock(f'a{k}', 0.17, (x, y, 0.16), m, 90 + k, squash=0.95, detail=2)
+        eisen.cylinder(f'st{k}', 0.012, 0.08, (x, y, 0.33), stem, segments=5)
+    eisen.camera(1, 1, anchor=(0.5, 0.56))
+    out.add('item.fruit', 'items', [out.render_frame('item.fruit', 0)], (0.5, 0.5))

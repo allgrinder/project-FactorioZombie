@@ -1224,7 +1224,7 @@
    ]
   },
   "innen": {
-   "hash": "43a47b4352da1394",
+   "hash": "b66ed74f6e6c7299",
    "sprites": [
     "decal.rug.0",
     "decal.rug.1",
@@ -1235,7 +1235,8 @@
     "decal.papers.2",
     "decal.glass.0",
     "decal.glass.1",
-    "decal.glass.2"
+    "decal.glass.2",
+    "item.fruit"
    ]
   },
   "inserter": {
@@ -24533,6 +24534,18 @@
    "group": "items",
    "frames": [
     "item.flying-robot-frame#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.fruit": {
+   "group": "items",
+   "frames": [
+    "item.fruit#0"
    ],
    "w": 64,
    "h": 64,
