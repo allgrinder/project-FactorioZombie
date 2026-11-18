@@ -1624,7 +1624,7 @@ export class GameRenderer {
       if (k.x < v.x0 - 2 || k.x > v.x1 + 2 || k.y < v.y0 - 2 || k.y > v.y1 + 3) continue;
       const dir = (Math.round((k.angle + Math.PI / 2) / (Math.PI / 4)) + 8) % 8;
       const base = s.has('worker.walk.0') ? 'worker' : 'player';
-      const busy = k.state === 'gather' || (k.state === 'work' && k.job !== 'medic') || (k.job === 'guard' && t - k.shot < 14);
+      const busy = k.state === 'gather' || (k.state === 'work' && k.job !== 'medic') || t - k.shot < 14;
       const tex = busy ? s.frame(`${base}.mine.${dir}`, Math.floor(t / 7.5)) : s.frame(`${base}.walk.${dir}`, Math.floor(k.phase * 6));
       const sp = this.ents.get(tex);
       sp.position.set(k.x * TILE, k.y * TILE);

@@ -229,3 +229,40 @@ describe('Gemeinschaft: neue Aufgaben', () => {
     expect(w.enemies.units.get(u.id)?.hp ?? 0).toBeLessThan(UNITS.walker.health);
   });
 });
+
+describe('Gemeinschaft: Selbstverteidigung', () => {
+  it('jeder Bewohner nimmt sich eine Waffe aus dem Vorrat und erschlägt Zombies, die ihn angreifen', () => {
+    const w = arena();
+    const { camp, k } = base(w, 'rest');
+    camp!.insert('baseball-bat', 1, 'player');
+    w.run(400);
+    expect(k.weapon).toBe('baseball-bat');
+    const u = w.enemies.spawnAt(k.x + 3, k.y, 'walker');
+    w.run(60 * 20);
+    expect(w.enemies.units.has(u.id)).toBe(false);
+    expect(w.community.residents).toContain(k);
+  });
+
+  it('auch ohne Waffe wehrt er sich mit den Fäusten', () => {
+    const w = arena();
+    const { k } = base(w, 'rest', true, 10);
+    w.run(10);
+    const u = w.enemies.spawnAt(k.x + 1, k.y, 'walker');
+    const hp0 = u.hp;
+    w.run(60 * 4);
+    expect((w.enemies.units.get(u.id)?.hp ?? 0)).toBeLessThan(hp0);
+  });
+
+  it('Bewaffnete eilen der Figur zu Hilfe', () => {
+    const w = arena();
+    const { camp, k } = base(w, 'rest');
+    camp!.insert('axe', 1, 'player');
+    w.run(400);
+    const p = new Player(k.x + 6, k.y);
+    p.god = true;
+    w.player = p;
+    const u = w.enemies.spawnAt(p.x + 1, p.y, 'walker');
+    w.run(60 * 15);
+    expect(w.enemies.units.has(u.id)).toBe(false);
+  });
+});

@@ -140,6 +140,14 @@ Verwaltung mit Spinden, Kantine; zwei Überlebende), **Kraftwerk** (Kühltürme,
 mit durchsuchbaren Trafos, Kohlenhalde), **Gewerbegebiet Eisenrode** (Lagerhallen, Container mit Beute, acht
 Schrotthaufen), **Gut Lindenhof** und **Hof Birkenrain** (Bauernhaus, begehbare Scheune, Silos, Felder, Beete).
 
+## Selbstverteidigung der Bewohner (`DEFENSE` in `src/data/scavenge.ts`)
+
+Alle Bewohner und folgende Überlebende schlagen zurück, wenn ein Zombie in Reichweite steht: mit der besten
+Nahkampfwaffe aus dem Vorrat (Axt, Brecheisen, Schläger, Speer, Messer – genommen, wenn sie am Feuer sind), sonst mit
+den Fäusten; Schaden × 0,8, Takt × 1,5 gegenüber der Figur. Unter 35 % Leben fliehen sie heim, Unbewaffnete brechen
+Gänge beim ersten Biss ab. Bewaffnete mit mindestens halbem Leben eilen Menschen im Umkreis von 9 Feldern zu Hilfe, an
+denen ein Zombie näher als 2,2 Felder steht – auch der Figur.
+
 ## Neue Aufgaben
 
 - **Plündern:** durchsucht Fundorte mit Beute im Umkreis von 90 Feldern ums Feuer (Suchzeit × 1,5), nimmt bis 16

@@ -1,7 +1,7 @@
 import { CONSUMABLES } from '../data/survival';
-import { PLAYER_COMBAT, TURRET } from '../data/enemies';
+import { FISTS, MELEE, PLAYER_COMBAT, TURRET } from '../data/enemies';
 import { ITEMS } from '../data/items';
-import { COMMUNITY, FARM, GUARD, type Job, JOBS, LOOTER, MEDIC, NAMES, PILES, REPAIR, SCAVENGER, SKILLS, SURVIVOR } from '../data/scavenge';
+import { COMMUNITY, DEFENSE, FARM, GUARD, type Job, JOBS, LOOTER, MEDIC, NAMES, PILES, REPAIR, SCAVENGER, SKILLS, SURVIVOR } from '../data/scavenge';
 import { DAY, secondsToTicks } from '../data/time';
 import { Status } from './entity';
 import { FlowField } from './flowfield';
@@ -45,6 +45,8 @@ export interface Worker {
   shot: number;
   /** Nächste Aktion der Wache frühestens in diesem Tick. */
   cd: number;
+  /** Nahkampfwaffe (aus dem Vorrat genommen); null: Fäuste. */
+  weapon: string | null;
 }
 
 const job = (j: string): Job => (j in JOBS ? (j as Job) : 'scavenge');
@@ -127,7 +129,7 @@ export class Community {
     const skill = SKILLS[Math.floor(hash01(seed, id, 914) * SKILLS.length)];
     const k: Worker = {
       id, resident: false, name: NAMES[n], skill, job: skill, x, y, state: 'wait', pile: null, cargo: [], hp: SURVIVOR.health,
-      wait: 0, flee: false, angle: Math.PI / 2, phase: 0, rounds: 0, hunger: 0, shot: -999, cd: 0,
+      wait: 0, flee: false, angle: Math.PI / 2, phase: 0, rounds: 0, hunger: 0, shot: -999, cd: 0, weapon: null,
     };
     this.workers.push(k);
     return k;
@@ -164,7 +166,9 @@ export class Community {
   hurt(w: World, k: Worker, dmg: number): void {
     k.hp -= dmg;
     w.events.push('bite', k.x, k.y);
-    if (k.resident && k.job !== 'guard' && !k.flee && (k.state === 'out' || k.state === 'gather' || k.state === 'work')) {
+    // Unbewaffnete und Schwerverletzte fliehen heim; wer eine Waffe hat, wehrt sich (defend)
+    const weak = !k.weapon || k.hp < COMMUNITY.health * DEFENSE.fleeBelow;
+    if (k.resident && k.job !== 'guard' && weak && !k.flee && (k.state === 'out' || k.state === 'gather' || k.state === 'work')) {
       k.flee = true;
       k.state = 'back';
     }
@@ -273,6 +277,7 @@ export class Community {
   /** Überlebender: wartet, bis die Figur kommt; folgt ihr; am Lagerfeuer wird er Bewohner. */
   private stepSurvivor(w: World, k: Worker): void {
     const p = w.player && !w.player.dead ? w.player : null;
+    if (this.defend(w, k)) return;
     if (w.tick % 60 === 0) k.hp = Math.min(SURVIVOR.health, k.hp + 0.2);
     if (!p) return;
     const d = Math.hypot(p.x - k.x, p.y - k.y);
@@ -337,6 +342,8 @@ export class Community {
 
   private stepResident(w: World, k: Worker): void {
     if (w.tick % 60 === 0 && k.state === 'home') k.hp = Math.min(COMMUNITY.health, k.hp + COMMUNITY.healPerSecond);
+    if (k.state === 'home' && !k.weapon && (w.tick + k.id) % 300 === 0) this.arm(w, k);
+    if (this.defend(w, k)) return;
     if (k.state === 'back') return this.stepBack(w, k);
     switch (k.job) {
       case 'scavenge': return this.stepScavenge(w, k);
@@ -347,6 +354,68 @@ export class Community {
       case 'medic': return this.stepMedic(w, k);
       default: return this.stepIdle(w, k);
     }
+  }
+
+  /** Beste Nahkampfwaffe aus dem Vorrat nehmen (Axt, Brecheisen, Schläger, Speer, Messer). */
+  private arm(w: World, k: Worker): void {
+    for (const it of DEFENSE.weapons) {
+      if (this.takeSupply(w, (x) => x === it)) {
+        k.weapon = it;
+        return;
+      }
+    }
+  }
+
+  /**
+   * Selbstverteidigung (alle Bewohner und folgende Überlebende): Steht ein Zombie in Reichweite, wird zurückgeschlagen
+   * (Waffe bzw. Fäuste). Bewaffnete, gesunde Bewohner eilen Menschen in der Nähe zu Hilfe, die gerade angegriffen
+   * werden – auch der Figur. true: dieser Tick ist mit Kämpfen verbraucht.
+   */
+  private defend(w: World, k: Worker): boolean {
+    if (k.state === 'wait') return false;
+    const fleeing = k.flee && k.hp < COMMUNITY.health * DEFENSE.fleeBelow;
+    const m = (k.weapon && MELEE[k.weapon]) || FISTS;
+    const u = w.enemies.nearestTarget(k.x, k.y, m.reach + 0.45, w.tick);
+    if (u && u.kind === 'unit') {
+      if (fleeing) return false;
+      k.angle = Math.atan2(u.y - k.y, u.x - k.x);
+      k.phase = 0;
+      if (k.cd <= w.tick) {
+        w.enemies.damageTarget(w, u, m.damage * DEFENSE.damageFactor * (k.hunger > 0 ? COMMUNITY.hungryFactor : 1), { x: k.x, y: k.y }, 12);
+        w.events.push('melee', u.x, u.y);
+        k.shot = w.tick;
+        k.cd = w.tick + Math.round(m.cooldown * DEFENSE.cooldownFactor);
+      }
+      return true;
+    }
+    // zu Hilfe eilen: nur Bewaffnete mit genug Leben, nicht unterwegs mit Last
+    if (!k.resident || !k.weapon || k.hp < COMMUNITY.health * 0.5 || k.cargo.length || fleeing) return false;
+    const z = this.threat(w, k);
+    if (!z) return false;
+    this.stepToward(w, k, z.x, z.y, COMMUNITY.speed * 1.3);
+    return true;
+  }
+
+  /** Zombie, der gerade einen Menschen in der Nähe bedrängt (Figur, Bewohner, Überlebender). */
+  private threat(w: World, k: Worker): { x: number; y: number } | null {
+    const people: { x: number; y: number }[] = [];
+    const p = w.player;
+    if (p && !p.dead && !p.inCar) people.push(p);
+    for (const o of this.workers) if (o !== k && o.state !== 'wait') people.push(o);
+    let best: { x: number; y: number } | null = null;
+    let bd: number = DEFENSE.helpRadius;
+    for (const q of people) {
+      const dq = Math.hypot(q.x - k.x, q.y - k.y);
+      if (dq > DEFENSE.helpRadius) continue;
+      const z = w.enemies.nearestTarget(q.x, q.y, DEFENSE.threatRadius, w.tick);
+      if (!z || z.kind !== 'unit') continue;
+      const d = Math.hypot(z.x - k.x, z.y - k.y);
+      if (d < bd) {
+        bd = d;
+        best = { x: z.x, y: z.y };
+      }
+    }
+    return best;
   }
 
   /** Platz am Feuer (Kreis, je Bewohner ein anderer Winkel). */
@@ -921,7 +990,7 @@ export class Community {
       n: this.nextId,
       v: 2,
       w: this.workers.map((k) => [k.id, k.resident ? 1 : 0, k.x, k.y, k.state, k.pile, k.cargo.join(','), k.hp, k.wait, k.flee ? 1 : 0, k.angle, k.phase,
-        k.name, k.skill, k.job, k.rounds, k.hunger, k.cd]),
+        k.name, k.skill, k.job, k.rounds, k.hunger, k.cd, k.weapon]),
     };
   }
 
@@ -930,8 +999,8 @@ export class Community {
     this.fields.clear();
     this.nextId = d?.n ?? 1;
     for (const r of (d?.w ?? []) as unknown[][]) {
-      const [id, res, x, y, state, pile, cargo, hp, wait, flee, angle, phase, name, skill, jb, rounds, hunger, cd] = r as [
-        number, number, number, number, WorkerState, number | null, string, number, number, number, number, number, string?, string?, string?, number?, number?, number?];
+      const [id, res, x, y, state, pile, cargo, hp, wait, flee, angle, phase, name, skill, jb, rounds, hunger, cd, weapon] = r as [
+        number, number, number, number, WorkerState, number | null, string, number, number, number, number, number, string?, string?, string?, number?, number?, number?, (string | null)?];
       // alte Spielstände (v1): zweite Spalte = Sammelstelle (0: Überlebender), Sammler werden Bewohner
       const resident = d?.v === 2 ? res === 1 : res !== 0;
       const nm = name ?? NAMES[id % NAMES.length];
@@ -939,7 +1008,7 @@ export class Community {
       this.workers.push({
         id, resident, name: nm, skill: sk, job: job(jb ?? sk), x, y, state: resident && state === 'wait' ? 'home' : state, pile,
         cargo: cargo ? cargo.split(',').filter((it) => ITEMS[it]) : [], hp, wait, flee: !!flee, angle, phase, rounds: rounds ?? 0, hunger: hunger ?? 0,
-        shot: -999, cd: cd ?? 0,
+        shot: -999, cd: cd ?? 0, weapon: weapon ?? null,
       });
     }
   }

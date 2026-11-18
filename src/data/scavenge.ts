@@ -136,6 +136,21 @@ export const GUARD = {
   towerBonus: 1.4,
 } as const;
 
+/**
+ * Selbstverteidigung aller Bewohner (Wunsch 18.11.2026: „warum verteidigen sich die Bewohner nicht?“): Nahkampf mit der
+ * besten Waffe aus dem Vorrat (Reihenfolge weapons), sonst Fäuste; Schaden × damageFactor, Takt × cooldownFactor
+ * gegenüber der Figur. Unter fleeBelow Leben fliehen sie heim. Bewaffnete eilen Menschen im Umkreis helpRadius zu
+ * Hilfe, an denen ein Zombie näher als threatRadius steht.
+ */
+export const DEFENSE = {
+  weapons: ['axe', 'crowbar', 'baseball-bat', 'spear', 'knife'],
+  damageFactor: 0.8,
+  cooldownFactor: 1.5,
+  fleeBelow: 0.35,
+  helpRadius: 9,
+  threatRadius: 2.2,
+} as const;
+
 export const MEDIC = { reach: 2.5, hpPerSecond: 2, residentHpPerSecond: 1 } as const;
 export const REPAIR = { hpPerSecond: 8 } as const;
 /** Gärtner: Wachstum je Tick zusätzlich, Ernte ab so vielen Stück heimbringen, Wildkräuter alle forageSeconds. */
