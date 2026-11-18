@@ -502,3 +502,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .comm-job { display: flex; align-items: center; gap: 4px; padding: 3px 6px; font-size: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: inherit; cursor: pointer; border-radius: 3px; }
 .comm-job img, .comm-job canvas, .comm-job .icon { width: 20px; height: 20px; }
 .comm-job.active { background: rgba(230,170,80,0.28); border-color: #e0a850; }
+.trade { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(620px, 96vw); z-index: 40; }
+.trade-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.08); }
+.trade-side { display: flex; align-items: center; gap: 6px; flex: 1; font-size: 13px; }
+.trade-side .icon { width: 26px; height: 26px; }
+.trade-arrow { opacity: 0.6; }
+.trade-btn { padding: 4px 10px; background: rgba(230,170,80,0.25); border: 1px solid #e0a850; color: inherit; border-radius: 3px; cursor: pointer; }
+.trade-btn:disabled { opacity: 0.4; cursor: default; }

@@ -170,6 +170,8 @@ describe('Sonderorte', () => {
     const gw = at('gewerbe');
     expect(count('container', gw.x, gw.y)).toBeGreaterThanOrEqual(4);
     expect([...w.entities.values()].filter((e) => e.kind === 'pile' && Math.hypot(e.cx - gw.x, e.cy - gw.y) < 30).length).toBeGreaterThanOrEqual(6);
+    const kr = at('kraehen');
+    expect(w.community.raiders.filter((k) => Math.hypot(k.x - kr.x, k.y - kr.y) < 20).length).toBe(6);
     const lh = at('lindenhof');
     expect(count('silo', lh.x, lh.y)).toBe(2);
     expect(w.sites.houses.filter((h) => Math.hypot(h.x - lh.x, h.y - lh.y) < 20).length).toBeGreaterThanOrEqual(2);

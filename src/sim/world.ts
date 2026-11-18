@@ -3,7 +3,7 @@ import { CorpseSystem } from './corpses';
 import { FLOOR_BY_ID, FLOOR_BY_ITEM } from '../data/floors';
 import { CapsuleSystem } from './capsules';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
-import { EnemySystem } from './enemies';
+import { EnemySystem, type Target } from './enemies';
 import { BARRICADE } from '../data/enemies';
 import { NoiseSystem } from './noise';
 import { SiteSystem } from './sites';
@@ -422,6 +422,14 @@ export class World {
       this.stats.second(this.tick / 60);
       this.power.second(this.tick / 60);
     }
+  }
+
+  /** Nächster Feind (Zombie oder Plünderer) im Umkreis – Ziel für Figur, Türme, Wachen und Bewohner. */
+  foe(x: number, y: number, r: number): Target | null {
+    const z = this.enemies.nearestTarget(x, y, r, this.tick);
+    const dz = z ? Math.hypot(z.x - x, z.y - y) : Infinity;
+    const k = this.community.nearestHostile(x, y, Math.min(r, dz));
+    return k ? { kind: 'person', id: k.id, x: k.x, y: k.y } : z;
   }
 
   /** Fenster oder Tür mit einem Brett verbarrikadieren (BARRICADE). Liefert eine Meldung, wenn es nicht geht. */

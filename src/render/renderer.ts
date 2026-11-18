@@ -1631,13 +1631,15 @@ export class GameRenderer {
       sp.scale.set(0.92);
       if (base === 'player') sp.tint = 0xb8c8a0;
       // Überlebende: andere Kleidung (getönt), wartend mit Winken
-      if (!k.resident) {
+      if (k.faction === 'raider') sp.tint = 0xb06a5a;
+      else if (k.faction === 'trader') sp.tint = 0xe0d090;
+      else if (!k.resident) {
         sp.tint = 0xa8bce0;
         if (k.state === 'wait') sp.rotation = Math.sin(t / 15 + k.id) * 0.05;
       } else sp.tint = JOB_TINT[k.job];
       sp.zIndex = k.y * TILE;
       // Last bzw. Aufgabensymbol (klein) über dem Kopf
-      const icon = k.cargo.length ? k.cargo[k.cargo.length - 1] : k.resident ? JOBS[k.job].icon : null;
+      const icon = k.cargo.length ? k.cargo[k.cargo.length - 1] : k.faction === 'raider' ? (k.gun ? 'pistol' : 'baseball-bat') : k.faction === 'trader' ? 'backpack' : k.resident ? JOBS[k.job].icon : null;
       if (icon && s.has(`item.${icon}`)) {
         const it = this.ents.get(s.frame(`item.${icon}`));
         it.position.set(k.x * TILE, (k.y - 0.95) * TILE);

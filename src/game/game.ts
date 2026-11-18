@@ -757,6 +757,8 @@ export class Game {
       else if (target && target.name === 'pickup-wreck' && p) {
         const err = this.world.cars.repair(this.world, target, p);
         if (err) p.note(err);
+      } else if (!target && this.world.community.at(at.x, at.y, 0.8)?.faction === 'trader') {
+        this.hud.toggleTrade(true);
       } else if (!target && this.world.community.at(at.x, at.y, 0.8)?.resident) {
         this.hud.toggleCommunity(true);
       } else if (!target && p && this.world.cars.near(at.x, at.y, 1.6)) {
@@ -1052,6 +1054,8 @@ export class Game {
     const car = this.world.cars.near(m.x, m.y, 1.4);
     if (car) return `Pritschenwagen – ${this.world.cars.driving === car.id ? `${Math.round(car.speed * 60 * 3.6)} km/h` : 'Klick: Tank und Ladefläche · V: einsteigen'} · Zustand ${Math.round((car.hp / 600) * 100)} %`;
     const wk = this.world.community.at(m.x, m.y, 0.8);
+    if (wk?.faction === 'raider') return `Plünderer ${wk.name} – ${wk.gun ? 'mit Pistole' : 'mit Schläger'} · ${wk.state === 'home' ? 'im Lager der Bande' : wk.state === 'gather' ? 'stiehlt aus dem Vorrat!' : wk.flee ? 'flieht' : 'greift an'} · Leben ${Math.ceil(wk.hp)}`;
+    if (wk?.faction === 'trader') return `Händler ${wk.name} – ${wk.state === 'home' ? 'Klick: tauschen' : wk.state === 'out' ? 'kommt zu deinem Lagerfeuer' : 'zieht weiter'} · Leben ${Math.ceil(wk.hp)}`;
     if (wk && !wk.resident) return `${wk.name} (früher: ${JOBS[wk.skill].past}) – ${this.world.community.doing(wk)}${wk.state === 'wait' ? ' (hingehen)' : ''} · Leben ${Math.ceil(wk.hp)}`;
     if (wk) return `${wk.name} – ${JOBS[wk.job].name}${wk.skill === wk.job ? ' (gelernt)' : ''}: ${this.world.community.doing(wk)}${wk.hunger ? ' · hungrig' : ''} · Leben ${Math.ceil(wk.hp)} · K: Gemeinschaft`;
     const z = this.world.enemies.nearestTarget(m.x, m.y, 0.6, this.world.tick);

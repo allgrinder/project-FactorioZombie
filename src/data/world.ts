@@ -23,7 +23,7 @@ export interface TownDef {
 /** Sonderorte (Wunsch 18.11.2026): Gefängnis, Kraftwerk, Gewerbegebiet, Gutshöfe. gate: Seite der Einfahrt (0 N … 3 W). */
 export interface PlaceDef {
   readonly id: string;
-  readonly kind: 'prison' | 'powerplant' | 'industrial' | 'farmstead';
+  readonly kind: 'prison' | 'powerplant' | 'industrial' | 'farmstead' | 'raidercamp';
   readonly name: string;
   readonly x: number;
   readonly y: number;
@@ -60,6 +60,7 @@ export const WORLD = {
     [[440, -41], [434, -41]],
     [[-60, 20], [-60, 118]],
     [[300, -118], [300, -168]],
+    [[-300, 64], [-360, 64]],
   ] as readonly (readonly (readonly [number, number])[])[],
   /** Schrottplätze (Ziel der Sammeltrupps): zwei nahe am Start, je einer bei den Orten. */
   junkyards: [
@@ -72,6 +73,7 @@ export const WORLD = {
     { id: 'kraftwerk', kind: 'powerplant', name: 'Kraftwerk Aschland', x: 270, y: 56, gate: 0, blurb: 'Kühltürme, Turbinenhalle, Kohlenhalde, Trafos' },
     { id: 'gewerbe', kind: 'industrial', name: 'Gewerbegebiet Eisenrode', x: 412, y: -40, gate: 1, blurb: 'Lagerhallen, Container, Schrott ohne Ende' },
     { id: 'lindenhof', kind: 'farmstead', name: 'Gut Lindenhof', x: -70, y: 132, gate: 0, blurb: 'Gutshof mit Scheune, Silos und Feldern' },
+    { id: 'kraehen', kind: 'raidercamp', name: 'Lager der Krähen', x: -374, y: 64, gate: 1, blurb: 'Eine Plünderbande hat sich hinter Barrikaden verschanzt – ihr Lager ist voller Beute' },
     { id: 'birkenrain', kind: 'farmstead', name: 'Hof Birkenrain', x: 296, y: -186, gate: 2, blurb: 'Abgelegener Hof im Osten' },
   ] as readonly PlaceDef[],
   /** Höfe an den Landstraßen: alle so viele Felder einer, so weit neben der Straße. */

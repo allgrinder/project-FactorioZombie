@@ -247,7 +247,7 @@ export class Minimap {
     }
     ctx.fillStyle = '#9adf6a';
     for (const k of world.community.workers) {
-      ctx.fillStyle = k.resident ? '#9adf6a' : '#8ab8ff';
+      ctx.fillStyle = k.faction === 'raider' ? '#e04a3a' : k.faction === 'trader' ? '#f0d060' : k.resident ? '#9adf6a' : '#8ab8ff';
       ctx.fillRect(toX(k.x) - 2, toY(k.y) - 2, 4, 4);
     }
     ctx.strokeStyle = 'rgba(255,190,90,0.55)';

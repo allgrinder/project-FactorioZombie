@@ -31,6 +31,8 @@ export const GOALS: readonly Goal[] = [
   { id: 'crew', title: 'Gemeinschaft mit 3 Bewohnern', hint: 'Überlebende in Orten finden und zum Lagerfeuer bringen; Aufgaben mit K verteilen, Essen ins Vorratslager', done: (w) => w.community.residents.length >= 3 },
   { id: 'tower', title: 'Basis bewachen', hint: 'MG-Turm oder Wachturm mit Magazinen, Feuerschalen für die Nacht', done: (w) => count(w, (_n, k) => k === 'turret') >= 2 },
   { id: 'night', title: 'Drei Nächte überleben', hint: 'Jede Nacht kommt eine Horde – sie zieht zum Lagerfeuer', done: (w) => dayNumber(w.tick) >= 4 },
+  { id: 'trade', title: 'Mit einem Händler tauschen', hint: 'Ab Tag 3 kommen Händler ans Lagerfeuer – anklicken und tauschen', done: (w) => [...w.stats.totalMade.keys()].some((k) => k.startsWith('trade.')) },
+  { id: 'raid', title: 'Einen Überfall abwehren', hint: 'Ab Tag 4 überfallen Plünderer dein Lager – Wachen mit Magazinen, Türme, Mauern', done: (w) => made(w, 'kill.raider') > 0 },
   { id: 'drop', title: 'Einen Versorgungsabwurf bergen', hint: 'Ab Tag 2 landen Kisten am Fallschirm – laut, also schnell sein', done: (w) => made(w, 'search.airdrop') > 0 },
   { id: 'radio', title: 'Funkturm bauen', hint: 'Forschung „Funktechnik“, Funkteile aus Läden und Werkstätten', done: (w) => count(w, (n) => n === 'radio-tower') > 0 },
   { id: 'rescue', title: 'Die Rettung rufen', hint: 'Den Funkturm 15 Minuten unter Strom halten – und verteidigen', done: (w) => w.rescuedAt !== null },

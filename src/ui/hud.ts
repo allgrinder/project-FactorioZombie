@@ -6,6 +6,7 @@ import { PLAYER } from '../data/player';
 import { DAY, dayNumber } from '../data/time';
 import { CAR } from '../data/vehicles';
 import { CommunityView } from './community';
+import { trade, traderNear } from '../sim/strangers';
 import { compassName } from '../sim/enemies';
 import { GOALS, goalStatus } from '../sim/goals';
 import { WORLD } from '../data/world';
@@ -135,6 +136,8 @@ export class Hud {
   private readonly statsWin: HTMLDivElement;
   private readonly bookWin: HTMLDivElement;
   private readonly commWin: HTMLDivElement;
+  private readonly tradeWin: HTMLDivElement;
+  private tradeKey = '';
   private comm: CommunityView | null = null;
   private readonly powerWin: HTMLDivElement;
   private readonly powerBadge: HTMLDivElement;
@@ -180,6 +183,7 @@ export class Hud {
     this.statsWin = el('div', 'window stats hidden', this.layer);
     this.bookWin = el('div', 'window handbook hidden', this.layer);
     this.commWin = el('div', 'window community hidden', this.layer);
+    this.tradeWin = el('div', 'window trade hidden', this.layer);
     this.powerWin = el('div', 'window stats power-win hidden', this.layer);
     this.powerBadge = el('div', 'hud-power hidden', this.layer);
     this.powerBadge.title = 'Strom-Übersicht (O)';
@@ -298,6 +302,7 @@ export class Hud {
     if (this.frame % 15 === 0 && this.openTrainId) this.buildTrain();
     if (this.frame % 10 === 0 && this.openCarId !== null) this.buildCar();
     if (this.frame % 20 === 0 && this.comm && !this.commWin.classList.contains('hidden')) this.comm.render(this.game.world);
+    if (this.frame % 15 === 0 && !this.tradeWin.classList.contains('hidden')) this.buildTrade();
     if (this.frame % 10 === 0) {
       if (!this.invWin.classList.contains('hidden')) this.updateInventory();
       if (this.openEntityId !== null) {
@@ -1187,7 +1192,7 @@ export class Hud {
       any = true;
     }
     this.openCarId = null;
-    for (const w of [this.help, this.invWin, this.entWin, this.carWin, this.commWin, this.menu, this.techWin, this.statsWin, this.bookWin, this.powerWin, this.bpWin, this.trainWin]) {
+    for (const w of [this.help, this.invWin, this.entWin, this.carWin, this.commWin, this.tradeWin, this.menu, this.techWin, this.statsWin, this.bookWin, this.powerWin, this.bpWin, this.trainWin]) {
       if (!w.classList.contains('hidden')) {
         w.classList.add('hidden');
         any = true;
@@ -1673,6 +1678,56 @@ export class Hud {
   private book: HandbookView | null = null;
 
   /** Handbuch (J): Rezepte, Verwendung, Verhältnis-Rechner, Faustregeln. Mit `item` direkt auf dieser Seite. */
+  /** Tauschfenster des Händlers (Klick auf den Händler am Lagerfeuer). */
+  toggleTrade(show?: boolean): void {
+    const on = show ?? this.tradeWin.classList.contains('hidden');
+    this.tradeWin.classList.toggle('hidden', !on);
+    this.tradeKey = '';
+    if (on) this.buildTrade();
+  }
+
+  private buildTrade(): void {
+    const w = this.game.world;
+    const p = w.player;
+    const t = p ? traderNear(w.community, p) : null;
+    if (!p || !t) {
+      this.tradeWin.classList.add('hidden');
+      return;
+    }
+    const offers = w.community.strangers.offers;
+    const key = JSON.stringify([offers.map((o) => o.stock), offers.map((o) => p.inventory.count(o.give[0]))]);
+    if (key === this.tradeKey) return;
+    this.tradeKey = key;
+    this.tradeWin.replaceChildren();
+    const head = el('div', 'win-head', this.tradeWin);
+    head.textContent = `Händler ${t.name}`;
+    const close = el('button', 'close', head);
+    close.textContent = '×';
+    close.onclick = () => this.toggleTrade(false);
+    const body = el('div', 'win-body', this.tradeWin);
+    el('div', 'dim', body).textContent = 'Er bleibt nicht lange. Jedes Angebot gilt für ein paar Tauschgeschäfte.';
+    offers.forEach((o, i) => {
+      const row = el('div', 'trade-row', body);
+      const give = el('span', 'trade-side', row);
+      give.appendChild(this.icon(`item.${o.give[0]}`));
+      el('span', '', give).textContent = `${o.give[1]}× ${ITEMS[o.give[0]]?.name ?? o.give[0]} (hast ${p.inventory.count(o.give[0])})`;
+      el('span', 'trade-arrow', row).textContent = '→';
+      const get = el('span', 'trade-side', row);
+      get.appendChild(this.icon(`item.${o.get[0]}`));
+      el('span', '', get).textContent = `${o.get[1]}× ${ITEMS[o.get[0]]?.name ?? o.get[0]}`;
+      const b = el('button', 'trade-btn', row);
+      b.textContent = o.stock > 0 ? `Tauschen (${o.stock})` : 'ausverkauft';
+      b.disabled = o.stock <= 0 || p.inventory.count(o.give[0]) < o.give[1];
+      b.onclick = () => {
+        const err = trade(w.community, w, p, i);
+        if (err) p.note(err);
+        this.tradeKey = '';
+        this.updateInventory(true);
+        this.buildTrade();
+      };
+    });
+  }
+
   /** Fenster „Gemeinschaft“ (Taste K, Klick auf einen Bewohner). */
   toggleCommunity(show?: boolean): void {
     const on = show ?? this.commWin.classList.contains('hidden');

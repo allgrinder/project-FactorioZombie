@@ -8,6 +8,8 @@ import { FlowField } from './flowfield';
 import { hash01 } from './rng';
 import type { CampEntity, Entity, PileEntity, ProducerEntity } from './machines';
 import type { World } from './world';
+import { RAIDER, TRADER } from '../data/strangers';
+import { stepRaider, stepTrader, strangersTick } from './strangers';
 
 /**
  * Überlebende: wait (verbarrikadiert im Ort), follow (folgt der Figur).
@@ -47,7 +49,17 @@ export interface Worker {
   cd: number;
   /** Nahkampfwaffe (aus dem Vorrat genommen); null: Fäuste. */
   weapon: string | null;
+  /** Zugehörigkeit: eigene Leute (Bewohner, Überlebende), Plünderer, Händler. */
+  faction: Faction;
+  /** Heimat (Lager der Bande; Händler: Abzugspunkt). */
+  hx: number;
+  hy: number;
+  /** Trägt eine Schusswaffe (Plünderer, Händler). */
+  gun: boolean;
 }
+
+export type Faction = 'ours' | 'raider' | 'trader';
+const FACTIONS: Faction[] = ['ours', 'raider', 'trader'];
 
 const job = (j: string): Job => (j in JOBS ? (j as Job) : 'scavenge');
 
@@ -71,12 +83,49 @@ export class Community {
 
   /** Bewohner der Gemeinschaft. */
   get residents(): Worker[] {
-    return this.workers.filter((k) => k.resident);
+    return this.workers.filter((k) => k.resident && k.faction === 'ours');
   }
+
+  /** Plünderer (alle, auch im Lager der Bande). */
+  get raiders(): Worker[] {
+    return this.workers.filter((k) => k.faction === 'raider');
+  }
+
+  /** Nächster Plünderer im Umkreis (Ziel für Figur, Türme, Wachen, Bewohner). */
+  nearestHostile(x: number, y: number, r: number): Worker | null {
+    let best: Worker | null = null;
+    let bd = r;
+    for (const k of this.workers) {
+      if (k.faction !== 'raider') continue;
+      const d = Math.hypot(k.x - x, k.y - y);
+      if (d < bd) {
+        bd = d;
+        best = k;
+      }
+    }
+    return best;
+  }
+
+  /** Fremden setzen (Plünderer im Lager der Bande, Händler am Rand). */
+  addStranger(faction: Faction, x: number, y: number, seed: number): Worker {
+    const k = this.addSurvivor(x, y, seed);
+    k.faction = faction;
+    k.resident = false;
+    k.state = 'home';
+    k.hx = x;
+    k.hy = y;
+    k.gun = faction === 'trader' || hash01(seed, k.id, 917) < 0.6;
+    k.weapon = 'baseball-bat';
+    k.hp = faction === 'raider' ? RAIDER.health : TRADER.health;
+    return k;
+  }
+
+  /** Überfälle und Händlerbesuche (src/sim/strangers.ts). */
+  readonly strangers = { nextRaid: -1, nextTrader: -1, visits: 0, nextRecruit: 0, offers: [] as { give: [string, number]; get: [string, number]; stock: number }[] };
 
   /** Überlebende, die noch warten oder folgen. */
   get survivors(): Worker[] {
-    return this.workers.filter((k) => !k.resident);
+    return this.workers.filter((k) => !k.resident && k.faction === 'ours');
   }
 
   /** Nächster für Zombies sichtbarer Mensch (wartende Überlebende sind verbarrikadiert). */
@@ -130,6 +179,7 @@ export class Community {
     const k: Worker = {
       id, resident: false, name: NAMES[n], skill, job: skill, x, y, state: 'wait', pile: null, cargo: [], hp: SURVIVOR.health,
       wait: 0, flee: false, angle: Math.PI / 2, phase: 0, rounds: 0, hunger: 0, shot: -999, cd: 0, weapon: null,
+      faction: 'ours', hx: 0, hy: 0, gun: false,
     };
     this.workers.push(k);
     return k;
@@ -175,6 +225,18 @@ export class Community {
     if (k.hp > 0) return;
     for (const it of k.cargo) w.spill(k.x, k.y, it);
     this.workers.splice(this.workers.indexOf(k), 1);
+    if (k.faction !== 'ours') {
+      // Fremde lassen Waffe und Munition fallen
+      if (k.gun) {
+        w.spill(k.x, k.y, 'pistol');
+        for (let i = 0; i < 1 + (k.id % 2); i++) w.spill(k.x, k.y, 'firearm-magazine');
+      }
+      w.enemies.remnants.push({ x: k.x, y: k.y, kind: 'unit', size: 1, tick: w.tick, name: 'worker', dir: k.angle });
+      w.events.push('death', k.x, k.y);
+      w.stats.made(k.faction === 'raider' ? 'kill.raider' : 'kill.trader', 1);
+      if (k.faction === 'trader') w.player?.note(`Der Händler ${k.name} ist tot`);
+      return;
+    }
     w.enemies.remnants.push({ x: k.x, y: k.y, kind: 'unit', size: 1, tick: w.tick, name: 'worker', dir: k.angle });
     w.events.push('death', k.x, k.y);
     w.stats.used('resident', 1);
@@ -183,10 +245,13 @@ export class Community {
 
   update(w: World): void {
     this.home = w.base;
+    strangersTick(this, w);
     if (w.settings.needs && w.tick % DAY.ticks === Math.floor(DAY.ticks * 0.75)) this.meal(w);
     for (const k of [...this.workers]) {
       if (!this.workers.includes(k)) continue;
-      if (!k.resident) this.stepSurvivor(w, k);
+      if (k.faction === 'raider') stepRaider(this, w, k);
+      else if (k.faction === 'trader') stepTrader(this, w, k);
+      else if (!k.resident) this.stepSurvivor(w, k);
       else this.stepResident(w, k);
     }
   }
@@ -305,7 +370,7 @@ export class Community {
   }
 
   /** Zu einem Punkt gehen: über ein Wegfeld (Türen, um Wände herum), sonst geradewegs. */
-  private walkPoint(w: World, k: Worker, x: number, y: number, speed: number): void {
+  walkPoint(w: World, k: Worker, x: number, y: number, speed: number): void {
     const gx = Math.floor(x);
     const gy = Math.floor(y);
     const key = `p${k.id}`;
@@ -341,7 +406,7 @@ export class Community {
   // ------------------------------------------------------------ Bewohner
 
   private stepResident(w: World, k: Worker): void {
-    if (w.tick % 60 === 0 && k.state === 'home') k.hp = Math.min(COMMUNITY.health, k.hp + COMMUNITY.healPerSecond);
+    if (w.tick % 60 === 0 && (k.state === 'home' || k.state === 'post')) k.hp = Math.min(COMMUNITY.health, k.hp + COMMUNITY.healPerSecond * (k.state === 'post' ? 0.5 : 1));
     if (k.state === 'home' && !k.weapon && (w.tick + k.id) % 300 === 0) this.arm(w, k);
     if (this.defend(w, k)) return;
     if (k.state === 'back') return this.stepBack(w, k);
@@ -375,8 +440,8 @@ export class Community {
     if (k.state === 'wait') return false;
     const fleeing = k.flee && k.hp < COMMUNITY.health * DEFENSE.fleeBelow;
     const m = (k.weapon && MELEE[k.weapon]) || FISTS;
-    const u = w.enemies.nearestTarget(k.x, k.y, m.reach + 0.45, w.tick);
-    if (u && u.kind === 'unit') {
+    const u = k.faction === 'ours' ? w.foe(k.x, k.y, m.reach + 0.45) : w.enemies.nearestTarget(k.x, k.y, m.reach + 0.45, w.tick);
+    if (u) {
       if (fleeing) return false;
       k.angle = Math.atan2(u.y - k.y, u.x - k.x);
       k.phase = 0;
@@ -401,14 +466,14 @@ export class Community {
     const people: { x: number; y: number }[] = [];
     const p = w.player;
     if (p && !p.dead && !p.inCar) people.push(p);
-    for (const o of this.workers) if (o !== k && o.state !== 'wait') people.push(o);
+    for (const o of this.workers) if (o !== k && o.state !== 'wait' && o.faction !== 'raider') people.push(o);
     let best: { x: number; y: number } | null = null;
     let bd: number = DEFENSE.helpRadius;
     for (const q of people) {
       const dq = Math.hypot(q.x - k.x, q.y - k.y);
       if (dq > DEFENSE.helpRadius) continue;
-      const z = w.enemies.nearestTarget(q.x, q.y, DEFENSE.threatRadius, w.tick);
-      if (!z || z.kind !== 'unit') continue;
+      const z = w.foe(q.x, q.y, DEFENSE.threatRadius);
+      if (!z) continue;
       const d = Math.hypot(z.x - k.x, z.y - k.y);
       if (d < bd) {
         bd = d;
@@ -503,7 +568,7 @@ export class Community {
     return best;
   }
 
-  private danger(w: World, k: Worker): boolean {
+  danger(w: World, k: Worker): boolean {
     if ((w.tick + k.id) % 15 !== 0) return false;
     return !!w.enemies.nearestTarget(k.x, k.y, SCAVENGER.fleeDistance, w.tick);
   }
@@ -684,8 +749,8 @@ export class Community {
       // Ziel: nächster Zombie; nachts ohne Licht kürzer (wie Türme)
       const dark = w.isLit(k.x, k.y) ? 0 : w.darkness;
       const range = GUARD.range * (1 - TURRET.nightPenalty * dark) * (post.tower && far < 0.6 ? GUARD.towerBonus : 1);
-      const u = w.enemies.nearestTarget(k.x, k.y, range, w.tick);
-      if (u && u.kind === 'unit') {
+      const u = w.foe(k.x, k.y, range);
+      if (u) {
         k.angle = Math.atan2(u.y - k.y, u.x - k.x);
         if (k.rounds <= 0) {
           const mag = this.takeSupply(w, (it) => it === 'firearm-magazine' || it === 'piercing-rounds-magazine');
@@ -924,7 +989,7 @@ export class Community {
   // ------------------------------------------------------------ Wege
 
   /** Schritt geradewegs Richtung Ziel; Hindernisse seitlich umgehen (wie Zombies, ohne Wegfeld). */
-  private stepToward(w: World, k: Worker, tx: number, ty: number, speed: number): void {
+  stepToward(w: World, k: Worker, tx: number, ty: number, speed: number): void {
     const dx = tx - k.x;
     const dy = ty - k.y;
     const d = Math.hypot(dx, dy);
@@ -947,7 +1012,7 @@ export class Community {
   }
 
   /** Ein Schritt Richtung Ziel-Gebäude über ein Wegfeld (Mauern umgehen, Tore benutzen). false: kein Weg. */
-  private walk(w: World, k: Worker, goal: Entity, speed: number): boolean {
+  walk(w: World, k: Worker, goal: Entity, speed: number): boolean {
     const key = `${goal.id}`;
     let c = this.fields.get(key);
     const tx = Math.floor(k.x);
@@ -990,17 +1055,22 @@ export class Community {
       n: this.nextId,
       v: 2,
       w: this.workers.map((k) => [k.id, k.resident ? 1 : 0, k.x, k.y, k.state, k.pile, k.cargo.join(','), k.hp, k.wait, k.flee ? 1 : 0, k.angle, k.phase,
-        k.name, k.skill, k.job, k.rounds, k.hunger, k.cd, k.weapon]),
+        k.name, k.skill, k.job, k.rounds, k.hunger, k.cd, k.weapon, FACTIONS.indexOf(k.faction), k.hx, k.hy, k.gun ? 1 : 0]),
+      s: this.strangers,
     };
   }
 
-  load(d: { n?: number; v?: number; w?: unknown[] } | undefined): void {
+  load(d: { n?: number; v?: number; w?: unknown[]; s?: Community['strangers'] } | undefined): void {
     this.workers.length = 0;
+    const st = d?.s;
+    Object.assign(this.strangers, { nextRaid: st?.nextRaid ?? -1, nextTrader: st?.nextTrader ?? -1, visits: st?.visits ?? 0, nextRecruit: st?.nextRecruit ?? 0,
+      offers: (st?.offers ?? []).map((o) => ({ give: [...o.give] as [string, number], get: [...o.get] as [string, number], stock: o.stock })) });
     this.fields.clear();
     this.nextId = d?.n ?? 1;
     for (const r of (d?.w ?? []) as unknown[][]) {
-      const [id, res, x, y, state, pile, cargo, hp, wait, flee, angle, phase, name, skill, jb, rounds, hunger, cd, weapon] = r as [
-        number, number, number, number, WorkerState, number | null, string, number, number, number, number, number, string?, string?, string?, number?, number?, number?, (string | null)?];
+      const [id, res, x, y, state, pile, cargo, hp, wait, flee, angle, phase, name, skill, jb, rounds, hunger, cd, weapon, fac, hx, hy, gun] = r as [
+        number, number, number, number, WorkerState, number | null, string, number, number, number, number, number, string?, string?, string?, number?, number?, number?, (string | null)?,
+        number?, number?, number?, number?];
       // alte Spielstände (v1): zweite Spalte = Sammelstelle (0: Überlebender), Sammler werden Bewohner
       const resident = d?.v === 2 ? res === 1 : res !== 0;
       const nm = name ?? NAMES[id % NAMES.length];
@@ -1008,7 +1078,7 @@ export class Community {
       this.workers.push({
         id, resident, name: nm, skill: sk, job: job(jb ?? sk), x, y, state: resident && state === 'wait' ? 'home' : state, pile,
         cargo: cargo ? cargo.split(',').filter((it) => ITEMS[it]) : [], hp, wait, flee: !!flee, angle, phase, rounds: rounds ?? 0, hunger: hunger ?? 0,
-        shot: -999, cd: cd ?? 0, weapon: weapon ?? null,
+        shot: -999, cd: cd ?? 0, weapon: weapon ?? null, faction: FACTIONS[fac ?? 0] ?? 'ours', hx: hx ?? 0, hy: hy ?? 0, gun: !!gun,
       });
     }
   }

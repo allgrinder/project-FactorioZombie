@@ -51,7 +51,8 @@ export interface Unit {
   prey: number;
 }
 
-export type Target = { kind: 'unit'; id: number; x: number; y: number };
+/** Ziel: Zombie (unit) oder feindlicher Mensch (person, Plünderer in der Gemeinschaftsliste). */
+export type Target = { kind: 'unit' | 'person'; id: number; x: number; y: number };
 
 /** Kurz sichtbare Reste für die Darstellung (Kadaver, Wracks). */
 export interface Remnant {
@@ -731,6 +732,11 @@ export class EnemySystem {
 
   /** Treffer durch Turm, Schuss, Granate oder Nahkampf (stun: Betäubung in Ticks). */
   damageTarget(w: World, t: Target, dmg: number, by?: { x: number; y: number }, stun = 0): void {
+    if (t.kind === 'person') {
+      const k = w.community.get(t.id);
+      if (k) w.community.hurt(w, k, dmg);
+      return;
+    }
     const u = this.units.get(t.id);
     if (!u) return;
     if (this.hurt(w, u, dmg)) return;

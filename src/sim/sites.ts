@@ -3,6 +3,7 @@ import { ASPHALT, CONCRETE, FIELD, PAVEMENT, PLANKS, ROADLINE_E, ROADLINE_S, TIL
 import { SITES } from '../data/loot';
 import { type PlaceDef, type TownDef, WORLD, roadSegments } from '../data/world';
 import { hash01 } from './rng';
+import { RAIDER } from '../data/strangers';
 import type { World } from './world';
 
 export type SiteKind = 'starter' | 'village' | 'farm' | 'garage' | 'camp' | 'wreck' | 'town' | 'outpost' | 'junkyard';
@@ -652,6 +653,7 @@ export class SiteSystem {
       case 'prison': return this.prison(w, p, h);
       case 'powerplant': return this.powerplant(w, p, h);
       case 'industrial': return this.industrial(w, p, h);
+      case 'raidercamp': return this.raiderCamp(w, p, h);
       default: return this.farmstead(w, p, h);
     }
   }
@@ -722,6 +724,34 @@ export class SiteSystem {
       if (h(c + 40) < 0.6 && w.settings.enemies !== 'aus') w.enemies.spawnAt(x + i + 1.5, y + 7.5, 'walker');
     }
     this.houses.push({ x, y, w: W, h: H, roof: 'flat', ridge: 0 });
+  }
+
+  /**
+   * Lager der Plünderbande: Barrikadenring mit offener Einfahrt, Feuerschalen, Schuppen, Container mit Beute,
+   * Militärkisten, Wracks; sechs Plünderer (src/sim/strangers.ts).
+   */
+  private raiderCamp(w: World, p: PlaceDef, h: (n: number) => number): void {
+    const x0 = p.x - 12;
+    const y0 = p.y - 9;
+    const x1 = p.x + 12;
+    const y1 = p.y + 9;
+    this.ground(w, x0 - 2, y0 - 2, x1 + 2, y1 + 2);
+    this.ring(w, x0, y0, x1, y1, 'wooden-barricade', p.gate, 3, null);
+    this.put(w, 'brazier', p.x - 2, p.y, true);
+    this.put(w, 'brazier', p.x + 5, p.y - 4, true);
+    this.put(w, 'ruin-shed', x0 + 2, y0 + 2, true);
+    this.put(w, 'ruin-shed', x0 + 2, y1 - 5, true);
+    for (let k = 0; k < 3; k++) this.put(w, 'container', x0 + 8 + k * 4, y0 + 2, true);
+    this.put(w, 'military-crate', x1 - 3, y1 - 3, true);
+    this.put(w, 'military-crate', x1 - 5, y1 - 3, true);
+    this.put(w, 'supply-crate', x0 + 8, y1 - 3, true);
+    this.put(w, 'car-wreck', p.x + 2, y1 - 4, true);
+    this.put(w, 'scrap-pile', x0 + 7, p.y + 1, true);
+    for (let k = 0; k < 4; k++) this.put(w, 'barbed-wire', x1 + 2, p.y - 2 + k);
+    for (let k = 0; k < RAIDER.gang; k++) w.community.addStranger('raider', p.x - 4 + (k % 3) * 3 + 0.5, p.y - 2 + Math.floor(k / 3) * 4 + 0.5, w.seed);
+    w.community.strangers.nextRecruit = w.tick + RAIDER.respawn;
+    void h;
+    this.sites.push({ x: p.x, y: p.y, r: 10, weight: 0.8, kind: 'camp' });
   }
 
   /** Kraftwerk: zwei Kühltürme, Turbinenhalle, Schornstein, Trafohof hinter Zaun, Kohlenhalde, Parkplatz. */

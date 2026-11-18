@@ -148,6 +148,18 @@ den Fäusten; Schaden × 0,8, Takt × 1,5 gegenüber der Figur. Unter 35 % Leben
 Gänge beim ersten Biss ab. Bewaffnete mit mindestens halbem Leben eilen Menschen im Umkreis von 9 Feldern zu Hilfe, an
 denen ein Zombie näher als 2,2 Felder steht – auch der Figur.
 
+## Fremde: Plünderbande und Händler (`src/sim/strangers.ts`, Werte `src/data/strangers.ts`)
+
+Die **Krähen** leben im Barrikadenlager westlich der JVA (sechs Plünderer, Nachwuchs alle 1,5 Tage, solange einer
+lebt). Ab Tag 4 zieht in der Dämmerung alle 2,5 Tage ein Trupp (bis 4) zum Lagerfeuer, kämpft (Pistole 7 Schaden alle
+50 Ticks, Reichweite 11, laut; sonst Schläger 8), stiehlt 10 Stück aus dem Vorrat (1 je 30 Ticks) und zieht ab; unter
+35 % Leben fliehen sie. Kommt die Figur dem Bandenlager näher als 22 Felder, greift die ganze Bande an. Tote lassen
+Pistole und Magazine fallen. Figur, Türme, Wachen und Bewohner zielen auf den nächsten Feind (`World.foe`: Zombie oder
+Plünderer); Zombies jagen auch Plünderer und Händler.
+
+**Händler** kommen ab Tag 3 alle 2 Tage ans Lagerfeuer (Start 55 Felder entfernt), bleiben ein Vierteltag und bieten
+4 von 12 Tauschgeschäften (je 3-mal) an: Klick auf den Händler öffnet das Tauschfenster.
+
 ## Neue Aufgaben
 
 - **Plündern:** durchsucht Fundorte mit Beute im Umkreis von 90 Feldern ums Feuer (Suchzeit × 1,5), nimmt bis 16
