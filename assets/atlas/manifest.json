@@ -2313,6 +2313,23 @@
     "steel-furnace.shadow"
    ]
   },
+  "strasse": {
+   "hash": "f9dacb48947d58bc",
+   "sprites": [
+    "road.slice.0",
+    "road.slice.1",
+    "road.slice.2",
+    "road.slice.3",
+    "road.dash.0",
+    "road.dash.1",
+    "road.dash.2",
+    "road.dash.3",
+    "track.slice.0",
+    "track.slice.1",
+    "track.slice.2",
+    "track.slice.3"
+   ]
+  },
   "water": {
    "hash": "ca7ea3be63be8211",
    "sprites": [
@@ -5413,6 +5430,102 @@
     0.5
    ]
   },
+  "road.dash.0": {
+   "group": "decals",
+   "frames": [
+    "road.dash.0#0"
+   ],
+   "w": 64,
+   "h": 16,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "road.dash.1": {
+   "group": "decals",
+   "frames": [
+    "road.dash.1#0"
+   ],
+   "w": 64,
+   "h": 16,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "road.dash.2": {
+   "group": "decals",
+   "frames": [
+    "road.dash.2#0"
+   ],
+   "w": 64,
+   "h": 16,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "road.dash.3": {
+   "group": "decals",
+   "frames": [
+    "road.dash.3#0"
+   ],
+   "w": 64,
+   "h": 16,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "road.slice.0": {
+   "group": "decals",
+   "frames": [
+    "road.slice.0#0"
+   ],
+   "w": 48,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "road.slice.1": {
+   "group": "decals",
+   "frames": [
+    "road.slice.1#0"
+   ],
+   "w": 48,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "road.slice.2": {
+   "group": "decals",
+   "frames": [
+    "road.slice.2#0"
+   ],
+   "w": 48,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "road.slice.3": {
+   "group": "decals",
+   "frames": [
+    "road.slice.3#0"
+   ],
+   "w": 48,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "roof.flat.c.0": {
    "group": "decals",
    "frames": [
@@ -5960,6 +6073,54 @@
    ],
    "w": 64,
    "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "track.slice.0": {
+   "group": "decals",
+   "frames": [
+    "track.slice.0#0"
+   ],
+   "w": 48,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "track.slice.1": {
+   "group": "decals",
+   "frames": [
+    "track.slice.1#0"
+   ],
+   "w": 48,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "track.slice.2": {
+   "group": "decals",
+   "frames": [
+    "track.slice.2#0"
+   ],
+   "w": 48,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "track.slice.3": {
+   "group": "decals",
+   "frames": [
+    "track.slice.3#0"
+   ],
+   "w": 48,
+   "h": 96,
    "anchor": [
     0.5,
     0.5

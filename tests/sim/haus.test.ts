@@ -147,3 +147,24 @@ describe('Selbst bauen', () => {
     for (const id of ['hwall-wood', 'hwall-brick', 'hwin-wood', 'hwin-brick', 'hdoor']) expect(RECIPES[id], id).toBeTruthy();
   });
 });
+
+describe('L-förmige Häuser', () => {
+  it('Anbau hinten: geschlossene Außenwand, Durchgang in der Trennwand, zwei Dachflächen', () => {
+    for (let seed = 1; seed <= 6; seed++) {
+      const w = arena({ enemies: 'aus' });
+      expect(w.sites.house(w, 0, 0, 9, 7, 'home', 2, 'plaster', 'slate', h(seed), true, { side: 0, at: 2, w: 5, h: 5 })).toBe(true);
+      expect(w.sites.houses).toHaveLength(2);
+      expect(w.sites.houses[1]).toMatchObject({ x: 2, y: -4, w: 5, h: 5, g: 0 });
+      // Außenring geschlossen: jedes Feld am Rand des Grundrisses ist Wand, Fenster oder Tür
+      const inMask = (x: number, y: number) => (x >= 0 && x < 9 && y >= 0 && y < 7) || (x >= 2 && x < 7 && y >= -4 && y < 1);
+      for (let y = -5; y <= 7; y++) for (let x = -1; x <= 9; x++) {
+        if (!inMask(x, y)) continue;
+        const rim = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [1, 1], [1, -1], [-1, 1]].some(([a, b]) => !inMask(x + a, y + b));
+        if (rim) expect(w.entityAt(x, y)?.kind, `${x},${y}`).toBe('wall');
+      }
+      // Trennwand auf Linie y=0 zwischen x=3..5 mit genau einem Durchgang
+      const gaps = [3, 4, 5].filter((x) => !w.entityAt(x, 0));
+      expect(gaps).toHaveLength(1);
+    }
+  });
+});

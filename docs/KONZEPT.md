@@ -176,6 +176,15 @@ Steinmauern und Holzbarrikaden verbinden sich optisch wie Hauswände. Herstellba
 Türen mit R drehen. Schließen Wände einen rechteckigen Innenraum (bis 144 Felder) ein, bekommt er ein Dach (Wellblech,
 bei Ziegel- und Putzwänden Ziegel), das ausblendet, wenn die Figur drinnen ist; fehlt eine Wand, verschwindet es.
 
+## Geschwungene Landstraßen, L-Häuser, Feldwege (Block D)
+
+Landstraßen (`roadPaths` in `src/data/world.ts`) sind Catmull-Rom-Kurven durch die Wegpunkte mit sanftem Schlängeln
+(bis 3,5 Felder, Wellenlänge 70), alle 0,5 Felder abgetastet. In Orten laufen sie auf das Ende der Hauptstraße zu,
+Zufahrten beginnen am nächsten Punkt einer früheren Straße. Im Boden liegt der Belag „Landstraße“ (Radius 1,3; Tempo
+wie Asphalt); gezeichnet wird die Straße aus gedrehten Querschnitts-Stücken mit Mittellinie (`lib/strasse.py`).
+Wracks alle 60, Masten alle 14 Felder, Alleen entlang der Kurve. Wohnhäuser haben zu 55 % einen Anbau nach hinten
+(L-Form, eigener Raum mit Durchgang); Höfe haben begehbare Bauernhäuser und Feldwege zur Straße und zum Acker.
+
 ## Neue Aufgaben
 
 - **Plündern:** durchsucht Fundorte mit Beute im Umkreis von 90 Feldern ums Feuer (Suchzeit × 1,5), nimmt bis 16

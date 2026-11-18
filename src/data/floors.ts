@@ -32,6 +32,8 @@ export const FLOORS: readonly FloorDef[] = [
   // Innenböden begehbarer Häuser (lib/haus.py)
   { id: 11, item: 'wood', name: 'Dielen', speed: 1.1, sprite: 'floor.planks', mapColor: 0x6e5238, fixed: true },
   { id: 12, item: 'stone', name: 'Fliesen', speed: 1.1, sprite: 'floor.tiles', mapColor: 0x8a8880, fixed: true },
+  // Landstraße (geschwungen): Belag nur für Tempo und Karte; gezeichnet wird sie entlang der Kurve (renderer drawRoads)
+  { id: 13, item: 'stone', name: 'Landstraße', speed: 1.3, sprite: '', mapColor: 0x4a4a4c, fixed: true },
 ];
 
 export const FLOOR_BY_ID: Readonly<Record<number, FloorDef>> = Object.fromEntries(FLOORS.map((f) => [f.id, f]));
@@ -46,6 +48,7 @@ export const ROADLINE_S = 9;
 export const ROADLINE_E = 10;
 export const PLANKS = 11;
 export const TILES = 12;
+export const ROAD_FLOOR = 13;
 export const CONCRETE = 2;
 
 export const FLOOR = { mineTime: 0.1, brushDefault: 2, brushMin: 1, brushMax: 8 } as const;

@@ -1,4 +1,4 @@
-import { WORLD, roadSegments } from '../data/world';
+import { WORLD, roadPaths } from '../data/world';
 import { FLOOR_BY_ID } from '../data/floors';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -199,9 +199,12 @@ export class Minimap {
       ctx.strokeStyle = 'rgba(40,40,42,0.8)';
       ctx.lineWidth = Math.max(1, 2 * scale);
       ctx.beginPath();
-      for (const [ax, ay, bx, by] of roadSegments()) {
-        ctx.moveTo(toX(ax + 1), toY(ay + 1));
-        ctx.lineTo(toX(bx + 1), toY(by + 1));
+      for (const path of roadPaths()) {
+        for (let k = 0; k < path.pts.length; k += 8) {
+          if (k === 0) ctx.moveTo(toX(path.pts[0]), toY(path.pts[1]));
+          else ctx.lineTo(toX(path.pts[k]), toY(path.pts[k + 1]));
+        }
+        ctx.lineTo(toX(path.pts[path.pts.length - 2]), toY(path.pts[path.pts.length - 1]));
       }
       ctx.stroke();
       ctx.font = `${detail ? 13 : 10}px sans-serif`;

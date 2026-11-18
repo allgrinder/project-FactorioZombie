@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_MAP_SETTINGS } from '../../src/data/mapgen';
-import { WORLD, roadSegments } from '../../src/data/world';
+import { WORLD, roadPaths } from '../../src/data/world';
 import { Player } from '../../src/sim/player';
 import { deserializeWorld, serializeWorld } from '../../src/sim/serialize';
 import { World } from '../../src/sim/world';
@@ -27,8 +27,8 @@ describe('Feste Welt', () => {
     }
     const ends = [...WORLD.towns.map((t) => [t.x, t.y]), ...WORLD.outposts.map((o) => [o.x, o.y]), [8, -6]];
     // Zufahrten zweigen von einer Landstraße ab und enden an einem Sonderort
-    const segs = roadSegments();
-    const onRoad = (x: number, y: number) => segs.some(([ax, ay, bx, by]) => x >= Math.min(ax, bx) && x <= Math.max(ax, bx) + 1 && y >= Math.min(ay, by) && y <= Math.max(ay, by) + 1);
+    const paths = roadPaths();
+    const onRoad = (x: number, y: number) => paths.some((p) => { for (let k = 0; k < p.pts.length; k += 2) if (Math.hypot(p.pts[k] - x, p.pts[k + 1] - y) < 40) return true; return false; });
     const nearPlace = (x: number, y: number) => WORLD.places.some((pl) => Math.hypot(pl.x - x, pl.y - y) < 30);
     for (const road of WORLD.roads) {
       for (const p of [road[0], road[road.length - 1]]) {
@@ -66,13 +66,10 @@ describe('Feste Welt', () => {
     expect(count('clinic')).toBe(1);
     expect(w.sites.sites.filter((s) => s.kind === 'town').length).toBeGreaterThanOrEqual(6);
     // Landstraße: durchgehend begehbar und befestigt, auch wo vorher Wasser oder Klippen waren
-    for (const [ax, ay, bx, by] of roadSegments()) {
-      const horiz = ay === by;
-      const lo = horiz ? Math.min(ax, bx) : Math.min(ay, by);
-      const hi = horiz ? Math.max(ax, bx) : Math.max(ay, by);
-      for (let a = lo; a <= hi; a++) {
-        const x = horiz ? a : bx;
-        const y = horiz ? ay : a;
+    for (const path of roadPaths()) {
+      for (let k = 0; k < path.pts.length; k += 2) {
+        const x = Math.floor(path.pts[k]);
+        const y = Math.floor(path.pts[k + 1]);
         if (Math.abs(x - t.x) > 150 || Math.abs(y - t.y) > 150) continue;
         expect(w.map.isBlocked(x, y), `${x},${y}`).toBe(false);
         expect(w.map.floorAt(x, y) > 0 || !!w.entityAt(x, y), `${x},${y}`).toBe(true);

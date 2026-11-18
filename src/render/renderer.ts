@@ -1,4 +1,5 @@
 import { FLOOR_BY_ID } from '../data/floors';
+import { roadPaths } from '../data/world';
 import { Application, Container, type Filter, Graphics, Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
 import { type DrillDef, type InserterDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
@@ -132,6 +133,7 @@ export class GameRenderer {
   private readonly decals = new SpritePool();
   /** Bodenbeläge (Steinpflaster, Beton …) über Boden und Decals, unter Erz und Gebäuden. */
   private readonly floorPool = new SpritePool();
+  private readonly roadPool = new SpritePool();
   private readonly groundItems = new SpritePool();
   private decor: DecorField | null = null;
   private decorMap: unknown = null;
@@ -280,6 +282,7 @@ export class GameRenderer {
       this.ground.container,
       ...(this.water ? [this.water.container, this.waterFx.container] : []),
       this.decals.container,
+      this.roadPool.container,
       this.floorPool.container,
       this.res.container,
     );
@@ -437,6 +440,7 @@ export class GameRenderer {
     this.stats.ground = g.count + rp.count;
     this.drawWater(world, v);
     this.drawDecals(world, v);
+    this.drawRoads(world, v);
     this.drawFloors(world, v);
     this.drawGroundItems(world, v);
   }
@@ -601,13 +605,56 @@ export class GameRenderer {
         }
   }
 
+  /** Geschwungene Landstraßen und Feldwege: Querschnitts-Stücke entlang der Kurve, gedreht, mit Mittellinie. */
+  private drawRoads(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const p = this.roadPool;
+    p.begin();
+    const s = this.sprites;
+    if (s.has('road.slice.0')) {
+      const m = 3;
+      const lay = (pts: readonly number[], ang: readonly number[] | null, prefix: string, dashes: boolean) => {
+        const n = pts.length / 2;
+        for (let q = 0; q < n; q++) {
+          const x = pts[q * 2];
+          const y = pts[q * 2 + 1];
+          if (x < v.x0 - m || x > v.x1 + m || y < v.y0 - m || y > v.y1 + m) continue;
+          const a = ang ? ang[q] : Math.atan2(pts[Math.min(n - 1, q + 1) * 2 + 1] - pts[Math.max(0, q - 1) * 2 + 1], pts[Math.min(n - 1, q + 1) * 2] - pts[Math.max(0, q - 1) * 2]);
+          const sp = p.get(s.frame(`${prefix}.${(q * 7 + Math.floor(x)) & 3}`));
+          sp.position.set(x * TILE, y * TILE);
+          sp.rotation = a;
+          if (dashes && q % 4 === 0) {
+            const d = p.get(s.frame(`road.dash.${q & 3}`));
+            d.position.set((x + Math.cos(a) * 0.25) * TILE, (y + Math.sin(a) * 0.25) * TILE);
+            d.rotation = a;
+          }
+        }
+      };
+      for (const path of roadPaths()) lay(path.pts, path.ang, 'road.slice', false);
+      // Mittellinie in eigenem Durchgang (liegt über allen Stücken)
+      for (const path of roadPaths()) {
+        const n = path.ang.length;
+        for (let q = 0; q < n; q += 4) {
+          const x = path.pts[q * 2];
+          const y = path.pts[q * 2 + 1];
+          if (x < v.x0 - m || x > v.x1 + m || y < v.y0 - m || y > v.y1 + m) continue;
+          const a = path.ang[q];
+          const d = p.get(s.frame(`road.dash.${q & 3}`));
+          d.position.set((x + Math.cos(a) * 0.25) * TILE, (y + Math.sin(a) * 0.25) * TILE);
+          d.rotation = a;
+        }
+      }
+      if (s.has('track.slice.0')) for (const t of world.sites.tracks) lay(t, null, 'track.slice', false);
+    }
+    p.end();
+  }
+
   private drawFloors(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
     const p = this.floorPool;
     p.begin();
     const s = this.sprites;
     world.map.floorsIn(v.x0 - 1, v.y0 - 1, v.x1 + 1, v.y1 + 1, (x, y, id) => {
       const def = FLOOR_BY_ID[id];
-      if (!def) return;
+      if (!def || !def.sprite) return;
       const h = (Math.imul(x * 73856093 ^ y * 19349663, 0x9e3779b1) >>> 0) % 4;
       const name = `${def.sprite}.${h}`;
       if (!s.has(name)) {
@@ -1213,10 +1260,19 @@ export class GameRenderer {
     const px = p && !p.dead ? p.x : -1e9;
     const py = p && !p.dead ? p.y : -1e9;
     const lift = ROOF_LIFT * TILE;
-    for (const h of world.sites.houses) {
+    const hs = world.sites.houses;
+    const within = (h: (typeof hs)[number]) => px >= h.x && px < h.x + h.w && py >= h.y - 0.2 && py < h.y + h.h;
+    // Haupthaus und Anbau blenden gemeinsam aus
+    const groupIn = new Set<number>();
+    hs.forEach((h, i) => {
+      if (!within(h)) return;
+      groupIn.add(h.g ?? i);
+    });
+    for (let hi = 0; hi < hs.length; hi++) {
+      const h = hs[hi];
       if (h.x > v.x1 + 1 || h.x + h.w < v.x0 - 1 || h.y > v.y1 + 2 || h.y + h.h < v.y0 - 1) continue;
       const key = `${h.x},${h.y}`;
-      const inside = px >= h.x && px < h.x + h.w && py >= h.y - 0.2 && py < h.y + h.h;
+      const inside = groupIn.has(h.g ?? hi);
       const a0 = this.roofAlpha.get(key) ?? 1;
       const a = Math.max(0, Math.min(1, a0 + (inside ? -0.12 : 0.08)));
       this.roofAlpha.set(key, a);
