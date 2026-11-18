@@ -276,6 +276,11 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
   nach Nordwesten (Gittermasten alle 26 Felder, Seile im Renderer), Campingplatz am See bei Moorbrück (Wohnwagen als Fundorte,
   Kuppelzelte, Feuerstellen, Waschhaus), Sägewerk im Wald (offene Halle, Stammstapel, Traktor).
 
+## Landschaftsregionen (`REGIONS` in `src/data/decor.ts`, `models/heide.py`)
+- Großräumiges Rauschen (Maßstab 150 Felder) teilt das Land: Heide auf trockenem Boden (Heidekraut-Teppiche, Wacholder,
+  bräunlich-lila Boden) und Moor auf feuchtem Boden (Wollgras, Torfmoos mit Wasserlöchern, Schilf, olivbrauner Boden);
+  weicher Farbübergang in der Bodenfarbe. Nur Darstellung.
+
 ## Feinschliff Welt
 - Laub aller Bäume und Sträucher um gut ein Fünftel aufgehellt (Wälder wirkten fast schwarz).
 - Trampelpfade (nur Darstellung, `TRAILS`): wo Figur und Bewohner oft gehen, wird das Gras zu Erde; verblasst langsam.

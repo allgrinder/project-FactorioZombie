@@ -134,7 +134,7 @@ const ROOF_GRIME = ['decal.weeds', 'decal.leaves', 'decal.weeds', 'decal.trash']
 /** Flecken, die auch auf Straße, Gehweg und Hausboden liegen. */
 const URBAN_DECALS = new Set(['blood', 'trash', 'burnt', 'tracks', 'puddle', 'weeds', 'leaves', 'papers', 'glass']);
 const BUSHY = new Set(['rocks', 'shrub', 'thicket', 'bramble', 'boulder']);
-const LEAFY = new Set(['shrub', 'fern', 'bramble', 'thicket', 'tallgrass', 'wild', 'reed']);
+const LEAFY = new Set(['shrub', 'fern', 'bramble', 'thicket', 'tallgrass', 'wild', 'reed', 'heather', 'cottongrass', 'moorreed']);
 
 export class Camera {
   x = 0;
@@ -994,7 +994,7 @@ export class GameRenderer {
       sp.position.set(d.x * TILE, d.y * TILE);
       sp.zIndex = d.y * TILE;
       if (LEAFY.has(d.kind.id)) {
-        sp.tint = this.seasonTint(world, swapped ? 2 : d.kind.id === 'tallgrass' ? 3 : 0, Math.floor(d.x * 7 + d.y * 13));
+        sp.tint = this.seasonTint(world, swapped ? 2 : d.kind.id === 'tallgrass' || d.kind.id === 'cottongrass' || d.kind.id === 'heather' ? 3 : 0, Math.floor(d.x * 7 + d.y * 13));
         sp.skew.x = this.windSway(world, d.x, d.y) * (d.kind.id === 'tallgrass' || d.kind.id === 'reed' ? 1.6 : 0.8);
       }
     }

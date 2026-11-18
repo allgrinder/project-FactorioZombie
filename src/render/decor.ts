@@ -1,7 +1,15 @@
-import { DECOR, type DecorKind, GROVE, WATER_NEAR } from '../data/decor';
+import { DECOR, type DecorKind, GROVE, REGIONS, WATER_NEAR } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import type { GameMap } from '../sim/map';
 import { hash01, valueNoise } from '../sim/rng';
+
+/** Landschaftsregion an (x, y): Heide, Moor oder normales Land. */
+export function regionAt(seed: number, x: number, y: number, fertility: number): 'heath' | 'moor' | null {
+  const n = valueNoise(seed + 9191, x / REGIONS.scale, y / REGIONS.scale);
+  if (n < REGIONS.heath && fertility < REGIONS.heathFertility) return 'heath';
+  if (n > REGIONS.moor && fertility > REGIONS.moorFertility) return 'moor';
+  return null;
+}
 
 export interface DecorItem {
   kind: DecorKind;
@@ -82,6 +90,7 @@ export class DecorField {
           const h = (k: number) => hash01(this.seed ^ 0x5eed, gx * 977 + ki, gy * 613 + ki * 31, k);
           const x = gx * c + h(1) * c;
           const y = gy * c + h(2) * c;
+          if (kind.region && regionAt(this.seed, x, y, this.fertility(Math.floor(x), Math.floor(y))) !== kind.region) continue;
           let p = kind.chance;
           const f = kind.fertility || kind.groveBoost ? this.fertility(Math.floor(x), Math.floor(y)) : 0.5;
           if (kind.fertility) p *= Math.max(0.05, 1 + kind.fertility * (2 * f - 1));

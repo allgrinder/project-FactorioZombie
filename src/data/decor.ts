@@ -23,6 +23,8 @@ export interface DecorKind {
   readonly shadow: boolean;
   /** Flache Flecken zufällig drehen und strecken (nur ohne gerichtete Schatten sinnvoll). */
   readonly warp?: boolean;
+  /** Nur in dieser Landschaftsregion (Heide bzw. Moor, siehe REGIONS). */
+  readonly region?: 'heath' | 'moor';
   /** Nur auf Wasser nahe dem Ufer (Seerosen). */
   readonly water?: boolean;
   /** Nur auf Belägen (Straße, Gehweg, Hof): Unkraut in Ritzen. */
@@ -73,6 +75,12 @@ export const DECOR: readonly DecorKind[] = [
   { id: 'stump', sprite: 'flora.stump', layer: 'flora', cell: 8, chance: 0.025, groveBoost: 5, clearOfResources: 2, clearOfSpawn: 8, shadow: true },
   { id: 'deadwood', sprite: 'flora.deadwood', layer: 'flora', cell: 7, chance: 0.02, groveBoost: 6, clearOfResources: 2, clearOfSpawn: 8, shadow: true },
   { id: 'mushroom', sprite: 'flora.mushroom', layer: 'flora', cell: 6, chance: 0.012, groveBoost: 7, clearOfResources: 1, clearOfSpawn: 6, shadow: true, fertility: 0.8 },
+  // Heide: Heidekraut-Teppiche, Wacholder; Moor: Wollgras, Torfmoos, Schilf
+  { id: 'heather', sprite: 'flora.heather', layer: 'flora', cell: 2, chance: 0.45, region: 'heath', clearOfResources: 1, clearOfSpawn: 6, shadow: true },
+  { id: 'juniper', sprite: 'flora.juniper', layer: 'flora', cell: 5, chance: 0.18, region: 'heath', clearOfResources: 1, clearOfSpawn: 8, shadow: true },
+  { id: 'cottongrass', sprite: 'flora.cottongrass', layer: 'flora', cell: 2, chance: 0.35, region: 'moor', clearOfResources: 1, clearOfSpawn: 6, shadow: true },
+  { id: 'peat', sprite: 'decal.peat', layer: 'decal', cell: 3, chance: 0.4, region: 'moor', clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
+  { id: 'moorreed', sprite: 'flora.reed', layer: 'flora', cell: 3, chance: 0.2, region: 'moor', clearOfResources: 1, clearOfSpawn: 6, shadow: true },
   { id: 'boulder', sprite: 'flora.boulder', layer: 'flora', cell: 11, chance: 0.12, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: -0.7 },
   { id: 'rocks', sprite: 'flora.rocks', layer: 'flora', cell: 23, chance: 0.12, clearOfResources: 2, clearOfSpawn: 10, shadow: true, fertility: -1.0 },
 ];
@@ -123,3 +131,9 @@ export const TREE_GROUP_IDS: readonly TreeGroup[] = ['mixed', 'birch', 'oak', 'c
 
 /** Artenflecken der wilden Laubbäume: Rauschmaßstab (Felder), Anteil Jungbäume, Fruchtbarkeit für Ufergehölz. */
 export const TREE_PATCH = { scale: 34, young: 0.14, water: 0.82 } as const;
+
+/**
+ * Landschaftsregionen (nur Darstellung): großräumiges Rauschen teilt das Land in Heide (trocken, offen, Heidekraut und
+ * Wacholder, bräunlich-lila Boden) und Moor (feucht, Wollgras, Torfmoos, olivbraun). Dazwischen normales Grünland.
+ */
+export const REGIONS = { scale: 150, heath: 0.3, moor: 0.72, moorFertility: 0.5, heathFertility: 0.62, heathTint: 0xf0dcd8, moorTint: 0xc8c8a8 } as const;

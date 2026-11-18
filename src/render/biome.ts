@@ -1,4 +1,5 @@
-import { BIOME } from '../data/decor';
+import { BIOME, REGIONS } from '../data/decor';
+import { valueNoise as simNoise } from '../sim/rng';
 import { LOOK } from '../data/look';
 import type { GameMap } from '../sim/map';
 
@@ -77,7 +78,14 @@ export class BiomeField {
     const m = LOOK.macro;
     // Farbflecken: saftig grüne und strohgelbe Wiesenstücke (großräumig, unabhängig von der Helligkeit)
     const hue = valueNoise(tx / m.hueScale, ty / m.hueScale, 37) * 0.7 + valueNoise(tx / (m.hueScale * 0.35), ty / (m.hueScale * 0.35), 41) * 0.3;
-    const c = mulColor(biomeColor(this.fertility(tx, ty)), lerpColor(m.hueDry, m.hueLush, Math.max(0, Math.min(1, (hue - 0.5) * 1.8 + 0.5))));
+    let c = mulColor(biomeColor(this.fertility(tx, ty)), lerpColor(m.hueDry, m.hueLush, Math.max(0, Math.min(1, (hue - 0.5) * 1.8 + 0.5))));
+    // Landschaftsregionen: weicher Übergang in Heide- bzw. Moorfarbe
+    const f = this.fertility(tx, ty);
+    const n = simNoise(this.map.seed + 9191, tx / REGIONS.scale, ty / REGIONS.scale);
+    const wh = f < REGIONS.heathFertility ? Math.max(0, Math.min(1, (REGIONS.heath + 0.04 - n) / 0.08)) : 0;
+    const wm = f > REGIONS.moorFertility ? Math.max(0, Math.min(1, (n - REGIONS.moor + 0.04) / 0.08)) : 0;
+    if (wh > 0) c = mulColor(c, lerpColor(0xffffff, REGIONS.heathTint, wh));
+    if (wm > 0) c = mulColor(c, lerpColor(0xffffff, REGIONS.moorTint, wm));
     const k = 1 + m.amp * (valueNoise(tx / m.scale, ty / m.scale, 11) * 2 - 1) + m.amp2 * (valueNoise(tx / m.scale2, ty / m.scale2, 23) * 2 - 1);
     return scaleColor(c, k);
   }
