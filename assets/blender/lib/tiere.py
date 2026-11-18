@@ -146,3 +146,25 @@ def hide():
     for x in (-0.18, 0.18):
         o.append(eisen.cylinder(f'c{x}', 0.19, 0.03, (x, 0, 0.18), cord, segments=16, rot=(0, math.pi / 2, 0)))
     return eisen.parent_all(o, 'hide')
+
+
+def duck(v=0):
+    """Ente (schwimmend, Nase nach Süden): Erpel mit grünem Kopf (v0) oder braune Ente (v1)."""
+    body = _fur(f'dk_body{v}', ('#8a8678', '#7a6448')[v], 0.6)
+    head = _fur(f'dk_head{v}', ('#2a5a3a', '#6a5038')[v], 0.4)
+    bill = _fur('dk_bill', '#d8a830', 0.4)
+    o = [sphere('body', 0.5, (0, 0.02, 0.06), body, 14, (0.2, 0.34, 0.14))]
+    o.append(sphere('tail', 0.5, (0, 0.18, 0.1), body, 8, (0.1, 0.12, 0.08)))
+    o.append(sphere('head', 0.5, (0, -0.16, 0.17), head, 10, (0.1, 0.11, 0.1)))
+    o.append(sphere('bill', 0.5, (0, -0.24, 0.16), bill, 8, (0.05, 0.08, 0.03)))
+    return eisen.parent_all(o, 'duck')
+
+
+def ripple(k):
+    """Wellenring (von oben): dünner heller Torus, k = Ausbreitung 0..1."""
+    import bpy
+    r = 0.15 + k * 0.45
+    bpy.ops.mesh.primitive_torus_add(major_radius=r, minor_radius=0.012 + 0.01 * (1 - k), location=(0, 0, 0.01))
+    ob = bpy.context.object
+    ob.data.materials.append(eisen.material('ripple', (0.75, 0.82, 0.85), rough=0.2))
+    return ob

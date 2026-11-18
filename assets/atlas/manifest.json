@@ -2327,7 +2327,7 @@
    ]
   },
   "tiere": {
-   "hash": "dea2a39dfc4f3672",
+   "hash": "6985394977a07db0",
    "sprites": [
     "animal.deer.0",
     "animal.deer.0.nrm",
@@ -2457,7 +2457,43 @@
     "crow.fly.7.nrm",
     "item.raw-meat",
     "item.cooked-meat",
-    "item.hide"
+    "item.hide",
+    "duck.0.0",
+    "duck.0.0.nrm",
+    "duck.0.1",
+    "duck.0.1.nrm",
+    "duck.0.2",
+    "duck.0.2.nrm",
+    "duck.0.3",
+    "duck.0.3.nrm",
+    "duck.0.4",
+    "duck.0.4.nrm",
+    "duck.0.5",
+    "duck.0.5.nrm",
+    "duck.0.6",
+    "duck.0.6.nrm",
+    "duck.0.7",
+    "duck.0.7.nrm",
+    "duck.1.0",
+    "duck.1.0.nrm",
+    "duck.1.1",
+    "duck.1.1.nrm",
+    "duck.1.2",
+    "duck.1.2.nrm",
+    "duck.1.3",
+    "duck.1.3.nrm",
+    "duck.1.4",
+    "duck.1.4.nrm",
+    "duck.1.5",
+    "duck.1.5.nrm",
+    "duck.1.6",
+    "duck.1.6.nrm",
+    "duck.1.7",
+    "duck.1.7.nrm",
+    "fx.ripple.0",
+    "fx.ripple.1",
+    "fx.ripple.2",
+    "fx.ripple.3"
    ]
   },
   "ufer": {
@@ -7629,6 +7665,54 @@
     0.5
    ]
   },
+  "fx.ripple.0": {
+   "group": "effects",
+   "frames": [
+    "fx.ripple.0#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.ripple.1": {
+   "group": "effects",
+   "frames": [
+    "fx.ripple.1#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.ripple.2": {
+   "group": "effects",
+   "frames": [
+    "fx.ripple.2#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.ripple.3": {
+   "group": "effects",
+   "frames": [
+    "fx.ripple.3#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "fx.smoke.0": {
    "group": "effects",
    "frames": [
@@ -10298,6 +10382,198 @@
    "anchor": [
     0.22727272727272727,
     0.22727272727272727
+   ]
+  },
+  "duck.0.0": {
+   "group": "entities",
+   "frames": [
+    "duck.0.0#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.1": {
+   "group": "entities",
+   "frames": [
+    "duck.0.1#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.2": {
+   "group": "entities",
+   "frames": [
+    "duck.0.2#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.3": {
+   "group": "entities",
+   "frames": [
+    "duck.0.3#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.4": {
+   "group": "entities",
+   "frames": [
+    "duck.0.4#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.5": {
+   "group": "entities",
+   "frames": [
+    "duck.0.5#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.6": {
+   "group": "entities",
+   "frames": [
+    "duck.0.6#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.7": {
+   "group": "entities",
+   "frames": [
+    "duck.0.7#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.0": {
+   "group": "entities",
+   "frames": [
+    "duck.1.0#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.1": {
+   "group": "entities",
+   "frames": [
+    "duck.1.1#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.2": {
+   "group": "entities",
+   "frames": [
+    "duck.1.2#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.3": {
+   "group": "entities",
+   "frames": [
+    "duck.1.3#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.4": {
+   "group": "entities",
+   "frames": [
+    "duck.1.4#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.5": {
+   "group": "entities",
+   "frames": [
+    "duck.1.5#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.6": {
+   "group": "entities",
+   "frames": [
+    "duck.1.6#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.7": {
+   "group": "entities",
+   "frames": [
+    "duck.1.7#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
    ]
   },
   "dumpster.v0": {
@@ -29321,6 +29597,198 @@
    "anchor": [
     0.5,
     0.6153846153846154
+   ]
+  },
+  "duck.0.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.0.0.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.0.1.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.0.2.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.0.3.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.0.4.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.0.5.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.0.6.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.0.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.0.7.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.1.0.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.1.1.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.1.2.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.1.3.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.1.4.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.1.5.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.1.6.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "duck.1.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "duck.1.7.nrm#0"
+   ],
+   "w": 48,
+   "h": 48,
+   "anchor": [
+    0.5,
+    0.55
    ]
   },
   "dumpster.v0.nrm": {

@@ -289,6 +289,8 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
   schwelen noch (Rauch, nachts Glut, `AMBIENT.burningWrecks`).
 - Ortsparks in Dörfern und Städten (Brunnen, Rutsche, Sandkasten, Klettergerüst, Schaukel, Bänke; `lib/park.py`), Bootsstege
   bei Ruderbooten.
+- Wasserleben (nur Darstellung): Entengruppen schwimmen auf Seen und flüchten vor der Figur, Fische springen (Wellenringe); nicht
+  im Winter.
 - Kulturlandschaft (`lib/flurstuecke.py`): Hochsitze an Waldrändern (Wald ringsum, eine Seite frei), Vogelscheuchen auf 60 % der
   Äcker, Feldsteinmauern statt Zaun an 35 % der Äcker (30 % nur zweiseitig eingefasst), Wegkreuze und Wegweiser an Landstraßen.
 - Freileitungen zwischen den Holzmasten an Landstraßen; ferne Schüsse, Hundegebell, Explosionen; Brocken und Schreier in je zwei

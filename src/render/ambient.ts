@@ -57,6 +57,9 @@ export class AmbientLife {
   private readonly smokeTex: Texture[] = [];
   private readonly smoke: Mote[] = [];
   private readonly mist: Mote[] = [];
+  /** Enten auf dem Wasser (Gruppen) und Wellenringe springender Fische. */
+  private readonly ducks: { x: number; y: number; dir: number; tx: number; ty: number; v: number; wait: number }[] = [];
+  private readonly ripples: { x: number; y: number; age: number }[] = [];
   /** Hubschrauber auf dem Überflug (Weltlage in Feldern), sonst null. */
   heli: { x: number; y: number; vx: number; vy: number; dir: number; age: number } | null = null;
   /** Schwelende Ruinen im Bild (vom Renderer je Bild gefüllt). */
@@ -161,11 +164,80 @@ export class AmbientLife {
       l.position.set(m.x * T, (m.y - m.z * 0.6) * T);
       l.alpha = Math.min(1, (m.life - m.age) / 40);
     }
+    this.updateWater(world, dt, view, pool);
     this.updateHeli(world, dt, t, view, pool);
     this.updateSmoke(world, dt, t, pool);
     this.updateMist(world, dt, t, view, pool);
     pool.end();
     glow.end();
+  }
+
+  /** Wasserleben: Enten schwimmen langsam umher (flüchten vor der Figur), Fische springen. Nur bei Tag bzw. ohne Eis. */
+  private updateWater(world: World, dt: number, view: { x0: number; y0: number; x1: number; y1: number }, pool: SpritePool): void {
+    const T = this.tile;
+    const winter = world.settings.plan && world.weather.season(world.tick) === 'winter';
+    const water = (x: number, y: number) => world.map.isWater(Math.floor(x), Math.floor(y));
+    // neue Entengruppe auf sichtbarem Wasser
+    if (!winter && this.ducks.length < AMBIENT.ducks && this.sprites.has('duck.0.0') && Math.random() < 0.01 * dt) {
+      const x = view.x0 + Math.random() * (view.x1 - view.x0);
+      const y = view.y0 + Math.random() * (view.y1 - view.y0);
+      if (water(x, y) && water(x + 1, y) && water(x - 1, y) && water(x, y + 1)) {
+        const v = Math.random() < 0.5 ? 0 : 1;
+        for (let i = 0; i < 2 + Math.floor(Math.random() * 3); i++) this.ducks.push({ x: x + (Math.random() - 0.5) * 2, y: y + (Math.random() - 0.5) * 1.5, dir: 0, tx: x, ty: y, v: i === 0 ? v : 1, wait: Math.random() * 100 });
+      }
+    }
+    const p = world.player;
+    for (let i = this.ducks.length - 1; i >= 0; i--) {
+      const d = this.ducks[i];
+      if (d.x < view.x0 - 20 || d.x > view.x1 + 20 || d.y < view.y0 - 20 || d.y > view.y1 + 20 || winter) {
+        this.ducks.splice(i, 1);
+        continue;
+      }
+      d.wait -= dt;
+      const scared = p && !p.dead && Math.hypot(p.x - d.x, p.y - d.y) < 4;
+      if (scared) {
+        const a = Math.atan2(d.y - p.y, d.x - p.x);
+        d.tx = d.x + Math.cos(a) * 4;
+        d.ty = d.y + Math.sin(a) * 4;
+      } else if (d.wait <= 0) {
+        d.tx = d.x + (Math.random() - 0.5) * 5;
+        d.ty = d.y + (Math.random() - 0.5) * 4;
+        d.wait = 120 + Math.random() * 300;
+      }
+      const dx = d.tx - d.x;
+      const dy = d.ty - d.y;
+      const len = Math.hypot(dx, dy);
+      if (len > 0.05) {
+        const sp = (scared ? 0.05 : 0.008) * dt;
+        const nx = d.x + (dx / len) * Math.min(sp, len);
+        const ny = d.y + (dy / len) * Math.min(sp, len);
+        if (water(nx, ny) && water(nx + 0.4, ny) && water(nx - 0.4, ny)) {
+          d.x = nx;
+          d.y = ny;
+          d.dir = ((Math.round(((Math.atan2(dy, dx) + Math.PI / 2) / (Math.PI * 2)) * 8) % 8) + 8) % 8;
+        } else d.wait = 0;
+      }
+      const s = pool.get(this.sprites.frame(`duck.${d.v}.${d.dir}`));
+      s.position.set(d.x * T, (d.y + Math.sin((world.tick + i * 40) * 0.05) * 0.02) * T);
+    }
+    // springende Fische
+    if (!winter && this.sprites.has('fx.ripple.0') && Math.random() < 0.015 * dt) {
+      const x = view.x0 + Math.random() * (view.x1 - view.x0);
+      const y = view.y0 + Math.random() * (view.y1 - view.y0);
+      if (water(x, y) && water(x + 1, y + 1) && water(x - 1, y - 1)) this.ripples.push({ x, y, age: 0 });
+    }
+    for (let i = this.ripples.length - 1; i >= 0; i--) {
+      const r = this.ripples[i];
+      r.age += dt;
+      if (r.age > 80) {
+        this.ripples.splice(i, 1);
+        continue;
+      }
+      const k = r.age / 80;
+      const s = pool.get(this.sprites.frame(`fx.ripple.${Math.min(3, Math.floor(k * 4))}`));
+      s.position.set(r.x * T, r.y * T);
+      s.alpha = 0.55 * (1 - k);
+    }
   }
 
   /** Hubschrauber: selten am Tag ein Überflug quer durchs Bild, hoch oben, mit Schatten am Boden. */

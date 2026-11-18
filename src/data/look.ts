@@ -46,6 +46,8 @@ export const AMBIENT = {
   mistAlpha: 0.22,
   /** Hubschrauber-Überflug: Wahrscheinlichkeit je Tick am Tag, Tempo (Felder je Tick). */
   heliChance: 0.00006,
+  /** Enten im Bild (höchstens). */
+  ducks: 10,
   /** Anteil der Fahrzeugwracks, die noch schwelen (Rauch, nachts Glut). */
   burningWrecks: 0.07,
   heliSpeed: 0.12,

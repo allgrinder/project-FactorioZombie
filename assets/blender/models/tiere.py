@@ -62,3 +62,16 @@ def render(out):
         root.rotation_euler = (0, 0, math.radians(20))
         eisen.camera(1, 1, anchor=(0.5, 0.56))
         out.add(f'item.{name}', 'items', [out.render_frame(f'item.{name}', 0)], (0.5, 0.5))
+    # Enten (8 Richtungen, zwei Arten) und Wellenringe (4 Stufen) für das Leben auf dem Wasser
+    for v in range(2):
+        for k in range(8):
+            eisen.reset(samples=20, ground=False)
+            root = tiere.duck(v)
+            root.rotation_euler = (0, 0, math.pi - k * math.pi / 4)
+            eisen.camera(0.75, 0.75, anchor=(0.5, 0.55))
+            out.add(f'duck.{v}.{k}', 'entities', [out.render_frame(f'duck.{v}.{k}', 0)], (0.5, 0.55))
+    for k in range(4):
+        eisen.reset(samples=12, ground=False)
+        tiere.ripple(k / 3)
+        eisen.camera(1.5, 1.5, tilt=0.0)
+        out.add(f'fx.ripple.{k}', 'effects', [out.render_frame(f'fx.ripple.{k}', 0)], (0.5, 0.5))
