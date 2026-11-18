@@ -518,7 +518,10 @@ export class GameRenderer {
     const veil = wk === 'fog' ? 0.24 : wk === 'storm' ? 0.16 : wk === 'rain' ? 0.1 : wk === 'snow' ? 0.08 : 0;
     if (wk === 'storm' && Math.random() < 0.004) this.flash = 0.55;
     this.flash *= 0.9;
-    for (const [a, tint] of [[veil, wk === 'fog' ? 0xc8ccd0 : 0x6a7280], [this.flash, 0xffffff]] as const) {
+    // Schleier liegt über der Nachtebene: nachts entsprechend dunkler (sonst leuchtet Nebel in der Nacht)
+    const nk = Math.round(255 * (1 - 0.88 * world.darkness));
+    const veilTint = mulTint(wk === 'fog' ? 0xc8ccd0 : 0x6a7280, (nk << 16) | (nk << 8) | nk);
+    for (const [a, tint] of [[veil, veilTint], [this.flash, 0xffffff]] as const) {
       if (a < 0.01) continue;
       const sp = p.get(Texture.WHITE);
       sp.anchor.set(0);
@@ -961,7 +964,7 @@ export class GameRenderer {
           const sp = this.ents.get(s.frame(name));
           sp.position.set(t.x * TILE, t.y * TILE);
           sp.zIndex = t.y * TILE;
-          sp.tint = this.seasonTint(world, t.kind, t.tx * 31 + t.ty * 17 + t.variant);
+          sp.tint = name.startsWith('flora.autumn') || name.startsWith('flora.bare') ? this.seasonTint(world, 2, t.tx * 31 + t.ty * 17) : this.seasonTint(world, t.kind, t.tx * 31 + t.ty * 17 + t.variant);
           sp.scale.set(0.9 + ((t.tx * 13 + t.ty * 7) & 7) * 0.03);
           sp.skew.x = this.windSway(world, t.x, t.y) * (t.kind === 2 ? 0.3 : 1);
         }
@@ -1107,6 +1110,8 @@ export class GameRenderer {
 
   private treeCounts: number[] | null = null;
   /** Sprite einer Baumart/Variante; fehlt die Art (z. B. abgestorbene Bäume), wird ein normaler Baum gezeigt. */
+  private autumnCount = -1;
+  private bareCount = -1;
   private treeSprite(world: World, t: { kind: number; variant: number; x: number; y: number; tx: number; ty: number }): string | null {
     const kinds = MAPGEN.trees.kinds;
     if (!this.treeCounts) this.treeCounts = kinds.map((k) => this.sprites.countPrefix(`${k.sprite}.`));
@@ -1130,6 +1135,16 @@ export class GameRenderer {
       v = v + (h >> 4);
     }
     const idx = group[v % group.length];
+    // Jahreszeit: Herbstlaub (die meisten Bäume) bzw. kahl im Winter
+    const season = world.settings.plan ? world.weather.season(world.tick) : 'summer';
+    const hs = ((Math.imul(t.tx, 2654435761) ^ Math.imul(t.ty, 40503)) >>> 0) % 100;
+    if (season === 'autumn' && hs < 75) {
+      if (this.autumnCount < 0) this.autumnCount = this.sprites.countPrefix('flora.autumn.');
+      if (this.autumnCount > 0) return `flora.autumn.${(idx + hs) % this.autumnCount}`;
+    } else if (season === 'winter') {
+      if (this.bareCount < 0) this.bareCount = this.sprites.countPrefix('flora.bare.');
+      if (this.bareCount > 0) return `flora.bare.${(idx + hs) % this.bareCount}`;
+    }
     return `${kinds[0].sprite}.${idx < n ? idx : t.variant % 8}`;
   }
 
@@ -1612,6 +1627,7 @@ export class GameRenderer {
     const lift = ROOF_LIFT * TILE;
     const hs = world.sites.houses;
     if (this.ambient) this.ambient.smokers.length = 0;
+    const snowy = world.settings.plan && world.weather.winter;
     const within = (h: (typeof hs)[number]) => px >= h.x && px < h.x + h.w && py >= h.y - 0.2 && py < h.y + h.h;
     // Haupthaus und Anbau blenden gemeinsam aus
     const groupIn = new Set<number>();
@@ -1665,6 +1681,17 @@ export class GameRenderer {
           if (world.weather.winter) sp.tint = mulTint(sp.tint, 0xe2e7ee);
           if (burnt) sp.tint = 0x34302c;
           sp.zIndex = (h.y + h.h) * TILE - 2;
+          // Schnee auf dem Dach (Winter, nicht über Brandruinen)
+          if (snowy && !burnt) {
+            const sn = this.ents.get(Texture.WHITE);
+            sn.anchor.set(0.5);
+            sn.width = TILE * sx * 1.02;
+            sn.height = TILE * sy * 1.02;
+            sn.position.copyFrom(sp.position);
+            sn.tint = 0xeef2f6;
+            sn.alpha = a * (0.55 + (((h.x + i) * 7 + (h.y + j) * 3) % 5) * 0.06);
+            sn.zIndex = sp.zIndex + 0.3;
+          }
           // Flachdächer: Moos, Pfützen, Laub und Unrat
           if (kind === 'flat') {
             const rh = ((Math.imul(h.x + i, 2654435761) ^ Math.imul(h.y + j, 40503)) >>> 0) % 1000;
