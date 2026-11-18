@@ -603,7 +603,10 @@ export class SiteSystem {
         if (w.map.isWater(bx, by) || w.map.isWater(bx + 1, by)) continue;
         if (!(w.map.isWater(bx, by + 1) || w.map.isWater(bx, by - 1) || w.map.isWater(bx - 1, by) || w.map.isWater(bx + 2, by))) continue;
         if (Math.hypot(bx, by) < SITES.startFree * 0.6) continue;
-        if (this.put(w, 'rowboat', bx, by)) break;
+        if (this.put(w, 'rowboat', bx, by)) {
+          if (hash01(s, gx, gy, 899) < 0.6) this.put(w, 'jetty', bx, by + (w.map.isWater(bx, by + 1) ? -1 : 1));
+          break;
+        }
       }
     }
     if (hash01(s, gx, gy, 811) >= WORLD.wildChance) return;
@@ -673,6 +676,7 @@ export class SiteSystem {
     const n = WORLD.crossStreets[t.size - 1];
     const cl = WORLD.crossLength[t.size - 1];
     // Dorfplatz mit Kirche (ab Dorfgröße) an einer zufälligen Stelle der Hauptstraße
+    let parkTry: (() => void) | null = null;
     if (t.size >= 2) {
       const a = Math.round((hs(50)(1) - 0.5) * len * 0.5);
       const side = hs(50)(2) < 0.5 ? -1 : 1;
@@ -685,6 +689,15 @@ export class SiteSystem {
       this.house(w, horizontal ? px + 13 : px, horizontal ? py + (side < 0 ? -3 : 1) : py + 13, horizontal ? cw : ch, horizontal ? ch : cw,
         'church', horizontal ? (side < 0 ? 2 : 0) : side < 0 ? 1 : 3, 'plaster', 'slate', hs(51), true);
       this.cemetery(w, horizontal ? px : px + (side < 0 ? -13 : 11), horizontal ? py + (side < 0 ? -13 : 11) : py, horizontal, hs(52));
+      // Park auf der anderen Seite der Hauptstraße: Wege, Brunnen, Spielplatz, Bänke, Bäume
+      parkTry = () => { for (const shift of [0, 16, -16, 30, -30, 44, -44]) {
+        for (const sd of [-side, side]) {
+          const qx = t.x + (horizontal ? a - 6 + shift : sd < 0 ? 4 : -17);
+          const qy = t.y + (horizontal ? (sd < 0 ? 4 : -13) : a - 6 + shift);
+          if (this.park(w, qx, qy, horizontal ? 13 : 10, horizontal ? 10 : 13, hs(53), t.id)) break;
+        }
+        if (this.parks.has(t.id)) break;
+      } };
     }
     for (let k = 0; k < n; k++) {
       // Querstraßen an unregelmäßigen Stellen, zu beiden Seiten nach Los, unterschiedlich lang
@@ -710,6 +723,8 @@ export class SiteSystem {
         this.street(w, sx, sy, horizontal, sl, 'homes', hs(70 + k), true);
       }
     }
+    // Park zuletzt, damit er Straßen und Häusern nicht im Weg ist
+    (parkTry as (() => void) | null)?.();
   }
 
   /**
@@ -784,6 +799,29 @@ export class SiteSystem {
   }
 
   /** Umfassung aus Einzelteilen (Mauer, Zaun) mit Lücke für eine Einfahrt (gate: Seite, gw: Breite, gateName: Tor). */
+  /** Ortspark: frei nur, wenn der Platz unbebaut ist. Kreuzweg, Brunnen in der Mitte, Spielgeräte, Bänke, Bäume. */
+  private readonly parks = new Set<string>();
+  private park(w: World, x0: number, y0: number, W: number, H: number, h: (n: number) => number, town = ''): boolean {
+    for (let y = y0; y < y0 + H; y++) for (let x = x0; x < x0 + W; x++) if (w.map.floorAt(x, y) || w.entityAt(x, y) || this.houses.some((hs) => x >= hs.x - 1 && x <= hs.x + hs.w && y >= hs.y - 1 && y <= hs.y + hs.h)) return false;
+    this.parks.add(town);
+    this.ground(w, x0, y0, x0 + W - 1, y0 + H - 1);
+    const cx = x0 + Math.floor(W / 2);
+    const cy = y0 + Math.floor(H / 2);
+    for (let x = x0; x < x0 + W; x++) this.paint(w, x, cy, PAVEMENT);
+    for (let y = y0; y < y0 + H; y++) this.paint(w, cx, y, PAVEMENT);
+    for (let y = cy - 2; y <= cy + 2; y++) for (let x = cx - 2; x <= cx + 2; x++) this.paint(w, x, y, PAVEMENT);
+    this.put(w, 'fountain', cx - 1, cy - 1, true);
+    const spots: [string, number, number][] = [['slide', x0 + 1, y0 + 1], ['sandbox', x0 + W - 3, y0 + 1], ['climber', x0 + 1, y0 + H - 3], ['swing', x0 + W - 3, y0 + H - 2]];
+    for (const [n, x, y] of spots) if (h(10 + x) < 0.85) this.put(w, n, x, y, true);
+    this.put(w, 'bench', cx + 2, cy - 3, true);
+    this.put(w, 'bench', cx - 3, cy + 3, true);
+    this.put(w, 'trash-bin', cx + 3, cy + 3, true);
+    for (const [x, y] of [[x0 + 0.5, cy - 2.5], [x0 + W - 1.5, cy + 2.5], [cx - 3.5, y0 + 0.5], [cx + 3.5, y0 + H - 1.5]]) this.tree(w, x, y, 0, 'town');
+    if (h(20) < 0.5) this.put(w, 'corpse', cx + 1, cy + 2, true);
+    this.sites.push({ x: cx, y: cy, r: 7, weight: 1.2, kind: 'town' });
+    return true;
+  }
+
   /** Friedhof neben dem Dorfplatz: Hecke ringsum, Gräberreihen mit Weg, Grabsteine, Kreuze, offene Gräber, Eiben. */
   private cemetery(w: World, x0: number, y0: number, horizontal: boolean, h: (n: number) => number): void {
     const W2 = horizontal ? 12 : 10;

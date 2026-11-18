@@ -1779,6 +1779,26 @@
     "gas-station.v0.shadow"
    ]
   },
+  "park": {
+   "hash": "48ab757bfe7b0c01",
+   "sprites": [
+    "fountain.v0",
+    "fountain.v0.nrm",
+    "fountain.v0.shadow",
+    "slide.v0",
+    "slide.v0.nrm",
+    "slide.v0.shadow",
+    "sandbox.v0",
+    "sandbox.v0.nrm",
+    "sandbox.v0.shadow",
+    "climber.v0",
+    "climber.v0.nrm",
+    "climber.v0.shadow",
+    "jetty.v0",
+    "jetty.v0.nrm",
+    "jetty.v0.shadow"
+   ]
+  },
   "pipe": {
    "hash": "d04e6fa05a303d6d",
    "sprites": [
@@ -9571,6 +9591,30 @@
     "scale": 2
    }
   },
+  "climber.v0": {
+   "group": "entities",
+   "frames": [
+    "climber.v0#0"
+   ],
+   "w": 160,
+   "h": 224,
+   "anchor": [
+    0.5,
+    0.6571428571428571
+   ]
+  },
+  "climber.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "climber.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.22727272727272727,
+    0.22727272727272727
+   ]
+  },
   "clinic.v0": {
    "group": "entities",
    "frames": [
@@ -11010,6 +11054,30 @@
    "anchor": [
     0.1875,
     0.1875
+   ]
+  },
+  "fountain.v0": {
+   "group": "entities",
+   "frames": [
+    "fountain.v0#0"
+   ],
+   "w": 224,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.6222222222222222
+   ]
+  },
+  "fountain.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "fountain.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 448,
+   "anchor": [
+    0.25,
+    0.25
    ]
   },
   "freight-car.v0": {
@@ -13471,6 +13539,30 @@
    "anchor": [
     0.17500000000000002,
     0.17500000000000002
+   ]
+  },
+  "jetty.v0": {
+   "group": "entities",
+   "frames": [
+    "jetty.v0#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "jetty.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "jetty.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
    ]
   },
   "kitchen": {
@@ -16204,6 +16296,30 @@
     0.1875
    ]
   },
+  "sandbox.v0": {
+   "group": "entities",
+   "frames": [
+    "sandbox.v0#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
+  "sandbox.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "sandbox.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.22727272727272727,
+    0.22727272727272727
+   ]
+  },
   "scavenger-camp": {
    "group": "entities",
    "frames": [
@@ -16363,6 +16479,30 @@
    "h": 256,
    "anchor": [
     0.1875,
+    0.1875
+   ]
+  },
+  "slide.v0": {
+   "group": "entities",
+   "frames": [
+    "slide.v0#0"
+   ],
+   "w": 160,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6888888888888888
+   ]
+  },
+  "slide.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "slide.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
     0.1875
    ]
   },
@@ -28239,6 +28379,18 @@
     0.773913043478261
    ]
   },
+  "climber.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "climber.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 224,
+   "anchor": [
+    0.5,
+    0.6571428571428571
+   ]
+  },
   "clinic.v0.nrm": {
    "group": "normals",
    "frames": [
@@ -29185,6 +29337,18 @@
    "anchor": [
     0.5,
     0.7090909090909091
+   ]
+  },
+  "fountain.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "fountain.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 288,
+   "anchor": [
+    0.5,
+    0.6222222222222222
    ]
   },
   "freight-car.v0.nrm": {
@@ -30771,6 +30935,18 @@
     0.625
    ]
   },
+  "jetty.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "jetty.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
   "kitchen.nrm": {
    "group": "normals",
    "frames": [
@@ -32175,6 +32351,18 @@
     0.6
    ]
   },
+  "sandbox.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "sandbox.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5636363636363636
+   ]
+  },
   "scavenger-camp.nrm": {
    "group": "normals",
    "frames": [
@@ -32257,6 +32445,18 @@
    "anchor": [
     0.5,
     0.72
+   ]
+  },
+  "slide.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "slide.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6888888888888888
    ]
   },
   "small-electric-pole.nrm": {
