@@ -514,6 +514,15 @@ export class SiteSystem {
             else if (hash01(WORLD.seed, cx, cy, 883) < 0.4) this.put(w, 'corpse', Math.round(cx - nx * side * 2), Math.round(cy - ny * side * 2), true);
           }
         }
+        // Wegkreuz bzw. Wegweiser am Straßenrand (selten)
+        if (q % 90 === 45) {
+          const r = hash01(WORLD.seed, ri, q, 885);
+          if (r < 0.35) {
+            const sx = Math.floor(px - nx * 3.2);
+            const sy = Math.floor(py - ny * 3.2);
+            if (!w.map.floorAt(sx, sy)) this.put(w, r < 0.15 ? 'wayside-cross' : 'signpost', sx, sy);
+          }
+        }
         // Holzmasten auf einer Seite, alle 14 Felder
         if (q % 28 === 14) {
           const mx = Math.floor(px + nx * 3.4);
@@ -634,6 +643,26 @@ export class SiteSystem {
           if (hash01(s, gx, gy, 899) < 0.6) this.put(w, 'jetty', bx, by + (w.map.isWater(bx, by + 1) ? -1 : 1));
           break;
         }
+      }
+    }
+    // Hochsitz am Waldrand: Wald auf einer Seite, freie Wiese auf der anderen
+    if (hash01(s, gx, gy, 850) < 0.55) {
+      for (let q = 0; q < 30; q++) {
+        const hx = Math.round((gx + hash01(s, gx, gy, 851 + q)) * c);
+        const hy = Math.round((gy + hash01(s, gx, gy, 881 + q)) * c);
+        if (this.nearTown(hx, hy, 40) || w.map.floorAt(hx, hy)) continue;
+        // Waldrand: viele Bäume im Umkreis, aber eine freie Seite (Blick aufs Feld)
+        let near = 0;
+        const side = [0, 0, 0, 0];
+        for (let j = -6; j <= 7; j++) for (let i = -6; i <= 7; i++) {
+          if (!w.map.trees.treeAt(hx + i, hy + j)) continue;
+          near++;
+          if (j < -1) side[0]++;
+          if (j > 2) side[2]++;
+          if (i < -1) side[3]++;
+          if (i > 2) side[1]++;
+        }
+        if (near >= 8 && Math.min(...side) <= 1 && this.put(w, 'hunting-stand', hx, hy)) break;
       }
     }
     if (hash01(s, gx, gy, 811) >= WORLD.wildChance) return;
@@ -798,14 +827,19 @@ export class SiteSystem {
       this.paint(w, x, y, FIELD);
     }
     const gate = Math.floor(h(6) * (fw - 2)) + 1;
+    // Einfassung: Zaun, Feldsteinmauer (alte Höfe) oder nur auf zwei Seiten
+    const border = h(19) < 0.35 ? 'field-wall' : 'fence';
+    const partial = h(21) < 0.3;
     for (let x = x0 - 1; x <= x0 + fw; x++) {
-      this.put(w, 'fence', x, y0 - 1);
-      if (x !== x0 + gate && x !== x0 + gate + 1) this.put(w, 'fence', x, y0 + fh);
+      this.put(w, border, x, y0 - 1);
+      if (!partial && x !== x0 + gate && x !== x0 + gate + 1) this.put(w, border, x, y0 + fh);
     }
     for (let y = y0; y < y0 + fh; y++) {
-      this.put(w, 'fence', x0 - 1, y);
-      this.put(w, 'fence', x0 + fw, y);
+      if (!partial) this.put(w, border, x0 - 1, y);
+      this.put(w, border, x0 + fw, y);
     }
+    // Vogelscheuche mitten im Acker
+    if (h(22) < 0.6) this.put(w, 'scarecrow', x0 + 2 + Math.floor(h(23) * (fw - 4)), y0 + 1 + Math.floor(h(24) * (fh - 2)));
     for (let i = 0; i < 3; i++) if (h(7 + i) < 0.6) this.put(w, 'hay-bale', x0 + 1 + Math.floor(h(10 + i) * (fw - 2)), y0 + 1 + Math.floor(h(13 + i) * (fh - 2)));
     // Feldhecke: Baumreihe mit Lücken auf zwei Seiten des Ackers
     const g = 2.6;

@@ -7,5 +7,7 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // Weltaufbau-Tests legen ganze Orte an; unter Last (viele Worker) brauchen sie länger als 5 s
+    testTimeout: 30000,
   },
 });

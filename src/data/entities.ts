@@ -707,6 +707,8 @@ const list: EntityDef[] = [
     ['fire-ring', 'Feuerstelle', 1, 1, 'stone', 3, false], ['platform-roof', 'Bahnsteigdach', 6, 2, 'iron-plate', 8, false],
     ['fountain', 'Brunnen', 3, 3, 'stone', 12, true], ['slide', 'Rutsche', 2, 1, 'iron-plate', 4, true], ['sandbox', 'Sandkasten', 2, 2, 'wood', 4, false],
     ['climber', 'Klettergerüst', 2, 2, 'iron-stick', 6, true], ['jetty', 'Bootssteg', 2, 1, 'wood', 6, false],
+    ['hunting-stand', 'Hochsitz', 2, 2, 'wood', 10, true], ['scarecrow', 'Vogelscheuche', 1, 1, 'cloth', 2, true],
+    ['wayside-cross', 'Wegkreuz', 1, 1, 'wood', 2, true], ['signpost', 'Wegweiser', 1, 1, 'wood', 2, true], ['field-wall', 'Feldsteinmauer', 1, 1, 'stone', 3, true],
     ['turbine', 'Windrad', 3, 3, 'iron-plate', 20, true], ['pylon', 'Hochspannungsmast', 2, 2, 'iron-stick', 12, true],
     ['saw-hall', 'Sägewerkshalle', 6, 4, 'iron-plate', 10, false], ['log-stack', 'Stammstapel', 3, 2, 'wood', 24, true],
   ] as const).map(([id, name, w, h, item, n, solid]): PropDef => ({
