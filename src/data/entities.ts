@@ -74,13 +74,6 @@ export interface FurnaceDef extends EntityBase {
   readonly drain?: number;
 }
 
-/** Pumpjack: fördert Rohöl aus dem Feld unter seiner Mitte (Wiki: 10 × Ergiebigkeit pro s). */
-export interface PumpjackDef extends EntityBase {
-  readonly kind: 'pumpjack';
-  readonly energyUsage: number;
-  readonly miningSpeed: number;
-  readonly capacity: number;
-}
 
 export interface InserterDef extends EntityBase {
   readonly kind: 'inserter';
@@ -116,18 +109,6 @@ export interface ContainerDef extends EntityBase {
   readonly cargoPad?: boolean;
 }
 
-/** Raketensilo 9×9: baut Raketenteile (Rezept fest), startet Raketen mit Satellit. Quelle: Wiki „Rocket silo“. */
-export interface RocketSiloDef extends EntityBase {
-  readonly kind: 'rocket-silo';
-  readonly craftingSpeed: number;
-  readonly energyUsage: number;
-  /** Teile je Rakete (Grundspiel 100). */
-  readonly partsPerRocket: number;
-  /** Ticks je Start (Wiki-Tabelle, normale Qualität: 1632). */
-  readonly launchTicks: number;
-  /** Ticks bis die Fracht am Landeplatz ankommt (Wiki: etwa 29 s). */
-  readonly deliveryTicks: number;
-}
 
 /** Kombinator: konstant (1×1, ohne Strom) oder rechnend/entscheidend (1×2, Eingang hinten, Ausgang vorn, 1 kW). */
 export interface CombinatorDef extends EntityBase {
@@ -136,19 +117,7 @@ export interface CombinatorDef extends EntityBase {
   readonly energyUsage: number;
 }
 
-/**
- * Gleis: gerade 2×2 (dir 0 senkrecht, 1 waagerecht), Bogen 4×4 (dir 0–3), Diagonalstück 2×2 (dir = abgeschnittene
- * Ecke, 0 = links oben, im Uhrzeigersinn) oder 45°-Übergang 2×4 (gerade → diagonal, auch gespiegelt).
- */
-export interface RailDef extends EntityBase {
-  readonly kind: 'rail';
-  readonly shape: 'straight' | 'curve' | 'diagonal' | 'half' | 'half-mirror';
-}
 
-/** Bahnhof 2×2 neben dem Gleis (rechts in Fahrtrichtung). */
-export interface TrainStopDef extends EntityBase {
-  readonly kind: 'train-stop';
-}
 
 /** Radar 3×3: verbraucht Strom (Karte ist hier ohnehin aufgedeckt). */
 export interface RadarDef extends EntityBase {
@@ -200,34 +169,8 @@ export interface GeneratorDef extends EntityBase {
   readonly temperature?: number;
 }
 
-/** Kernreaktor (Wiki „Nuclear reactor“): 40 MW Wärme, +100 % je benachbartem laufendem Reaktor, 10 MJ/°C, bis 1000 °C. */
-export interface ReactorDef extends EntityBase {
-  readonly kind: 'reactor';
-  readonly consumption: number;
-  readonly heatCapacity: number;
-  readonly maxTemperature: number;
-}
 
-/** Wärmerohr (Wiki „Heat pipe“): 1 MJ/°C, bis 1000 °C. */
-export interface HeatPipeDef extends EntityBase {
-  readonly kind: 'heat-pipe';
-  readonly heatCapacity: number;
-  readonly maxTemperature: number;
-}
 
-/** Wärmetauscher (Wiki „Heat exchanger“): 10 MW, braucht ≥ 500 °C, macht 500-°C-Dampf, 1 MJ/°C. */
-export interface HeatExchangerDef extends EntityBase {
-  readonly kind: 'heat-exchanger';
-  readonly energyUsage: number;
-  readonly heatCapacity: number;
-  readonly maxTemperature: number;
-  readonly minTemperature: number;
-  readonly inputFluid: string;
-  readonly outputFluid: string;
-  readonly targetTemperature: number;
-  readonly steamPerWater: number;
-  readonly capacity: number;
-}
 
 export interface PoleDef extends EntityBase {
   readonly kind: 'pole';
@@ -412,8 +355,8 @@ export interface AccumulatorDef extends EntityBase {
 }
 
 export type EntityDef = BeltDef | DrillDef | FurnaceDef | InserterDef | ContainerDef | PipeDef | PumpDef | BoilerDef | GeneratorDef | PoleDef | AssemblerDef | LabDef | UndergroundDef | SplitterDef
-  | PipeGroundDef | FluidPumpDef | TankDef | LampDef | PumpjackDef | SolarDef | AccumulatorDef | BeaconDef | RoboportDef | RocketSiloDef | RadarDef | CombinatorDef | RailDef | TrainStopDef
-  | TurretDef | WallDef | ReactorDef | HeatPipeDef | HeatExchangerDef | HazardDef | BedDef | ProducerDef | RadioDef | LootDef | PileDef | FireDef | CampDef | PropDef;
+  | PipeGroundDef | FluidPumpDef | TankDef | LampDef | SolarDef | AccumulatorDef | BeaconDef | RoboportDef | RadarDef | CombinatorDef
+  | TurretDef | WallDef | HazardDef | BedDef | ProducerDef | RadioDef | LootDef | PileDef | FireDef | CampDef | PropDef;
 
 const list: EntityDef[] = [
   {
@@ -498,32 +441,6 @@ const list: EntityDef[] = [
     fluid: 'steam', capacity: 200,
   },
   {
-    // Wiki „Steam turbine“: 5,82 MW, 60 Einheiten 500-°C-Dampf je Sekunde, 3×5
-    kind: 'generator', id: 'steam-turbine', name: 'Dampfturbine', width: 3, height: 5, health: 300,
-    item: 'steam-turbine', mineTime: 0.3, solid: true, rotatable: true, maxPower: 5_820_000, fluidPerTick: 1,
-    fluid: 'steam-hot', capacity: 200, temperature: 500,
-  },
-  {
-    kind: 'reactor', id: 'nuclear-reactor', name: 'Kernreaktor', width: 5, height: 5, health: 500,
-    item: 'nuclear-reactor', mineTime: 0.5, solid: true, rotatable: false, consumption: 40_000_000, heatCapacity: 10_000_000, maxTemperature: 1000,
-  },
-  {
-    kind: 'heat-pipe', id: 'heat-pipe', name: 'Wärmerohr', width: 1, height: 1, health: 200,
-    item: 'heat-pipe', mineTime: 0.1, solid: true, rotatable: false, heatCapacity: 1_000_000, maxTemperature: 1000,
-  },
-  {
-    // Wiki: 10 MW, 103 Einheiten 500-°C-Dampf/s, Wasser 1:10 wie beim Kessel; Wärmeeingang hinten (gegenüber dem Dampfausgang)
-    kind: 'heat-exchanger', id: 'heat-exchanger', name: 'Wärmetauscher', width: 3, height: 2, health: 200,
-    item: 'heat-exchanger', mineTime: 0.1, solid: true, rotatable: true, energyUsage: 10_000_000, heatCapacity: 1_000_000,
-    maxTemperature: 1000, minTemperature: 500, inputFluid: 'water', outputFluid: 'steam-hot', targetTemperature: 500, steamPerWater: 10, capacity: 200,
-  },
-  {
-    // Wiki „Centrifuge“: 3×3, 350 kW, Grundlast 11,6 kW, Tempo 1, 2 Modulplätze
-    kind: 'assembler', id: 'centrifuge', name: 'Zentrifuge', width: 3, height: 3, health: 350,
-    item: 'centrifuge', mineTime: 0.1, solid: true, rotatable: false, craftingSpeed: 1, energyUsage: 350_000, drain: 11_600,
-    categories: ['centrifuging'], moduleSlots: 2,
-  },
-  {
     kind: 'pole', id: 'small-electric-pole', name: 'Kleiner Strommast', width: 1, height: 1, health: 100,
     item: 'small-electric-pole', mineTime: 0.1, solid: true, walkable: true, rotatable: false, wireReach: 7.5, supplyRadius: 3.5,
   },
@@ -605,33 +522,6 @@ const list: EntityDef[] = [
     item: 'storage-tank', mineTime: 0.5, solid: true, rotatable: true, capacity: 25_000,
   },
   {
-    kind: 'pumpjack', id: 'pumpjack', name: 'Pumpjack', width: 3, height: 3, health: 200,
-    item: 'pumpjack', mineTime: 0.5, solid: true, rotatable: true, energyUsage: 90_000, miningSpeed: 1, capacity: 1000, moduleSlots: 2,
-  },
-  {
-    kind: 'assembler', id: 'oil-refinery', name: 'Ölraffinerie', width: 5, height: 5, health: 350,
-    item: 'oil-refinery', mineTime: 0.2, solid: true, rotatable: true, craftingSpeed: 1, energyUsage: 420_000, drain: 14_000,
-    categories: ['oil-processing'], moduleSlots: 3,
-    fluidBoxes: [
-      { type: 'input', volume: 1000, ports: [[1, 4, 2]] },
-      { type: 'input', volume: 1000, ports: [[3, 4, 2]] },
-      { type: 'output', volume: 1000, ports: [[0, 0, 0]] },
-      { type: 'output', volume: 1000, ports: [[2, 0, 0]] },
-      { type: 'output', volume: 1000, ports: [[4, 0, 0]] },
-    ],
-  },
-  {
-    kind: 'assembler', id: 'chemical-plant', name: 'Chemiefabrik', width: 3, height: 3, health: 300,
-    item: 'chemical-plant', mineTime: 0.1, solid: true, rotatable: true, craftingSpeed: 1, energyUsage: 210_000, drain: 7_000,
-    categories: ['chemistry'], moduleSlots: 3,
-    fluidBoxes: [
-      { type: 'input', volume: 1000, ports: [[0, 2, 2]] },
-      { type: 'input', volume: 1000, ports: [[2, 2, 2]] },
-      { type: 'output', volume: 1000, ports: [[0, 0, 0]] },
-      { type: 'output', volume: 1000, ports: [[2, 0, 0]] },
-    ],
-  },
-  {
     kind: 'furnace', id: 'electric-furnace', name: 'Elektrischer Ofen', width: 3, height: 3, health: 350,
     item: 'electric-furnace', mineTime: 0.2, solid: true, rotatable: false, craftingSpeed: 2, energyUsage: 180_000, fuelSlots: 0,
     energy: 'electric', drain: 6_000, moduleSlots: 2,
@@ -674,15 +564,6 @@ const list: EntityDef[] = [
     kind: 'container', id, name, width: 1, height: 1, health: 350, item: id, mineTime: 0.1, solid: true, rotatable: false, slots: 48, logistic,
   })),
   {
-    kind: 'rocket-silo', id: 'rocket-silo', name: 'Raketensilo', width: 9, height: 9, health: 5000,
-    item: 'rocket-silo', mineTime: 1, solid: true, rotatable: false, craftingSpeed: 1, energyUsage: 4_000_000, moduleSlots: 4,
-    partsPerRocket: 100, launchTicks: 1632, deliveryTicks: 29 * 60,
-  },
-  {
-    kind: 'container', id: 'cargo-landing-pad', name: 'Fracht-Landeplatz', width: 8, height: 8, health: 1000,
-    item: 'cargo-landing-pad', mineTime: 1, solid: true, rotatable: false, slots: 80, logistic: 'passive-provider', cargoPad: true,
-  },
-  {
     kind: 'radar', id: 'radar', name: 'Radar', width: 3, height: 3, health: 250,
     item: 'radar', mineTime: 0.1, solid: true, rotatable: false, energyUsage: 300_000,
   },
@@ -697,30 +578,6 @@ const list: EntityDef[] = [
   {
     kind: 'combinator', id: 'decider-combinator', name: 'Entscheidungskombinator', width: 1, height: 2, health: 150,
     item: 'decider-combinator', mineTime: 0.1, solid: true, rotatable: true, mode: 'decider', energyUsage: 1_000,
-  },
-  {
-    kind: 'rail', id: 'straight-rail', name: 'Gleis', width: 2, height: 2, health: 200,
-    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'straight',
-  },
-  {
-    kind: 'rail', id: 'curved-rail', name: 'Gleisbogen', width: 4, height: 4, health: 200,
-    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'curve', itemCount: 4,
-  },
-  {
-    kind: 'rail', id: 'diagonal-rail', name: 'Diagonalgleis', width: 2, height: 2, health: 200,
-    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'diagonal',
-  },
-  {
-    kind: 'rail', id: 'half-rail', name: 'Gleisübergang', width: 2, height: 4, health: 200,
-    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'half', itemCount: 2,
-  },
-  {
-    kind: 'rail', id: 'half-rail-mirror', name: 'Gleisübergang', width: 2, height: 4, health: 200,
-    item: 'rail', mineTime: 0.2, solid: false, rotatable: true, shape: 'half-mirror', itemCount: 2,
-  },
-  {
-    kind: 'train-stop', id: 'train-stop', name: 'Bahnhof', width: 2, height: 2, health: 250,
-    item: 'train-stop', mineTime: 0.2, solid: true, rotatable: true,
   },
   {
     kind: 'container', id: 'wooden-chest', name: 'Holzkiste', width: 1, height: 1, health: 100,

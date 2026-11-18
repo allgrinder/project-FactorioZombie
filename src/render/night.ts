@@ -182,14 +182,6 @@ export class NightLayer {
       // Taschenlampe: Lichtkegel in Blickrichtung (wie im Original)
       add(px, py, NIGHT.flashlightRange, 1.1, NIGHT.flashlightColor, { dx: facing.x, dy: facing.y, cos: Math.cos((NIGHT.flashlightAngle * Math.PI) / 360) });
     }
-    for (const t of world.trains.trains) {
-      for (const v of t.vehicles) {
-        if (v.kind !== 'locomotive') continue;
-        const sgn = t.speed < 0 ? -1 : 1;
-        add(v.pose.x + v.pose.dx * sgn * 2.5, v.pose.y + v.pose.dy * sgn * 2.5, NIGHT.headlightRange, 1.2, NIGHT.flashlightColor,
-          { dx: v.pose.dx * sgn, dy: v.pose.dy * sgn, cos: Math.cos((NIGHT.headlightAngle * Math.PI) / 360) });
-      }
-    }
     // Pritschenwagen: Scheinwerfer, solange der Motor läuft
     for (const c of world.cars.cars) {
       if (!c.running) continue;
@@ -216,7 +208,6 @@ export class NightLayer {
     }
     for (const e of rest) {
       if (e.kind === 'furnace' || e.kind === 'boiler') add(e.cx, e.cy + e.h * 0.4, NIGHT.fireRadius, 0.9, NIGHT.fireColor);
-      else if (e.kind === 'reactor') add(e.cx, e.cy, NIGHT.reactorRadius, 0.9, NIGHT.reactorColor);
     }
     if (poles) {
       for (const e of rest) {

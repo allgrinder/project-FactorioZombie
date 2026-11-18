@@ -5,6 +5,21 @@ type Any = any;
 
 const g = (page: Page) => page.evaluate.bind(page);
 
+/** Meldungen mitschreiben (eine spätere Meldung, z. B. „Ziel erreicht“, kann „Geladen“ sofort überdecken). */
+async function watchMessages(page: Page) {
+  await g(page)(() => {
+    const w = window as Any;
+    w.__msgs = [];
+    const el = document.querySelector('.messages');
+    if (!el) return;
+    new MutationObserver(() => w.__msgs.push(el.textContent)).observe(el, { childList: true, characterData: true, subtree: true });
+  });
+}
+
+async function sawMessage(page: Page, text: string) {
+  await page.waitForFunction((t: string) => ((window as Any).__msgs ?? []).some((m: string) => m?.includes(t)) || document.querySelector('.messages')?.textContent?.includes(t), text, { timeout: 8000 });
+}
+
 /** Nächster Schrotthaufen einer Art: linke obere Ecke und Größe. */
 async function findPile(page: Page, name: string): Promise<[number, number, number, number]> {
   return g(page)((name: string) => {
@@ -88,14 +103,21 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
     return [0, 0];
   });
   await walk(page, spot[0] + 2, spot[1] - 2);
+  // Kamera folgt der Figur erst im nächsten Bild: kurz warten, bevor Bildschirmkoordinaten gerechnet werden
+  await page.waitForTimeout(400);
   await page.keyboard.press('3');
   [sx, sy] = await toScreen(page, spot[0] + 1, spot[1] + 1);
   await page.mouse.move(sx, sy);
   await page.mouse.click(sx, sy);
   await page.keyboard.press('4');
-  [sx, sy] = await toScreen(page, spot[0] + 4, spot[1] + 1);
-  await page.mouse.move(sx, sy);
-  await page.mouse.click(sx, sy);
+  // bis zu drei Versuche: die Kamera kann zwischen Rechnen und Klicken noch nachziehen
+  for (let t = 0; t < 3; t++) {
+    await page.waitForTimeout(200);
+    [sx, sy] = await toScreen(page, spot[0] + 4, spot[1] + 1);
+    await page.mouse.move(sx, sy);
+    await page.mouse.click(sx, sy);
+    if (await g(page)(() => [...(window as Any).letzteschicht.world.entities.values()].some((e: Any) => e.kind === 'furnace'))) break;
+  }
   await page.keyboard.press('q');
   await page.waitForTimeout(200);
   const kinds = await g(page)(() => [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop', 'bed', 'wire', 'producer'].includes(e.kind) && !e.def.house).map((e: Any) => e.kind).sort());
@@ -119,12 +141,13 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await page.keyboard.press('Escape');
 
   // Speichern, weiterspielen, laden
+  await watchMessages(page);
   await page.keyboard.press('Control+s');
-  await expect(page.locator('.messages')).toHaveText('Gespeichert');
+  await sawMessage(page, 'Gespeichert');
   const saved = await g(page)(() => (window as Any).letzteschicht.world.tick);
   await page.waitForTimeout(1000);
   await page.keyboard.press('Control+l');
-  await expect(page.locator('.messages')).toHaveText('Geladen');
+  await sawMessage(page, 'Geladen');
   const after = await g(page)(() => ({ tick: (window as Any).letzteschicht.world.tick, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop', 'bed', 'wire', 'producer'].includes(e.kind) && !e.def.house).length }));
   expect(after.n).toBe(2);
   expect(after.tick).toBeLessThan(saved + 45);
@@ -135,13 +158,14 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   // Neu laden: Startdialog bietet den Spielstand an, Weiterspielen stellt Karte und Gebäude wieder her
   const seed = await g(page)(() => (window as Any).letzteschicht.world.seed);
   await page.keyboard.press('Control+s');
-  await expect(page.locator('.messages')).toHaveText('Gespeichert');
+  await sawMessage(page, 'Gespeichert');
   await page.reload();
   await page.waitForSelector('body[data-ready="1"]');
   const cont = page.locator('.menu-btn.primary');
   await expect(cont).toBeVisible();
+  await watchMessages(page);
   await cont.click();
-  await expect(page.locator('.messages')).toHaveText('Geladen');
+  await sawMessage(page, 'Geladen');
   const restored = await g(page)(() => ({ seed: (window as Any).letzteschicht.world.seed, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop', 'bed', 'wire', 'producer'].includes(e.kind) && !e.def.house).length }));
   expect(restored).toEqual({ seed, n: 2 });
   expect(errors).toEqual([]);

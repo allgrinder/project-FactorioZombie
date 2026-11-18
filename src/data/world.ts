@@ -89,24 +89,6 @@ export const WORLD = {
   townClear: 80,
 } as const;
 
-/**
- * Landstraßen als achsparallele Abschnitte [ax, ay, bx, by]: jedes Stück der Wegpunktliste wird zu „erst waagerecht,
- * dann senkrecht“ – auf dem Feldraster sehen gerade Straßen mit rechtwinkligen Kurven besser aus als Treppenstufen.
- * Die Straße ist zwei Felder breit (ay…ay+1 bzw. bx…bx+1).
- */
-export function roadSegments(): [number, number, number, number][] {
-  const out: [number, number, number, number][] = [];
-  for (const road of WORLD.roads) {
-    for (let k = 0; k + 1 < road.length; k++) {
-      const [ax, ay] = road[k];
-      const [bx, by] = road[k + 1];
-      if (ax !== bx) out.push([ax, ay, bx, ay]);
-      if (ay !== by) out.push([bx, ay, bx, by]);
-    }
-  }
-  return out;
-}
-
 /** Geschwungene Landstraße: Mittellinie in Abständen von ROAD_STEP Feldern (x, y je Punkt) mit Richtung (Bogenmaß). */
 export interface RoadPath {
   readonly pts: readonly number[];

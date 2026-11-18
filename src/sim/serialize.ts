@@ -8,7 +8,6 @@ import type { ResearchData } from './research';
 import type { ProductionStats } from './stats';
 import type { RobotSystem } from './robots';
 import type { CircuitSystem } from './circuit';
-import type { TrainSystem } from './trains';
 import type { Status } from './entity';
 import type { Dir } from './geom';
 import type { Inventory } from './inventory';
@@ -89,7 +88,6 @@ export interface SaveData {
   /** Aufgedeckte Abschnitte: Paare (Schlüssel, Tick). */
   chart?: number[];
   enemies?: ReturnType<EnemySystem['serialize']>;
-  trains?: ReturnType<TrainSystem['serialize']>;
 }
 
 interface PlayerData {
@@ -165,7 +163,6 @@ export function serializeWorld(w: World): SaveData {
     chart: w.chart.serialize(),
     enemies: w.enemies.serialize(w.structureVersion),
     circuit: w.circuit.serialize(),
-    trains: w.trains.serialize(),
     ground: [...w.ground.entries()].sort((a, b) => a[0] - b[0]).map(([k, list]) => [k, list.map((g) => [g.item, g.x, g.y] as [string, number, number])]),
     player: p
       ? {
@@ -231,7 +228,6 @@ export function deserializeWorld(d: SaveData): World {
   w.rescuedAt = d.rescued ?? null;
   w.chart.load(d.chart);
   w.enemies.load(w, d.enemies);
-  w.trains.load(d.trains);
   for (const [id, list] of d.beltItems) {
     w.belts.loadTileItems(id, list.map(([lane, offset, item]) => ({ lane, offset, item: itemIndex(item) })));
   }

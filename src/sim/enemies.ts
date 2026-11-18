@@ -77,8 +77,8 @@ export interface HordeInfo {
 
 const cellKey = (gx: number, gy: number) => gx * 100003 + gy;
 
-/** Gebäude, die Zombies angreifen (keine Gleise, keine Fundorte der alten Welt). */
-export const isTargetable = (e: Entity): boolean => e.kind !== 'rail' && e.kind !== 'loot' && e.kind !== 'pile' && e.kind !== 'prop';
+/** Gebäude, die Zombies angreifen (keine Fundorte der alten Welt). */
+export const isTargetable = (e: Entity): boolean => e.kind !== 'loot' && e.kind !== 'pile' && e.kind !== 'prop';
 
 const COMPASS = ['Osten', 'Südosten', 'Süden', 'Südwesten', 'Westen', 'Nordwesten', 'Norden', 'Nordosten'];
 export function compassName(angle: number): string {
@@ -602,7 +602,7 @@ export class EnemySystem {
       const ny = u.y + Math.sin(b) * s;
       if (w.map.isBlocked(Math.floor(nx), Math.floor(ny))) continue;
       const blocker = w.entityAt(nx, ny);
-      if (blocker && blocker.def.solid && blocker.kind !== 'rail') {
+      if (blocker && blocker.def.solid) {
         if (isTargetable(blocker)) {
           if (off === 0) first = blocker.id;
           if (off === 0 && aggressive) {

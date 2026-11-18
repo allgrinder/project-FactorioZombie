@@ -1,4 +1,3 @@
-import { HeatSystem } from './heat';
 import { CorpseSystem } from './corpses';
 import { FLOOR_BY_ID, FLOOR_BY_ITEM } from '../data/floors';
 import { CapsuleSystem } from './capsules';
@@ -30,7 +29,6 @@ import { GhostSystem } from './blueprint';
 import { BeaconSystem } from './modules';
 import { RobotSystem } from './robots';
 import { CircuitSystem } from './circuit';
-import { TrainSystem } from './trains';
 import { Burner } from './burner';
 import { Status } from './entity';
 import { Player } from './player';
@@ -73,7 +71,6 @@ export class World {
   /** Schaltungsnetz (rote und grüne Drähte). */
   readonly circuit = new CircuitSystem();
   /** Gleise und Züge. */
-  readonly trains = new TrainSystem();
   /** Lärm lockt Zombies an (Maschinen, Schüsse, Lockvögel). */
   readonly noise = new NoiseSystem();
   readonly weather = new WeatherSystem();
@@ -93,7 +90,6 @@ export class World {
   /** Bänder, die im nächsten Tick durch ihre Schaltbedingung angehalten sind (gespeichert). */
   readonly beltStopped = new Set<number>();
   /** Wärmenetz (Kernkraft). */
-  readonly heat = new HeatSystem();
   /** Leichen der Spielfigur mit Inventar. */
   readonly corpses = new CorpseSystem();
   /** Geworfene Granaten und Klippensprengstoff. */
@@ -236,10 +232,6 @@ export class World {
     const [w, h] = sizeOf(def, dir);
     if (def.solid && !def.walkable && this.player && this.player.overlapsRect(x, y, w, h)) {
       return { ok: false, reason: 'Spieler im Weg' };
-    }
-    if (def.kind === 'pumpjack') {
-      const r = this.map.resourceAt(x + 1, y + 1);
-      if (!(r.amount > 0 && RESOURCE_BY_INDEX[r.res]?.fluid)) return { ok: false, reason: 'Muss mittig auf einer Ölquelle stehen' };
     }
     if (def.kind === 'drill') {
       const tmp = new DrillEntity(0, name, x, y, dir);
@@ -402,10 +394,7 @@ export class World {
     this.circuit.update(this);
     this.beltStopped.clear();
     for (const id of stop) if (!this.circuit.enabled(id)) this.beltStopped.add(id);
-    this.trains.update(this);
-    this.heat.prepare(this);
     for (const e of this.entities.values()) e.update(this);
-    this.heat.update();
     this.robots.update(this);
     // Fundorte vor den Zombies anlegen (Zombies lungern um Häuser und Wracks)
     if (this.tick % 60 === 0 && this._player && this.settings.sites) {
@@ -489,12 +478,8 @@ export class World {
   deliverAt(px: number, py: number, item: string, mode: InsertMode, allowGround: boolean, from?: { dir: Dir }): boolean {
     const tx = Math.floor(px);
     const ty = Math.floor(py);
-    const target0 = this.entityAt(tx, ty);
-    const target = target0?.kind === 'rail' ? undefined : target0;
+    const target = this.entityAt(tx, ty);
     if (!target) {
-      // stehender Zug: Greifarm belädt Wagen bzw. betankt die Lokomotive
-      const veh = this.trains.vehicleAt(px, py);
-      if (veh) return veh.train.speed === 0 && veh.vehicle.inv.add(item, 1) === 1;
       return allowGround ? this.dropGround(px, py, item) : false;
     }
     const bt = this.belts.tileAt(tx, ty);
@@ -504,16 +489,8 @@ export class World {
 
   /** Nimmt ein passendes Item vom Feld an einem Weltpunkt: Band, Gebäude oder Boden. */
   takeAt(px: number, py: number, accept: (item: string) => boolean, from?: { dir: Dir; targetKind?: string }): string | null {
-    const src0 = this.entityAt(px, py);
-    const src = src0?.kind === 'rail' ? undefined : src0;
+    const src = this.entityAt(px, py);
     if (!src) {
-      const veh = this.trains.vehicleAt(px, py);
-      if (veh) {
-        if (veh.train.speed !== 0 || veh.vehicle.kind !== 'cargo-wagon') return null;
-        const it = veh.vehicle.inv.firstItem(accept);
-        if (it) veh.vehicle.inv.remove(it, 1);
-        return it ?? null;
-      }
       return this.takeGround(Math.floor(px), Math.floor(py), accept);
     }
     const t = this.belts.tileAt(Math.floor(px), Math.floor(py));

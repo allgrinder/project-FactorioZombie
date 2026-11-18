@@ -89,10 +89,6 @@ export class HeatHaze {
     for (const e of world.entities.values()) {
       if (e.status !== Status.Working) continue;
       if (e.x > cam.x + w / (this.tile * cam.zoom) || e.x + e.w < cam.x - w / (this.tile * cam.zoom)) continue;
-      if (e.kind === 'reactor' || e.kind === 'heat-exchanger') {
-        spot(e.cx, e.cy - e.h * 0.4, e.w * 0.6, e.id);
-        continue;
-      }
       if (e.kind !== 'furnace' && e.kind !== 'boiler') continue;
       const ems = EMITTERS[e.name];
       const sm = ems?.find((m) => m.kind === 'smoke');

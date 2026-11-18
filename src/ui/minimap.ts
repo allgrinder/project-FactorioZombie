@@ -177,7 +177,7 @@ export class Minimap {
     for (const e of world.entities.values()) {
       if (e.x + e.w < x0 || e.y + e.h < y0 || e.x > x1 || e.y > y1 || !charted(e.cx, e.cy)) continue;
       ctx.fillStyle = css(e.kind === 'belt' || e.kind === 'underground' || e.kind === 'splitter' ? MINIMAP.belt
-        : e.kind === 'rail' ? 0x8a8a8a : e.kind === 'turret' || e.kind === 'wall' ? 0xb0b0a0 : MINIMAP.building);
+        : e.kind === 'turret' || e.kind === 'wall' ? 0xb0b0a0 : MINIMAP.building);
       ctx.fillRect(toX(e.x), toY(e.y), Math.max(1, e.w * scale), Math.max(1, e.h * scale));
     }
     if (detail) {

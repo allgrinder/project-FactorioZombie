@@ -35,7 +35,6 @@ export interface GhostEntity {
 export function settingsOf(e: Entity): Settings | undefined {
   if (e.kind === 'assembler' && e.recipe) return { recipe: e.recipeKey! };
   if (e.kind === 'underground') return { out: e.output };
-  if (e.kind === 'train-stop') return { st: e.stationName };
   if (e.kind === 'container' && e.inventory.bar < e.inventory.size) return { bar: e.inventory.bar };
   if (e.kind === 'inserter' && e.filters.some((f) => f)) return { if: [...e.filters], ib: e.filterBlacklist };
   if (e.kind === 'splitter') {
@@ -54,7 +53,6 @@ export function applySettings(e: Entity, s: Settings | undefined): void {
     e.filters = [...s.if];
     e.filterBlacklist = !!s.ib;
   }
-  if (e.kind === 'train-stop' && s.st) e.stationName = s.st;
   if (e.kind === 'container' && s.bar !== undefined) e.inventory.bar = Math.max(0, Math.min(e.inventory.size, s.bar));
   if (e.kind === 'splitter') {
     e.state.inputPriority = s.ip ?? -1;

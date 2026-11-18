@@ -1,4 +1,3 @@
-import type { HeatExchangerEntity, HeatPipeEntity, ReactorEntity } from './entities/nuclear';
 /**
  * Schnittstelle zu den Gebäudeklassen (src/sim/entities/) für Welt, Renderer, HUD und Tests.
  */
@@ -6,18 +5,18 @@ import { ITEMS, ITEM_IDS } from '../data/items';
 import type { InsertMode } from './entities/base';
 import { BeltEntity, ContainerEntity, DrillEntity, FurnaceEntity } from './entities/basic';
 import { HALF_TURN, InserterEntity, InserterPhase } from './entities/inserter';
-import { FluidPumpEntity, LampEntity, PipeGroundEntity, PumpjackEntity, TankEntity } from './entities/fluidplus';
+import { FluidPumpEntity, LampEntity, PipeGroundEntity, TankEntity } from './entities/fluidplus';
 import { SplitterEntity, UndergroundEntity } from './entities/logistics';
 import { AssemblerEntity, BeaconEntity, LabEntity } from './entities/production';
 import { RoboportEntity } from './entities/robots';
-import { CombinatorEntity, RadarEntity, RailEntity, RocketSiloEntity, TrainStopEntity } from './entities/rocket';
+import { CombinatorEntity, RadarEntity } from './entities/rocket';
 import { TurretEntity, WallEntity } from './entities/military';
 import { BedEntity, CampEntity, FireEntity, HazardEntity, LootEntity, PileEntity, ProducerEntity, PropEntity, RadioEntity } from './entities/survival';
 
 export { BedEntity, CampEntity, FireEntity, HazardEntity, LootEntity, PileEntity, PropEntity, ProducerEntity, RadioEntity, TurretEntity, WallEntity };
 import { AccumulatorEntity, BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity, SolarEntity } from './entities/power';
 
-export { AccumulatorEntity, BeaconEntity, CombinatorEntity, RailEntity, TrainStopEntity, PumpjackEntity, RadarEntity, RoboportEntity, RocketSiloEntity, SolarEntity };
+export { AccumulatorEntity, BeaconEntity, CombinatorEntity, RadarEntity, RoboportEntity, SolarEntity };
 export { AssemblerEntity, FluidPumpEntity, LabEntity, LampEntity, PipeGroundEntity, SplitterEntity, TankEntity, UndergroundEntity };
 export { BeltEntity, BoilerEntity, ContainerEntity, DrillEntity, FurnaceEntity, GeneratorEntity, HALF_TURN, InserterEntity, InserterPhase, PipeEntity, PoleEntity, PumpEntity };
 export type { InsertMode };
@@ -25,8 +24,8 @@ export type { InsertMode };
 export type Entity =
   | BeltEntity | DrillEntity | FurnaceEntity | InserterEntity | ContainerEntity
   | PipeEntity | PumpEntity | BoilerEntity | GeneratorEntity | PoleEntity | AssemblerEntity | LabEntity | UndergroundEntity | SplitterEntity
-  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | PumpjackEntity | SolarEntity | AccumulatorEntity | BeaconEntity | RoboportEntity | RocketSiloEntity | RadarEntity | CombinatorEntity | RailEntity | TrainStopEntity
-  | TurretEntity | WallEntity | ReactorEntity | HeatPipeEntity | HeatExchangerEntity
+  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | SolarEntity | AccumulatorEntity | BeaconEntity | RoboportEntity | RadarEntity | CombinatorEntity
+  | TurretEntity | WallEntity
   | HazardEntity | BedEntity | ProducerEntity | RadioEntity | LootEntity | PileEntity | FireEntity | CampEntity | PropEntity;
 
 export function itemIndex(id: string): number {

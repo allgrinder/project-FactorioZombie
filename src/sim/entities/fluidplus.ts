@@ -1,4 +1,4 @@
-import type { FluidPumpDef, LampDef, PipeGroundDef, PumpjackDef, TankDef } from '../../data/entities';
+import type { FluidPumpDef, LampDef, PipeGroundDef, TankDef } from '../../data/entities';
 import { FLUID_UNIT } from '../../data/fluids';
 import { DAY, wattsToJoulesPerTick } from '../../data/time';
 import { ElectricSource } from '../energy';
@@ -6,10 +6,7 @@ import { Status } from '../entity';
 import { DX, DY, type Dir, opposite, rotCW } from '../geom';
 import { FluidBox, type FluidHolder, type FluidPort } from '../fluids';
 import type { World } from '../world';
-import { EntityBase, type GuiSlots, type InsertMode } from './base';
-import { isModule } from '../../data/modules';
-import { type InvData, Inventory, type Stack } from '../inventory';
-import { type Effects, consumptionFactor, moduleInventory, productivityBonus, speedFactor } from '../modules';
+import { EntityBase } from './base';
 import { boxData, loadBox, rotateLocal } from './power';
 
 // ------------------------------------------------------------------------- Rohr unterirdisch
@@ -177,106 +174,3 @@ export class LampEntity extends EntityBase {
 
 // ------------------------------------------------------------------------- Pumpjack
 
-/**
- * Pumpjack 3×3 auf einer Ölquelle (Mitte): fördert je Zyklus (1 s bei Geschwindigkeit 1) 10 × Ergiebigkeit
- * Einheiten; je 300 Zyklen sinkt die Ergiebigkeit um 1 %, bis höchstens 20 % des Anfangswerts bzw. 20 %.
- * Quelle: Wiki „Pumpjack“.
- */
-export class PumpjackEntity extends EntityBase implements FluidHolder {
-  readonly kind = 'pumpjack' as const;
-  declare readonly def: PumpjackDef;
-  readonly box: FluidBox;
-  readonly energy: ElectricSource;
-  /** Ticks im aktuellen Zyklus, Zykluszähler, Rest der Ausgabe (Tausendstel). */
-  progress = 0;
-  cycles = 0;
-  private acc = 0;
-  workTicks = 0;
-  readonly modules: Inventory | null;
-  readonly effects: Effects = { speed: 0, productivity: 0, consumption: 0 };
-  constructor(id: number, name: string, x: number, y: number, dir: Dir) {
-    super(id, name, x, y, dir);
-    this.box = new FluidBox(this.def.capacity * FLUID_UNIT, 'crude-oil');
-    const jpt = wattsToJoulesPerTick(this.def.energyUsage);
-    this.energy = new ElectricSource(jpt, 0, jpt * 2);
-    this.modules = moduleInventory(this.def.moduleSlots ?? 0);
-  }
-  fluidBoxes(): FluidBox[] {
-    return [this.box];
-  }
-  fluidPorts(): FluidPort[] {
-    const [rx, ry] = rotateLocal(2, 0, 3, 3, this.dir);
-    return [{ box: this.box, tx: this.x + rx, ty: this.y + ry, dir: rotCW(0, this.dir) }];
-  }
-  override update(w: World): void {
-    if (this.modules) {
-      w.beacons.effects(w, this, this.effects);
-      this.energy.setFactor(consumptionFactor(this.effects));
-    }
-    const tx = this.x + 1;
-    const ty = this.y + 1;
-    const r = w.map.resourceAt(tx, ty);
-    if (r.amount <= 0) {
-      this.status = Status.Depleted;
-      return;
-    }
-    const net = this.box.net;
-    // Ausgabe je Tick: Ergiebigkeit (Tausendstel %) × 10 Einheiten / 100 % / 60 Ticks, in Tausendstel Einheiten
-    const sp = speedFactor(this.effects);
-    // Module: Geschwindigkeit verkürzt den Zyklus, Produktivität gibt zusätzliches Öl
-    const perTickNum = Math.round(r.amount * this.def.miningSpeed * sp * (1 + productivityBonus(this.effects) + w.research.bonus('mining-productivity'))); // Zähler, Nenner 600
-    if (!net || net.space('crude-oil') < Math.ceil(perTickNum / 600) + 1) {
-      this.status = Status.OutputBlocked;
-      return;
-    }
-    if (!this.energy.consume(this.energy.usagePerTick)) {
-      this.status = Status.NoPower;
-      return;
-    }
-    this.acc += perTickNum;
-    const n = Math.floor(this.acc / 600);
-    this.acc -= n * 600;
-    net.add('crude-oil', n);
-    w.stats.made('crude-oil', n / FLUID_UNIT);
-    this.status = Status.Working;
-    this.workTicks++;
-    this.progress += sp;
-    if (this.progress >= 60) {
-      this.progress -= 60;
-      this.cycles++;
-      w.research.onCrafted('crude-oil', 1);
-      // Erschöpfung: 1 % je 300 Zyklen = 1000/300 Tausendstel-% je Zyklus (3,333…)
-      const dec = this.cycles % 3 === 0 ? 4 : 3;
-      const min = Math.max(20_000, Math.floor(w.map.originalAmount(tx, ty) * 0.2));
-      const next = Math.max(min, r.amount - dec);
-      if (next !== r.amount) w.map.setResource(tx, ty, r.res, next);
-    }
-  }
-  override save() {
-    return {
-      ...this.energy.serialize(), fb: boxData(this.box), pr: this.progress, cy: this.cycles, acc: this.acc, work: this.workTicks,
-      ...(this.modules ? { mod: this.modules.serialize() } : {}),
-    };
-  }
-  override acceptAmount(item: string, mode: InsertMode): number {
-    return this.modules && isModule(item) && mode === 'player' ? this.modules.space(item) : 0;
-  }
-  protected override doInsert(item: string, n: number): number {
-    return this.modules && isModule(item) ? this.modules.add(item, n) : 0;
-  }
-  override contents(): Stack[] {
-    return this.modules ? this.modules.contents() : [];
-  }
-  override guiSlots(): GuiSlots[] {
-    return this.modules ? [{ label: 'Module', inv: this.modules }] : [];
-  }
-  override load(d: Record<string, unknown>): void {
-    this.energy.load(d as { eb: number });
-    loadBox(this.box, d.fb);
-    this.progress = (d.pr as number) ?? 0;
-    this.cycles = (d.cy as number) ?? 0;
-    this.acc = (d.acc as number) ?? 0;
-    this.workTicks = (d.work as number) ?? 0;
-    if (this.modules && d.mod) this.modules.load(d.mod as InvData);
-  }
-}

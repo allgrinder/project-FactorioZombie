@@ -47,6 +47,11 @@ Namen der Vorbilder nie im Spiel verwenden.
   Bretter (`WallEntity.boardHp`, `World.barricade`), Möbel als Beute, Dächer im Renderer (`drawRoofs`, blenden aus),
   Modelle `lib/haus.py`. Sonderorte `WORLD.places` (Gefängnis, Kraftwerk, Gewerbegebiet, Gutshöfe; Modelle
   `lib/grossbau.py`). Tests `haus.test.ts`, Sonderorte in `welt.test.ts`. Aufgaben Plündern/Beete anlegen/Turmwache.
+- Fremde (`src/sim/strangers.ts`, `src/data/strangers.ts`): Plünderbande „Krähen“ (Überfälle, Diebstahl), Händler mit
+  Tauschfenster; Ziele über `World.foe` (Zombie oder Plünderer). Bewohner: Betten, Schlaf, Moral, Gefolge (`HOME`, `ESCORT`).
+- Wetter/Jahreszeiten/Funk (`src/sim/weather.ts`, `src/data/weather.ts`), nur in der festen Welt (`settings.plan`).
+- Geschwungene Landstraßen (`roadPaths` in `src/data/world.ts`, Belag 13, Renderer `drawRoads`, Modell `lib/strasse.py`),
+  L-Häuser (`house(..., annex)`), Feldwege (`sites.tracks`), eigene Räume mit Dach (`SiteSystem.detectRoom`).
 - Natürliche Welt: gepflanzte Bäume (`TreeField.plant`, Spielstand `planted`): Alleen, Feldhecken, Hof- und Gartenbäume.
 - Basis: Lagerfeuer (`kind: 'fire'`, `World.base`: Neustart, Hordenziel), Licht (`World.isLit`, Türme nachts kürzer),
   Wachturm (TurretDef-Werte), Versorgungsabwürfe (`src/sim/drops.ts`), Ziele (`src/sim/goals.ts`), Requisiten (`kind: 'prop'`).
@@ -56,8 +61,8 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
   Feuerschale, Scheinwerfer, Wachturm, Vorratslager.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).
-  Der Code gestrichener Systeme (Züge, Roboter, Schaltungsnetz, Kernkraft, Öl, Module, Rakete) liegt noch im Projekt,
-  ist im Spiel nicht erreichbar und soll entfernt werden.
+  Entfernt (Block F): Züge/Gleise, Raketensilo, Kernkraft/Wärme, Pumpjack/Raffinerie/Chemie samt Modellen. Noch im Code,
+  aber nicht erreichbar: Roboter, Schaltungsnetz, Module (mit Greifarmen/Montage verflochten).
 - Modelle: `lib/zombie.py`, `ruinen.py`, `lager.py`, `kram.py`, `truemmer.py`, `basis.py`; `models/zombies.py`, `ruinen.py`,
   `lager.py`, `basis.py`, `boden.py`.
 - Tests: `zombies.test.ts`, `survival.test.ts`, `welt.test.ts`, `basis.test.ts`, `freeplay.test.ts`.

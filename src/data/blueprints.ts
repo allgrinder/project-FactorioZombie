@@ -186,30 +186,6 @@ export function mall(): Blueprint {
   return make(parts);
 }
 
-/**
- * Plastik aus Rohöl: Lagertank → 2 Raffinerien (Grundverarbeitung, je 100 Rohöl → 45 Erdgas in 5 s) → 1 Chemiefabrik
- * (20 Erdgas + 1 Kohle → 2 Plastik in 1 s). 18 Erdgas/s für 20 benötigte: die Chemiefabrik läuft zu 90 %.
- * Rohöl unten rechts am Tank anschließen (40 Rohöl/s = 4 Pumpjacks bei 100 % Ergiebigkeit).
- */
-export function plasticBlock(): Blueprint {
-  const parts: Part[] = [];
-  parts.push({ name: 'oil-refinery', x: 0, y: 0, dir: 0, settings: { recipe: 'basic-oil-processing' } });
-  parts.push({ name: 'oil-refinery', x: 6, y: 0, dir: 0, settings: { recipe: 'basic-oil-processing' } });
-  parts.push({ name: 'storage-tank', x: 5, y: 7, dir: 0 });
-  // Rohöl (wie im Original unten rechts an der Raffinerie): Tank → Leitung unter den Raffinerien
-  parts.push({ name: 'pipe', x: 3, y: 5 }, { name: 'pipe', x: 9, y: 5 });
-  for (let x = 3; x <= 9; x++) parts.push({ name: 'pipe', x, y: 6 });
-  // Erdgas (oben rechts) → Leitung oben → Chemiefabrik
-  parts.push({ name: 'pipe', x: 4, y: -1 }, { name: 'pipe', x: 10, y: -1 });
-  for (let x = 4; x <= 10; x++) parts.push({ name: 'pipe', x, y: -2 });
-  parts.push({ name: 'chemical-plant', x: 6, y: -5, dir: 0, settings: { recipe: 'plastic-bar' } });
-  // schnelle Greifarme: die Chemiefabrik braucht 0,9 Kohle/s und gibt 1,8 Plastik/s aus
-  parts.push({ name: 'fast-inserter', x: 5, y: -5, dir: 1 }, { name: 'iron-chest', x: 4, y: -5 });
-  parts.push({ name: 'fast-inserter', x: 7, y: -6, dir: 0 }, { name: 'iron-chest', x: 7, y: -7 });
-  parts.push({ name: 'small-electric-pole', x: 5, y: -3 }, { name: 'small-electric-pole', x: 5, y: 1 });
-  return make(parts);
-}
-
 const ALL_PRESETS: readonly BlueprintPreset[] = [
   {
     name: 'Dampfkraft 1:2 (1,8 MW)',
@@ -251,11 +227,6 @@ const ALL_PRESETS: readonly BlueprintPreset[] = [
     name: 'Mall: Bänder, Greifarme, Rohre, Bohrer …',
     hint: 'Oberes Band: Eisenplatten | Zahnräder, unteres Band: Schaltkreise – beide von links einspeisen. Jede Maschine füllt ihre Kiste bis zu einem Stapel (Begrenzung in der Kiste änderbar).',
     bp: mall(),
-  },
-  {
-    name: 'Plastik: Tank → 2 Raffinerien → Chemiefabrik',
-    hint: 'Rohöl unten rechts am Tank anschließen (40/s = 4 Pumpjacks bei 100 %), Kohle in die linke Kiste, Plastik kommt in die obere Kiste.',
-    bp: plasticBlock(),
   },
 ];
 

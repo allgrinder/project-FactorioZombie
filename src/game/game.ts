@@ -12,7 +12,6 @@ import { MAPGEN } from '../data/mapgen';
 import { type Blueprint, placed as bpPlaced, capture as bpCapture, rotate as bpRotate } from '../sim/blueprint';
 import { treeKey } from '../sim/robots';
 import { fluidSummary, isFluidHolder } from '../sim/fluids';
-import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
 import { FLUIDS, FLUID_UNIT } from '../data/fluids';
 import { CircuitSystem } from '../sim/circuit';
 import { type Entity, insertInto, itemIndex } from '../sim/machines';
@@ -34,14 +33,6 @@ type HistoryEntry =
   | { type: 'remove'; name: string; x: number; y: number; dir: Dir };
 const MAX_STEPS_PER_FRAME = 5;
 
-/** Gleisformen beim Bauen (Tab) mit Anzahl der Lagen (R). */
-const RAIL_GROUPS = [
-  { name: 'gerade', vars: 2 },
-  { name: 'Bogen', vars: 4 },
-  { name: 'Diagonale', vars: 2 },
-  { name: 'Übergang gerade↔diagonal', vars: 8 },
-];
-
 export class Game {
   world: World;
   creative: boolean;
@@ -53,10 +44,6 @@ export class Game {
   cursorItem: string | null = null;
   /** Drahtwerkzeug (G): Farbe und erster gewählter Anschluss. */
   wireTool: 'red' | 'green' | null = null;
-  /** Gleisform beim Bauen (Tab): 0 gerade, 1 Bogen, 2 Diagonale, 3 Übergang gerade→diagonal. */
-  railGroup = 0;
-  /** Lage innerhalb der Form (R). */
-  railVar = 0;
   wireFrom: { id: number; side: 0 | 1 } | null = null;
   /** Blaupause im Cursor (Strg+V, Bibliothek); Klick legt Geister ab. */
   cursorBlueprint: Blueprint | null = null;
@@ -265,13 +252,6 @@ export class Game {
     const p = this.world.player;
     if (inp.right) {
       const e = this.world.entityAt(tx, ty);
-      const veh = !e || e.kind === 'rail' ? this.world.trains.vehicleAt(m.x, m.y) : null;
-      if (veh && this.input.rightPressed) {
-        const items = this.world.trains.remove(veh.vehicle.id);
-        if (p && !this.creative) for (const it of items) p.inventory.add(it.item, it.count);
-        return;
-      }
-      if (veh) return;
       const gh = e ? undefined : this.world.ghosts.at(tx, ty);
       if (gh) {
         this.world.ghosts.remove(gh.id);
@@ -345,22 +325,11 @@ export class Game {
         const m = this.mouseWorld();
         const e = this.world.entityAt(m.x, m.y);
         const rev = shift;
-        if (this.cursorItem === 'rail') {
-          const n = RAIL_GROUPS[this.railGroup].vars;
-          this.railVar = (this.railVar + (rev ? n - 1 : 1)) % n;
-        }
-        else if (!this.cursorItem && e && entityDef(e.name).rotatable) {
+        if (!this.cursorItem && e && entityDef(e.name).rotatable) {
           this.world.rotate(e.id, rotCW(e.dir, rev ? 3 : 1));
         } else this.buildDir = rotCW(this.buildDir, rev ? 3 : 1);
         break;
       }
-      case 'tab':
-        if (this.cursorItem === 'rail') {
-          this.railGroup = (this.railGroup + (shift ? RAIL_GROUPS.length - 1 : 1)) % RAIL_GROUPS.length;
-          this.railVar = 0;
-          this.world.player?.note(`Gleisform: ${RAIL_GROUPS[this.railGroup].name} (Tab wechselt, R dreht)`);
-        }
-        break;
       case 'q': this.pipette(); break;
       case 'e': this.hud.toggleInventory(); break;
       case 't': this.hud.toggleResearch(); break;
@@ -510,38 +479,14 @@ export class Game {
   private ghostAt(m: { x: number; y: number }): Ghost | null {
     const item = this.cursorItem;
     if (!item) return null;
-    let place = ITEMS[item]?.placeResult;
+    const place = ITEMS[item]?.placeResult;
     if (!place) return null;
-    let dir = this.buildDir;
-    let railCorner: ((x: number, y: number) => Dir) | null = null;
-    if (item === 'rail') {
-      const v = this.railVar % RAIL_GROUPS[this.railGroup].vars;
-      switch (this.railGroup) {
-        case 0: place = 'straight-rail'; dir = v as Dir; break;
-        case 1: place = 'curved-rail'; dir = v as Dir; break;
-        case 2:
-          // Diagonale: Lage „/“ oder „\“, die Ecke folgt der Maus im 2×2-Feld (so entsteht beim Ziehen eine Treppe)
-          place = 'diagonal-rail';
-          railCorner = (x, y) => {
-            const u = m.x - x;
-            const w = m.y - y;
-            return (v === 0 ? (u + w < 2 ? 0 : 2) : (u > w ? 1 : 3)) as Dir;
-          };
-          break;
-        default: place = v < 4 ? 'half-rail' : 'half-rail-mirror'; dir = (v % 4) as Dir;
-      }
-    }
+    const dir = this.buildDir;
     const def = entityDef(place);
     if (!this.creative && (this.world.player?.inventory.count(item) ?? 0) < (def.itemCount ?? 1)) return null;
     const [w, h] = sizeOf(def, dir);
-    let x = Math.round(m.x - w / 2);
-    let y = Math.round(m.y - h / 2);
-    // Gleise und Bahnhöfe liegen auf dem 2-Felder-Raster
-    if (def.kind === 'rail' || def.kind === 'train-stop') {
-      x = Math.round((m.x - w / 2) / 2) * 2;
-      y = Math.round((m.y - h / 2) / 2) * 2;
-      if (railCorner) dir = railCorner(x, y);
-    }
+    const x = Math.round(m.x - w / 2);
+    const y = Math.round(m.y - h / 2);
     const chk = this.world.canPlace(place, x, y, dir);
     let ok = chk.ok;
     const p = this.world.player;
@@ -726,21 +671,6 @@ export class Game {
       this.dragLast = { x: tx, y: ty };
       return;
     }
-    if (item === 'locomotive' || item === 'cargo-wagon') {
-      if (!this.creative && (!p || p.inventory.count(item) < 1)) return;
-      const v = DIR_VEC[this.buildDir];
-      if (this.world.trains.place(this.world, item, at.x, at.y, v[0], v[1])) {
-        if (!this.creative) p?.inventory.remove(item, 1);
-      } else p?.note('Fahrzeuge nur auf ein Gleis stellen');
-      return;
-    }
-    if (!item) {
-      const veh = this.world.trains.vehicleAt(at.x, at.y);
-      if (veh && (!target || target.kind === 'rail')) {
-        this.hud.openTrain(veh.train.id, veh.vehicle.id);
-        return;
-      }
-    }
     if (item && !placeable) {
       // Item in Gebäude legen (Brennstoff, Erz); Strg: ganzer Vorrat
       if (target && p) {
@@ -856,13 +786,6 @@ export class Game {
     const place = item ? ITEMS[item]?.placeResult : undefined;
     if (!place) return;
     const def = entityDef(place);
-    if (def.kind === 'rail' || def.kind === 'train-stop') {
-      // Gleise: an der Mausposition auf dem Raster bauen
-      const g = this.ghostAt(this.mouseWorld());
-      if (g?.ok) this.tryBuild(g);
-      this.dragLast = { x: tx, y: ty };
-      return;
-    }
     // Schrittweise entlang der Mausbewegung (4er-Nachbarschaft)
     let x = last.x;
     let y = last.y;
@@ -1026,7 +949,6 @@ export class Game {
       }
       if (!parts.length && e.fluidBoxes().length) parts.push('leer');
     }
-    if (isHeatNode(e)) parts.push(`${Math.round(temperatureOf(e))} °C`);
     return parts.length ? ` – ${parts.join(' · ')}` : '';
   }
 
@@ -1080,17 +1002,15 @@ export class Game {
 }
 
 /** Gebäudearten mit Rohranschlüssen: in der Hand zeigen sie alle Flüssigkeitsanschlüsse. */
-const FLUID_PLACE_KINDS = new Set(['pipe', 'pipe-ground', 'pump', 'tank', 'offshore-pump', 'pumpjack', 'boiler', 'generator', 'heat-exchanger', 'assembler']);
+const FLUID_PLACE_KINDS = new Set(['pipe', 'pipe-ground', 'pump', 'tank', 'offshore-pump', 'boiler', 'generator', 'assembler']);
 
 const CREATIVE_QUICKBAR: (string | null)[] = [
   'transport-belt', 'burner-inserter', 'burner-mining-drill', 'stone-furnace', null, null, null, null, null, null,
 ];
 
 /** Gebäude mit eigenem Fenster (Bänder, Rohre, Masten haben keins). */
-const DIR_VEC: readonly [number, number][] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-
 function hasWindow(e: Entity, w?: World): boolean {
   // alle Gebäude mit Flüssigkeiten (Tank, Rohr, Pumpen, Kessel, Dampfmaschine, Raffinerie …), Wärme und Radar zeigen Füllstände
-  if (isFluidHolder(e) || isHeatNode(e) || e.kind === 'radar') return true;
-  return e.guiSlots().length > 0 || (e.kind === 'belt' && !!w?.circuit.isWired(e.id)) || e.kind === 'train-stop' || e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter' || e.kind === 'solar' || e.kind === 'accumulator' || e.kind === 'pole';
+  if (isFluidHolder(e) || e.kind === 'radar') return true;
+  return e.guiSlots().length > 0 || (e.kind === 'belt' && !!w?.circuit.isWired(e.id)) || e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter' || e.kind === 'solar' || e.kind === 'accumulator' || e.kind === 'pole';
 }

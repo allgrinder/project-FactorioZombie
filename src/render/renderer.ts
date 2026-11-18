@@ -1086,29 +1086,6 @@ export class GameRenderer {
         } else this.drawGeneric(e, cx, cy, z);
         break;
       }
-      case 'rail': {
-        const key = railKey(e.def.shape, e.dir);
-        if (s.has(key)) {
-          const sp = this.ents.get(s.frame(key));
-          sp.position.set(cx, cy);
-          sp.zIndex = -1e7;
-        } else this.drawGeneric(e, cx, cy, -1e7);
-        break;
-      }
-      case 'rocket-silo': {
-        this.drawGeneric(e, cx, cy, z);
-        // Rakete: steht bereit (in der Öffnung) bzw. steigt beim Start auf
-        const t = e.launchAt >= 0 ? world.tick + alpha - e.launchAt : -1;
-        if (e.rocketReady || (t >= 0 && t < e.def.launchTicks)) {
-          const rise = t < 0 ? 0 : Math.max(0, t - 300) ** 2 * 0.004;
-          const sp = this.ents.get(s.frame(s.has('rocket') ? 'rocket' : 'item.rocket-part'));
-          sp.position.set(cx, cy - 1.6 * TILE - rise);
-          if (!s.has('rocket')) sp.scale.set(2.2, 4.5);
-          sp.zIndex = z + 1 + (t >= 0 ? 1e6 : 0);
-          sp.alpha = t >= 0 ? Math.max(0, 1 - Math.max(0, t - 900) / 500) : 1;
-        }
-        break;
-      }
       case 'furnace': {
         const fp = e.name !== 'stone-furnace' && s.has(`${e.name}.off`) ? e.name : 'furnace';
         const sh = this.shadows.get(s.frame(`${fp}.shadow`));
@@ -1184,30 +1161,6 @@ export class GameRenderer {
           it.position.set(hx, hy);
           it.scale.set(ITEM_SCALE_BELT);
           it.zIndex = z + 2;
-        }
-        break;
-      }
-      case 'heat-pipe': {
-        // Anschlüsse an Nachbarn im Wärmenetz (N=1, O=2, S=4, W=8); glüht ab 500 °C (Wiki)
-        const nb = world.heat.neighbours.get(e.id);
-        let mask = 0;
-        for (let d = 0; d < 4; d++) {
-          const o = world.entityAt(e.x + DX[d], e.y + DY[d]);
-          if (o && nb?.has(o.id)) mask |= 1 << d;
-        }
-        const name = s.has(`heat-pipe.${mask}`) ? `heat-pipe.${mask}` : null;
-        if (!name) {
-          this.drawGeneric(e, cx, cy, z - 32);
-          break;
-        }
-        const sp = this.ents.get(s.frame(name));
-        sp.position.set(cx, cy);
-        sp.zIndex = z - 32;
-        const t = e.temperature;
-        if (t > 500 && s.has(`heat-pipe.glow.${mask}`)) {
-          const g = this.glow.get(s.frame(`heat-pipe.glow.${mask}`));
-          g.position.set(cx, cy);
-          g.alpha = Math.min(1, (t - 500) / 400);
         }
         break;
       }
@@ -1602,11 +1555,6 @@ export class GameRenderer {
         case 'drill': tex = this.sprites.frame(g.name === 'burner-mining-drill' || !this.sprites.has(`${g.name}.${g.dir}`) ? `drill.${g.dir}` : `${g.name}.${g.dir}`); break;
         case 'furnace': tex = this.sprites.frame(g.name !== 'stone-furnace' && this.sprites.has(`${g.name}.off`) ? `${g.name}.off` : 'furnace.off'); break;
         case 'inserter': tex = this.sprites.frame('inserter.base'); break;
-        case 'rail': {
-          const k = railKey(def.shape, g.dir);
-          tex = this.sprites.frame(this.sprites.has(k) ? k : 'item.rail');
-          break;
-        }
         default: {
           const b = this.sprites.has(`${g.name}.${g.dir}`) ? `${g.name}.${g.dir}` : this.sprites.has(g.name) ? g.name : `item.${def.item}`;
           tex = this.sprites.frame(b);
@@ -1648,27 +1596,6 @@ export class GameRenderer {
         sp.scale.set(3, 2);
       }
       sp.zIndex = c.y * TILE + 20;
-    }
-    for (const t of world.trains.trains) {
-      for (const veh of t.vehicles) {
-        const p = veh.pose;
-        if (p.x < v.x0 - 5 || p.x > v.x1 + 5 || p.y < v.y0 - 5 || p.y > v.y1 + 6) continue;
-        const ang = Math.atan2(p.dx, -p.dy);
-        const k = ((Math.round(ang / (Math.PI / 8)) % 16) + 16) % 16;
-        const key = `${veh.kind}.${k}`;
-        if (s.has(`${key}.shadow`)) {
-          const sh = this.shadows.get(s.frame(`${key}.shadow`));
-          sh.position.set(p.x * TILE, p.y * TILE);
-          sh.scale.set(s.info(`${key}.shadow`)?.meta?.scale ?? 1);
-        }
-        const sp = this.ents.get(s.frame(s.has(key) ? key : `item.${veh.kind}`));
-        sp.position.set(p.x * TILE, p.y * TILE);
-        if (!s.has(key)) {
-          sp.rotation = ang;
-          sp.scale.set(2, 6);
-        }
-        sp.zIndex = p.y * TILE + 32;
-      }
     }
   }
 
@@ -1907,7 +1834,7 @@ export class GameRenderer {
     const drop: [number, number] = [cx + dvx, cy + dvy];
     const mark = (p: [number, number], color: number) => {
       const e = world.entityAt(p[0], p[1]);
-      if (e && e.kind !== 'rail' && e.kind !== 'belt') {
+      if (e && e.kind !== 'belt') {
         g.rect(e.x * TILE + 2, e.y * TILE + 2, e.w * TILE - 4, e.h * TILE - 4).fill({ color, alpha: 0.12 }).stroke({ width: 2 / z, color, alpha: 0.9 });
       }
       const tx = Math.floor(p[0]);
@@ -2117,15 +2044,14 @@ export class GameRenderer {
           break;
         }
       }
-    } else if (e.kind === 'pumpjack') main = 'crude-oil';
-    else if (e.kind === 'tank') main = e.box.fluid ?? null;
+    } else if (e.kind === 'tank') main = e.box.fluid ?? null;
     else if (e.kind === 'offshore-pump') main = 'water';
     else if (e.kind === 'turret') main = e.ammo.firstItem() ?? e.roundsItem ?? null;
     if (main) icon(main, cx, cy - (e.h >= 2 ? 0.08 * TILE : 0), big);
-    if (e.kind === 'container' || e.kind === 'rocket-silo') {
+    if (e.kind === 'container') {
       // häufigste Items (bis zu vier) im Raster
       const counts = new Map<string, number>();
-      const inv = e.kind === 'container' ? e.inventory : e.input;
+      const inv = e.inventory;
       for (const st of inv.slots) if (st) counts.set(st.item, (counts.get(st.item) ?? 0) + st.count);
       const top = [...counts.entries()].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, 4).map(([k]) => k);
       const n = top.length;
@@ -2177,25 +2103,12 @@ const STATUS_COLORS: Partial<Record<Status, number>> = {
 
 export { Shape };
 
-/** Sprite eines Gleisstücks. */
-function railKey(shape: string, dir: number): string {
-  switch (shape) {
-    case 'straight': return `rail.straight.${dir % 2}`;
-    case 'curve': return `rail.curve.${dir}`;
-    case 'diagonal': return `rail.diag.${dir}`;
-    case 'half': return `rail.half.${dir}`;
-    default: return `rail.halfm.${dir}`;
-  }
-}
-
 /** Fließrichtung eines Anschlusses: aus Rezept bzw. Gebäudeart; null = unbekannt (nur Symbol). */
 function portDirection(e: Entity, boxIndex: number, b: FluidBox): 'in' | 'out' | null {
   switch (e.kind) {
     case 'assembler': return e.def.fluidBoxes?.[boxIndex]?.type === 'output' ? 'out' : 'in';
     case 'boiler': return b === e.water ? 'in' : 'out';
-    case 'heat-exchanger': return b === e.water ? 'in' : 'out';
     case 'generator': return 'in';
-    case 'pumpjack':
     case 'offshore-pump': return 'out';
     default: return null;
   }

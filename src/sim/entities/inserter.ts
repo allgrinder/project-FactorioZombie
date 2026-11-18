@@ -99,9 +99,7 @@ export class InserterEntity extends EntityBase {
       return;
     }
     const { pickup, drop } = this.points();
-    // Gleise sind für Greifarme durchlässig (dahinter ggf. ein stehender Wagen)
-    const dstRaw = w.entityAt(drop[0], drop[1]);
-    const dst = dstRaw?.kind === 'rail' ? undefined : dstRaw;
+    const dst = w.entityAt(drop[0], drop[1]);
     // Ziel: Gebäude (außer Greifarm) oder freier Boden
     const groundTarget = !dst && !w.map.isBlocked(Math.floor(drop[0]), Math.floor(drop[1]));
     this.targetKind = dst?.kind;

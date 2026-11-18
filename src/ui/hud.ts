@@ -34,7 +34,6 @@ import { powerReport } from '../sim/powerreport';
 import { Tooltip } from './tooltip';
 import { ARMORS, EQUIPMENT } from '../data/armor';
 import { type FluidHolder, UNUSED, fluidSummary, isFluidHolder } from '../sim/fluids';
-import { isHeatNode, temperatureOf } from '../sim/entities/nuclear';
 import { FLUID_UNIT, isFluid, visibleFluidColor } from '../data/fluids';
 import { CHART } from '../data/chart';
 import { TechTreeView } from './techtree';
@@ -145,8 +144,6 @@ export class Hud {
   /** gewähltes Netz in der Stromübersicht (Schlüssel), null = größtes. */
   private powerNetKey: number | null = null;
   private readonly bpWin: HTMLDivElement;
-  private readonly trainWin: HTMLDivElement;
-  private openTrainId: { train: number; vehicle: number } | null = null;
   private readonly prodView: StatsView;
   private readonly powerView: StatsView;
   readonly tip: Tooltip;
@@ -189,7 +186,6 @@ export class Hud {
     this.powerBadge.title = 'Strom-Übersicht (O)';
     this.powerBadge.onclick = () => this.togglePower();
     this.bpWin = el('div', 'window blueprints hidden', this.layer);
-    this.trainWin = el('div', 'window train hidden', this.layer);
     const statIcon = (id: string) => (this.sprites.has(`item.${id}`) ? this.icon(`item.${id}`, 'icon small') : null);
     this.prodView = new StatsView(statIcon, 'items');
     this.powerView = new StatsView(statIcon, 'power');
@@ -299,7 +295,6 @@ export class Hud {
     if (this.frame % 60 === 0 && !this.statsWin.classList.contains('hidden')) this.buildStats();
     if (this.frame % 30 === 0) this.updatePowerBadge();
     if (this.frame % 60 === 0 && !this.powerWin.classList.contains('hidden')) this.buildPower();
-    if (this.frame % 15 === 0 && this.openTrainId) this.buildTrain();
     if (this.frame % 10 === 0 && this.openCarId !== null) this.buildCar();
     if (this.frame % 20 === 0 && this.comm && !this.commWin.classList.contains('hidden')) this.comm.render(this.game.world);
     if (this.frame % 15 === 0 && !this.tradeWin.classList.contains('hidden')) this.buildTrade();
@@ -985,28 +980,10 @@ export class Hud {
     const en = (e as { energy?: { type?: string; buffer?: number; capacity?: number } }).energy;
     if (en?.type === 'electric') bar('Strom', (en.buffer ?? 0) / Math.max(1, en.capacity ?? 1), 'power');
     if (e.kind === 'pole') this.powerInfo(e.id, body);
-    if (e.kind === 'train-stop') {
-      const r = el('div', 'circ-row', body);
-      el('span', 'dim', r).textContent = 'Name';
-      const n = el('input', 'stop-name', r);
-      n.value = e.stationName;
-      n.onchange = () => (e.stationName = n.value.trim() || e.stationName);
-    }
     if (e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || g.world.circuit.isWired(e.id)) this.circuitPanel(e, body);
-    if (e.kind === 'rocket-silo') {
-      bar(`Raketenteile ${e.parts} / ${e.def.partsPerRocket}`, e.parts / e.def.partsPerRocket);
-      bar('Teil', e.crafting ? e.progress / e.recipeTicks : 0);
-      el('div', 'dim', body).textContent = e.launchAt >= 0
-        ? 'Rakete gestartet – Fracht unterwegs zum Landeplatz'
-        : e.rocketReady ? (e.satellite.isEmpty() ? 'Rakete bereit – Satellit einlegen' : 'Startet, sobald ein Fracht-Landeplatz steht') : 'Rakete im Bau';
-    }
     if (e.kind === 'container' && (e.logistic === 'requester' || e.logistic === 'buffer')) this.requestEditor(e, body);
     if (e.kind === 'generator') this.generatorInfo(e, body, bar);
     if (e.kind !== 'generator' && isFluidHolder(e)) this.fluidInfo(e, body);
-    if (isHeatNode(e)) {
-      const t = temperatureOf(e);
-      bar(`Temperatur ${Math.round(t)} °C${e.kind === 'heat-exchanger' ? ' (nutzbar ab 500 °C)' : ''}`, (t - 15) / (e.maxTemperature - 15), 'energy');
-    }
     if (e.kind === 'radar') {
       bar(`Fernerkundung ${Math.floor((e.scan / CHART.scanEnergy) * 100)} %`, e.scan / CHART.scanEnergy, 'power');
       el('div', 'dim', body).textContent = `Deckt ${CHART.radarNearRadius * 2 + 1}×${CHART.radarNearRadius * 2 + 1} Abschnitte (je 32×32 Felder) ständig auf `
@@ -1136,13 +1113,12 @@ export class Hud {
     const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots) + g.inv.bar).join('|') + (e.kind === 'inserter' ? JSON.stringify(e.filters) + e.filterBlacklist : '');
     const prog = e.kind === 'drill' || e.kind === 'furnace' || e.kind === 'assembler' ? e.progress >> 3 : 0;
     const circ = JSON.stringify([this.game.world.circuit.settings.get(e.id), this.game.world.circuit.conditions.get(e.id), this.game.world.circuit.isWired(e.id)]);
-    const extra = circ + (e.kind === 'rocket-silo' ? `${e.parts}${e.rocketReady}${e.launchAt}${Math.floor(e.progress / 20)}` : e.kind === 'container' ? e.requests.map((r) => `${r.item}${r.count}`).join() : e.kind === 'pole' ? `${Math.floor(this.game.world.tick / 60)}` : e.kind === 'accumulator' ? `${e.stored >> 14}` : e.kind === 'solar' ? `${e.potential() >> 4}` : e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '');
+    const extra = circ + (e.kind === 'container' ? e.requests.map((r) => `${r.item}${r.count}`).join() : e.kind === 'pole' ? `${Math.floor(this.game.world.tick / 60)}` : e.kind === 'accumulator' ? `${e.stored >> 14}` : e.kind === 'solar' ? `${e.potential() >> 4}` : e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '');
     const en = (e as { energy?: { type?: string; buffer?: number } }).energy;
     let power = en?.type === 'electric' ? (en.buffer ?? 0) >> 6 : 0;
     if (e.kind === 'radar') power = Math.floor(e.scan / 100_000) * 7 + this.game.world.chart.count * 1009;
     if (e.kind === 'generator') power = (e.shownOutput >> 6) * 7919 + (this.game.world.power.netOf.get(e.id)?.supplied ?? 0);
     if (isFluidHolder(e)) for (const b of e.fluidBoxes()) power += ((b.net?.amount ?? b.amount) >> 10) * 31;
-    if (isHeatNode(e)) power += Math.round(temperatureOf(e));
     return `${e.kind}${e.status}|${slots}|${prog}|${(e.burner?.energy ?? 0) >> 16}|${extra}|${power}`;
   }
 
@@ -1192,7 +1168,7 @@ export class Hud {
       any = true;
     }
     this.openCarId = null;
-    for (const w of [this.help, this.invWin, this.entWin, this.carWin, this.commWin, this.tradeWin, this.menu, this.techWin, this.statsWin, this.bookWin, this.powerWin, this.bpWin, this.trainWin]) {
+    for (const w of [this.help, this.invWin, this.entWin, this.carWin, this.commWin, this.tradeWin, this.menu, this.techWin, this.statsWin, this.bookWin, this.powerWin, this.bpWin]) {
       if (!w.classList.contains('hidden')) {
         w.classList.add('hidden');
         any = true;
@@ -1439,121 +1415,6 @@ export class Hud {
 
   // ---------------------------------------------------------- Züge
 
-  openTrain(train: number, vehicle: number): void {
-    this.openTrainId = { train, vehicle };
-    this.trainWin.classList.remove('hidden');
-    this.trainWin.dataset.key = '';
-    this.buildTrain();
-  }
-
-  private buildTrain(): void {
-    const g = this.game;
-    const ts = g.world.trains;
-    const id = this.openTrainId;
-    const t = id ? ts.trains.find((x) => x.id === id.train) : undefined;
-    const v = t?.vehicles.find((x) => x.id === id!.vehicle);
-    if (!t || !v || this.trainWin.classList.contains('hidden')) {
-      this.trainWin.classList.add('hidden');
-      this.openTrainId = null;
-      return;
-    }
-    const key = JSON.stringify([t.schedule, t.state, t.current, v.inv.slots, t.vehicles.length, Math.round(t.speed * 100)]);
-    if (this.trainWin.dataset.key === key) return;
-    if (this.trainWin.contains(document.activeElement) && document.activeElement !== document.body) return; // nicht beim Tippen
-    this.trainWin.dataset.key = key;
-    this.trainWin.replaceChildren();
-    const head = el('div', 'win-head', this.trainWin);
-    head.textContent = v.kind === 'locomotive' ? 'Lokomotive' : 'Güterwagen';
-    const close = el('button', 'close', head);
-    close.textContent = '×';
-    close.onclick = () => {
-      this.trainWin.classList.add('hidden');
-      this.openTrainId = null;
-    };
-    const body = el('div', 'win-body', this.trainWin);
-    const stateText = { moving: 'fährt', waiting: 'wartet am Bahnhof', 'no-path': 'kein Weg zum Ziel', manual: 'angehalten (Handbetrieb)' }[t.state];
-    el('div', 'dim', body).textContent = `Zug aus ${t.vehicles.length} Fahrzeug(en) · ${stateText} · ${(t.speed * 216).toFixed(0)} km/h`;
-    // Inhalt des Fahrzeugs
-    const r = el('div', 'slot-row', body);
-    el('span', 'label', r).textContent = v.kind === 'locomotive' ? 'Brennstoff' : 'Ladung';
-    v.inv.slots.forEach((st, i) => {
-      const sl = el('div', 'slot small', r);
-      if (st) {
-        sl.appendChild(this.icon(`item.${st.item}`));
-        el('span', 'count', sl).textContent = String(st.count);
-      }
-      sl.onclick = () => {
-        const p = g.world.player;
-        const ci = g.cursorItem;
-        if (ci && (p || g.creative)) {
-          const have = g.creative ? 1e9 : p!.inventory.count(ci);
-          const n = v.inv.add(ci, Math.min(have, ITEMS[ci]?.stackSize ?? 1));
-          if (!g.creative) p!.inventory.remove(ci, n);
-        } else if (st) {
-          const n = p ? p.inventory.add(st.item, st.count) : st.count;
-          v.inv.remove(st.item, n);
-          void i;
-        }
-        this.trainWin.dataset.key = '';
-        this.buildTrain();
-      };
-    });
-    // Fahrplan
-    el('div', 'stats-title', body).textContent = 'Fahrplan';
-    const stations = [...new Set([...g.world.entities.values()].filter((e) => e.kind === 'train-stop').map((e) => (e as { stationName: string }).stationName))].sort();
-    t.schedule.forEach((s, i) => {
-      const row = el('div', `circ-row${i === t.current ? ' current' : ''}`, body);
-      el('span', 'dim', row).textContent = i === t.current ? '▶' : `${i + 1}.`;
-      const sel = el('select', '', row);
-      for (const n of new Set([...stations, s.station])) Object.assign(el('option', '', sel), { value: n, textContent: n });
-      sel.value = s.station;
-      sel.onchange = () => (s.station = sel.value);
-      const wait = el('select', '', row);
-      for (const [k, txt] of [['time', 'Zeit (s)'], ['full', 'Wagen voll'], ['empty', 'Wagen leer'], ['inactivity', 'Inaktivität (s)']] as const) {
-        Object.assign(el('option', '', wait), { value: k, textContent: txt });
-      }
-      wait.value = s.wait;
-      wait.onchange = () => {
-        s.wait = wait.value as typeof s.wait;
-        this.trainWin.dataset.key = '';
-        this.buildTrain();
-      };
-      if (s.wait === 'time' || s.wait === 'inactivity') {
-        const n = el('input', 'num', row);
-        n.type = 'number';
-        n.min = '0';
-        n.value = String(s.seconds);
-        n.onchange = () => (s.seconds = Math.max(0, Number(n.value) || 0));
-      }
-      const x = el('button', 'bad', row);
-      x.textContent = '×';
-      x.onclick = () => {
-        t.schedule.splice(i, 1);
-        t.current = 0;
-        t.path = null;
-        this.trainWin.dataset.key = '';
-        this.buildTrain();
-      };
-    });
-    const ctl = el('div', 'circ-row', body);
-    const add = el('button', '', ctl);
-    add.textContent = '+ Bahnhof';
-    add.disabled = !stations.length;
-    add.onclick = () => {
-      t.schedule.push({ station: stations[0], wait: 'time', seconds: 5 });
-      this.trainWin.dataset.key = '';
-      this.buildTrain();
-    };
-    const auto = el('button', '', ctl);
-    auto.textContent = t.state === 'manual' ? 'Automatik starten' : 'Anhalten';
-    auto.onclick = () => {
-      t.state = t.state === 'manual' ? 'moving' : 'manual';
-      t.path = null;
-      this.trainWin.dataset.key = '';
-      this.buildTrain();
-    };
-    if (!stations.length) el('div', 'dim', body).textContent = 'Noch keine Bahnhöfe – Bahnhof rechts neben das Gleis setzen (in Fahrtrichtung).';
-  }
 
   // ---------------------------------------------------------- Strom
 

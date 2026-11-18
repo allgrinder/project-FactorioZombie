@@ -161,14 +161,8 @@ function convert(b: FBlueprint, report: ForeignReport, notes: Set<string>): Blue
     const [w, h] = sizeOf(def, r.dir);
     return { ...r, x: Math.round(r.cx - w / 2), y: Math.round(r.cy - h / 2), w, h };
   });
-  let minX = Math.min(...placed.map((p) => p.x));
-  let minY = Math.min(...placed.map((p) => p.y));
-  // Gleise und Bahnhöfe liegen bei uns auf dem 2er-Raster: Verschiebung gerade halten
-  if (placed.some((p) => entityDef(p.name).kind === 'rail' || entityDef(p.name).kind === 'train-stop')) {
-    const rail = placed.find((p) => entityDef(p.name).kind === 'rail' || entityDef(p.name).kind === 'train-stop')!;
-    if ((rail.x - minX) % 2) minX -= 1;
-    if ((rail.y - minY) % 2) minY -= 1;
-  }
+  const minX = Math.min(...placed.map((p) => p.x));
+  const minY = Math.min(...placed.map((p) => p.y));
   const maxX = Math.max(...placed.map((p) => p.x + p.w));
   const maxY = Math.max(...placed.map((p) => p.y + p.h));
   const entities: BlueprintEntity[] = placed.map((p) => ({ name: p.name, dx: p.x - minX, dy: p.y - minY, dir: p.dir, ...(p.settings ? { settings: p.settings } : {}) }));
@@ -186,7 +180,6 @@ function settingsFrom(name: string, e: FEntity): Settings | undefined {
   if (kind === 'assembler' && e.recipe && RECIPES[e.recipe]) return { recipe: e.recipe };
   if (kind === 'underground') return { out: e.type === 'output' };
   if (kind === 'container' && typeof e.bar === 'number') return { bar: e.bar };
-  if (kind === 'train-stop' && e.station) return { st: e.station };
   if (kind === 'inserter' && e.filters?.length && e.use_filters !== false) {
     const slots = (entityDef(name) as { filterSlots?: number }).filterSlots ?? 0;
     if (!slots) return undefined;

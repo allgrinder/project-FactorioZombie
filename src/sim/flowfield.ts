@@ -32,13 +32,13 @@ export class FlowField {
           // Fundorte der alten Welt (Häuser, Wracks) werden nie eingerissen: wie Fels
           if (walker) {
             // Sammler: Gebäude sind Hindernisse (Tore, Masten, Bänder begehbar), Draht und Fallen meiden
-            const d = e && e.id !== ignore && e.kind !== 'rail' ? entityDef(e.name) : null;
+            const d = e && e.id !== ignore ? entityDef(e.name) : null;
             cost[k] = d && d.solid && !d.walkable ? Infinity : e && (e.kind === 'wire' || e.kind === 'trap') ? 4 : 1;
             continue;
           }
           // Hauswände: Zombies brechen durch Fenster und Türen, nicht durch Mauerwerk
           const wall = e && e.kind === 'wall' && e.def.house && !e.def.window && !e.def.gate;
-          cost[k] = e && (e.kind === 'loot' || e.kind === 'pile' || e.kind === 'prop' || wall) && e.id !== ignore ? Infinity : e && e.id !== ignore && e.kind !== 'rail' && entityDef(e.name).solid ? 1 + OBSTACLE_COST : 1;
+          cost[k] = e && (e.kind === 'loot' || e.kind === 'pile' || e.kind === 'prop' || wall) && e.id !== ignore ? Infinity : e && e.id !== ignore && entityDef(e.name).solid ? 1 + OBSTACLE_COST : 1;
         }
       }
     }
