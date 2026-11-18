@@ -1,5 +1,6 @@
 import { CONSUMABLES } from '../data/survival';
-import { COMMUNITY, JOB_ORDER, JOBS } from '../data/scavenge';
+import { COMMUNITY, HOME, JOB_ORDER, JOBS } from '../data/scavenge';
+import { ITEMS } from '../data/items';
 import type { World } from '../sim/world';
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls: string, parent?: HTMLElement): HTMLElementTagNameMap[K] {
@@ -27,7 +28,7 @@ export class CommunityView {
     const food = c.supply(w, (it) => (CONSUMABLES[it]?.hunger ?? 0) > 0);
     const mags = c.supply(w, (it) => it === 'firearm-magazine' || it === 'piercing-rounds-magazine');
     const med = c.supply(w, (it) => it === 'bandage' || it === 'first-aid-kit' || it === 'antibiotics');
-    const key = JSON.stringify([res.map((k) => [k.id, k.job, Math.ceil(k.hp), c.doing(k), k.hunger]), food, mags, med, c.survivors.length, !!w.base]);
+    const key = JSON.stringify([res.map((k) => [k.id, k.job, Math.ceil(k.hp), c.doing(k), k.hunger, Math.round(k.morale / 5), k.bed, k.follow, k.weapon, k.gun]), food, mags, med, c.survivors.length, !!w.base]);
     if (!force && key === this.key) return;
     this.key = key;
     this.root.replaceChildren();
@@ -55,6 +56,15 @@ export class CommunityView {
       const bar = el('div', '', hp);
       bar.style.width = `${Math.max(0, (k.hp / COMMUNITY.health) * 100)}%`;
       el('div', 'comm-doing dim', who).textContent = c.doing(k) + (k.hunger ? ` · hungrig (${k.hunger} ${k.hunger === 1 ? 'Tag' : 'Tage'})` : '');
+      const mood = k.morale < HOME.low ? 'niedergeschlagen' : k.morale > HOME.high ? 'zuversichtlich' : 'gefasst';
+      el('div', 'comm-doing dim', who).textContent = `Moral ${Math.round(k.morale)} (${mood}) · ${k.bed !== null ? 'hat ein Bett' : 'kein Bett'} · ${k.gun ? 'Pistole' : k.weapon ? ITEMS[k.weapon]?.name ?? k.weapon : 'unbewaffnet'}`;
+      const fol = el('button', `comm-job${k.follow ? ' active' : ''}`, row);
+      el('span', '', fol).textContent = k.follow ? 'Zurück ins Lager' : 'Mitkommen';
+      fol.title = 'Als Gefolge mitnehmen: folgt dir, kämpft mit (nimmt eine Pistole aus dem Vorrat, falls da)';
+      fol.onclick = () => {
+        c.setFollow(k, !k.follow);
+        this.render(w, true);
+      };
       const jobs = el('div', 'comm-jobs', row);
       for (const j of JOB_ORDER) {
         const b = el('button', `comm-job${k.job === j ? ' active' : ''}`, jobs);
@@ -69,6 +79,6 @@ export class CommunityView {
     }
     const out = c.survivors.filter((k) => k.state === 'wait').length;
     if (out) el('p', 'dim', body).textContent = `${out} bekannte Überlebende warten noch auf Hilfe (blau auf der Karte).`;
-    el('p', 'dim', body).textContent = 'Morgens isst jeder Bewohner ein Essen aus dem Vorrat. Hungrige arbeiten langsamer und gehen nach drei Tagen. ★ = früherer Beruf: diese Aufgabe gelingt besser.';
+    el('p', 'dim', body).textContent = 'Morgens isst jeder Bewohner ein Essen aus dem Vorrat. Hungrige arbeiten langsamer und gehen nach drei Tagen. Moral steigt mit Essen und eigenem Bett (Betten im Lager werden bezogen), sinkt mit Toten und Überfällen. Nachts schlafen alle außer den Wachen. ★ = früherer Beruf: diese Aufgabe gelingt besser.';
   }
 }

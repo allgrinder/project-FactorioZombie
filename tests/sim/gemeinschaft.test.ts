@@ -266,3 +266,58 @@ describe('Gemeinschaft: Selbstverteidigung', () => {
     expect(w.enemies.units.has(u.id)).toBe(false);
   });
 });
+
+describe('Gemeinschaft: Wohnen, Schlaf, Moral, Gefolge', () => {
+  it('Bewohner beziehen ein Bett, schlafen nachts darin (Wachen nicht) und stehen morgens auf', () => {
+    const w = arena({ enemies: 'aus' });
+    const { k } = base(w, 'farm');
+    const g = w.community.addResident(-1, 3, 'guard');
+    const bed = w.place('bed', 6, 4, 0)!;
+    w.run(700);
+    expect(k.bed === bed.id || g.bed === bed.id).toBe(true);
+    const sleeper = k.bed === bed.id ? k : g;
+    sleeper.job = 'farm';
+    const other = sleeper === k ? g : k;
+    other.job = 'guard';
+    w.tick = Math.round(DAY.ticks * 0.5);
+    w.run(60 * 20);
+    expect(sleeper.state).toBe('sleep');
+    expect(Math.hypot(sleeper.x - bed.cx, sleeper.y - bed.cy)).toBeLessThan(0.6);
+    expect(other.state).not.toBe('sleep');
+    w.tick = Math.round(DAY.ticks * 0.95);
+    w.run(10);
+    expect(sleeper.state).not.toBe('sleep');
+  });
+
+  it('Moral: Essen und Bett heben sie, Hunger und Tote senken sie und damit die Arbeit', () => {
+    const w = arena({ enemies: 'aus' });
+    const { k } = base(w, 'rest', true, 0);
+    const m0 = k.morale;
+    const meal = Math.floor(DAY.ticks * 0.75);
+    w.tick = meal - 2;
+    w.run(4);
+    expect(k.morale).toBeLessThan(m0);
+    k.morale = 10;
+    expect(w.community.bonus(k)).toBeLessThan(1);
+  });
+
+  it('Gefolge: folgt der Figur, nimmt eine Pistole aus dem Vorrat und schießt Zombies', () => {
+    const w = arena();
+    const { camp, k } = base(w, 'rest');
+    camp!.insert('pistol', 1, 'player');
+    camp!.insert('firearm-magazine', 2, 'player');
+    const p = new Player(2.5, 6.5);
+    p.god = true;
+    w.player = p;
+    w.community.setFollow(k, true);
+    w.run(301);
+    expect(k.gun).toBe(true);
+    expect(k.rounds).toBeGreaterThan(0);
+    p.px = Math.round(20 * 256);
+    w.run(60 * 6);
+    expect(Math.hypot(p.x - k.x, p.y - k.y)).toBeLessThan(3);
+    const u = w.enemies.spawnAt(k.x + 7, k.y, 'walker');
+    w.run(60 * 6);
+    expect(w.enemies.units.has(u.id)).toBe(false);
+  });
+});

@@ -1,7 +1,7 @@
 import { CONSUMABLES } from '../data/survival';
 import { FISTS, MELEE, PLAYER_COMBAT, TURRET } from '../data/enemies';
 import { ITEMS } from '../data/items';
-import { COMMUNITY, DEFENSE, FARM, GUARD, type Job, JOBS, LOOTER, MEDIC, NAMES, PILES, REPAIR, SCAVENGER, SKILLS, SURVIVOR } from '../data/scavenge';
+import { COMMUNITY, DEFENSE, ESCORT, FARM, GUARD, HOME, type Job, JOBS, LOOTER, MEDIC, NAMES, PILES, REPAIR, SCAVENGER, SKILLS, SURVIVOR } from '../data/scavenge';
 import { DAY, secondsToTicks } from '../data/time';
 import { Status } from './entity';
 import { FlowField } from './flowfield';
@@ -15,7 +15,7 @@ import { stepRaider, stepTrader, strangersTick } from './strangers';
  * Überlebende: wait (verbarrikadiert im Ort), follow (folgt der Figur).
  * Bewohner: home (am Lagerfeuer), out/gather/back (Sammeln), post (Wache), work (Gärtnern, Ausbessern, Sanitäter).
  */
-export type WorkerState = 'home' | 'out' | 'gather' | 'back' | 'wait' | 'follow' | 'post' | 'work';
+export type WorkerState = 'home' | 'out' | 'gather' | 'back' | 'wait' | 'follow' | 'post' | 'work' | 'sleep';
 
 export interface Worker {
   readonly id: number;
@@ -54,8 +54,16 @@ export interface Worker {
   /** Heimat (Lager der Bande; Händler: Abzugspunkt). */
   hx: number;
   hy: number;
-  /** Trägt eine Schusswaffe (Plünderer, Händler). */
+  /** Trägt eine Schusswaffe (Plünderer, Händler, Bewohner mit Pistole aus dem Vorrat). */
   gun: boolean;
+  /** Eigenes Bett (Entity-ID) – dort wohnt und schläft er. */
+  bed: number | null;
+  /** Stimmung 0–100 (HOME). */
+  morale: number;
+  /** Tage in Folge mit Moral 0. */
+  gloom: number;
+  /** Folgt der Figur als Gefolge (Befehl „Mitkommen“). */
+  follow: boolean;
 }
 
 export type Faction = 'ours' | 'raider' | 'trader';
@@ -74,6 +82,8 @@ export class Community {
   private nextId = 1;
   /** Wegfelder je Ziel (nicht gespeichert, nur Rechenaufwand). */
   private readonly fields = new Map<string, { f: FlowField; ver: number; gx?: number; gy?: number }>();
+  /** Tote Bewohner seit dem letzten Morgen (Moral). */
+  deathsToday = 0;
   /** Lagerfeuer in diesem Tick (zwischengespeichert). */
   private home: Entity | null = null;
 
@@ -167,7 +177,9 @@ export class Community {
       case 'back': return k.cargo.length ? `bringt ${k.cargo.length} Stück ins Lager` : 'auf dem Heimweg';
       case 'post': return k.rounds > 0 ? `steht Wache (${k.rounds} Schuss im Magazin)` : 'steht Wache';
       case 'work': return k.job === 'farm' ? (k.pile === -1 ? 'legt ein Beet an' : 'pflegt ein Beet') : k.job === 'repair' ? 'bessert aus' : 'versorgt dich';
-      default: return k.job === 'rest' ? 'ruht am Feuer' : 'am Lagerfeuer';
+      case 'sleep': return 'schläft';
+      case 'follow': return `begleitet dich${k.gun ? ` (Pistole, ${k.rounds} Schuss)` : ''}`;
+      default: return k.job === 'rest' ? 'ruht' : k.bed !== null ? 'zu Hause' : 'am Lagerfeuer';
     }
   }
 
@@ -179,7 +191,7 @@ export class Community {
     const k: Worker = {
       id, resident: false, name: NAMES[n], skill, job: skill, x, y, state: 'wait', pile: null, cargo: [], hp: SURVIVOR.health,
       wait: 0, flee: false, angle: Math.PI / 2, phase: 0, rounds: 0, hunger: 0, shot: -999, cd: 0, weapon: null,
-      faction: 'ours', hx: 0, hy: 0, gun: false,
+      faction: 'ours', hx: 0, hy: 0, gun: false, bed: null, morale: HOME.morale, gloom: 0, follow: false,
     };
     this.workers.push(k);
     return k;
@@ -209,7 +221,8 @@ export class Community {
 
   /** Bewohner, der für ein Ziel arbeitet (Darstellung, Zuteilung). */
   bonus(k: Worker): number {
-    return (k.skill === k.job ? COMMUNITY.skillBonus : 1) * (k.hunger > 0 ? COMMUNITY.hungryFactor : 1);
+    const mood = k.morale < HOME.low ? HOME.lowFactor : k.morale > HOME.high ? HOME.highFactor : 1;
+    return (k.skill === k.job ? COMMUNITY.skillBonus : 1) * (k.hunger > 0 ? COMMUNITY.hungryFactor : 1) * mood;
   }
 
   /** Schaden (Zombie); bei 0 Leben stirbt er, seine Last fällt zu Boden. */
@@ -240,11 +253,13 @@ export class Community {
     w.enemies.remnants.push({ x: k.x, y: k.y, kind: 'unit', size: 1, tick: w.tick, name: 'worker', dir: k.angle });
     w.events.push('death', k.x, k.y);
     w.stats.used('resident', 1);
+    if (k.resident) this.deathsToday++;
     w.player?.note(k.resident ? `${k.name} wurde von Zombies getötet` : `Der Überlebende ${k.name} wurde getötet`);
   }
 
   update(w: World): void {
     this.home = w.base;
+    this.bedCache = w.entities;
     strangersTick(this, w);
     if (w.settings.needs && w.tick % DAY.ticks === Math.floor(DAY.ticks * 0.75)) this.meal(w);
     for (const k of [...this.workers]) {
@@ -317,16 +332,40 @@ export class Community {
     return null;
   }
 
+  /** Bewohner verlässt die Gemeinschaft (Last fällt zu Boden). */
+  private leave(w: World, k: Worker, why: string): void {
+    for (const it of k.cargo) w.spill(k.x, k.y, it);
+    this.workers.splice(this.workers.indexOf(k), 1);
+    w.player?.note(`${k.name} hat die Gemeinschaft ${why} verlassen`);
+  }
+
+  /** Gefolge an- bzw. abschalten (Fenster „Gemeinschaft“). */
+  setFollow(k: Worker, on: boolean): void {
+    if (!k.resident) return;
+    k.follow = on;
+    k.state = on ? 'follow' : 'back';
+    k.pile = null;
+    k.flee = false;
+  }
+
   /** Morgens essen alle Bewohner je ein Essen aus dem Vorrat; wer leer ausgeht, wird hungrig und geht irgendwann. */
   private meal(w: World): void {
     let hungry = 0;
+    const deaths = this.deathsToday;
+    this.deathsToday = 0;
     for (const k of this.residents) {
+      // Moral: Bett, Tote des Tages, dann Essen
+      k.morale += (k.bed !== null && w.entities.has(k.bed) ? HOME.bed : HOME.noBed) + deaths * HOME.death;
       const food = this.takeSupply(w, (it) => (CONSUMABLES[it]?.hunger ?? 0) > 0);
       if (food) {
         w.stats.used(food, 1);
         k.hunger = 0;
+        k.morale = Math.max(0, Math.min(100, k.morale + HOME.fed));
+        k.gloom = k.morale <= 0 ? k.gloom + 1 : 0;
+        if (k.gloom >= 2) this.leave(w, k, 'mutlos');
         continue;
       }
+      k.morale = Math.max(0, Math.min(100, k.morale + HOME.hungry));
       hungry++;
       if (++k.hunger >= COMMUNITY.leaveDays) {
         for (const it of k.cargo) w.spill(k.x, k.y, it);
@@ -407,8 +446,11 @@ export class Community {
 
   private stepResident(w: World, k: Worker): void {
     if (w.tick % 60 === 0 && (k.state === 'home' || k.state === 'post')) k.hp = Math.min(COMMUNITY.health, k.hp + COMMUNITY.healPerSecond * (k.state === 'post' ? 0.5 : 1));
-    if (k.state === 'home' && !k.weapon && (w.tick + k.id) % 300 === 0) this.arm(w, k);
+    if ((k.state === 'home' || k.follow) && (w.tick + k.id) % 300 === 0) this.arm(w, k);
+    if ((w.tick + k.id) % 600 === 0) this.claimBed(w, k);
     if (this.defend(w, k)) return;
+    if (k.follow) return this.stepFollow(w, k);
+    if (this.stepSleep(w, k)) return;
     if (k.state === 'back') return this.stepBack(w, k);
     switch (k.job) {
       case 'scavenge': return this.stepScavenge(w, k);
@@ -423,6 +465,13 @@ export class Community {
 
   /** Beste Nahkampfwaffe aus dem Vorrat nehmen (Axt, Brecheisen, Schläger, Speer, Messer). */
   private arm(w: World, k: Worker): void {
+    // Pistole für Wachen und Gefolge, Magazin nachfüllen
+    if (!k.gun && (k.job === 'guard' || k.follow) && this.takeSupply(w, (x) => x === 'pistol' || x === 'submachine-gun')) k.gun = true;
+    if (k.gun && k.rounds <= 0) {
+      const mag = this.takeSupply(w, (it) => it === 'firearm-magazine' || it === 'piercing-rounds-magazine');
+      if (mag) k.rounds = ESCORT.rounds * (mag === 'piercing-rounds-magazine' ? 2 : 1);
+    }
+    if (k.weapon) return;
     for (const it of DEFENSE.weapons) {
       if (this.takeSupply(w, (x) => x === it)) {
         k.weapon = it;
@@ -439,6 +488,23 @@ export class Community {
   private defend(w: World, k: Worker): boolean {
     if (k.state === 'wait') return false;
     const fleeing = k.flee && k.hp < COMMUNITY.health * DEFENSE.fleeBelow;
+    // Schusswaffe (Gefolge, Bewohner mit Pistole; Wachen schießen über stepGuard)
+    if (k.gun && k.rounds > 0 && k.job !== 'guard' && k.faction === 'ours' && !fleeing) {
+      const t = w.foe(k.x, k.y, ESCORT.gunRange);
+      if (t && Math.hypot(t.x - k.x, t.y - k.y) > 1.6) {
+        k.angle = Math.atan2(t.y - k.y, t.x - k.x);
+        k.phase = 0;
+        if (k.cd <= w.tick) {
+          k.rounds--;
+          w.enemies.damageTarget(w, t, ESCORT.gunDamage * this.bonus(k), { x: k.x, y: k.y });
+          w.events.push('shot', k.x, k.y);
+          w.noise.emit(k.x, k.y, ESCORT.gunNoise);
+          k.shot = w.tick;
+          k.cd = w.tick + ESCORT.gunCooldown;
+        }
+        return true;
+      }
+    }
     const m = (k.weapon && MELEE[k.weapon]) || FISTS;
     const u = k.faction === 'ours' ? w.foe(k.x, k.y, m.reach + 0.45) : w.enemies.nearestTarget(k.x, k.y, m.reach + 0.45, w.tick);
     if (u) {
@@ -487,9 +553,86 @@ export class Community {
   private spot(k: Worker): [number, number] | null {
     const b = this.home;
     if (!b) return null;
+    // Wohnen: neben dem eigenen Bett
+    const bed = this.bedEntity(k);
+    if (bed) return [bed.cx + 0.85, bed.cy + 0.3];
     const a = k.id * 2.39996;
     const r = 2.4 + (k.id % 3) * 0.7;
     return [b.cx + Math.cos(a) * r, b.cy + Math.sin(a) * r];
+  }
+
+  private bedEntity(k: Worker): Entity | null {
+    const e = k.bed !== null ? this.bedCache?.get(k.bed) : undefined;
+    return e && e.kind === 'bed' ? e : null;
+  }
+
+  private bedCache: Map<number, Entity> | null = null;
+
+  /** Freies Bett im Lager beanspruchen (Feldbett, Bett, Pritsche); ein verschwundenes Bett freigeben. */
+  private claimBed(w: World, k: Worker): void {
+    this.bedCache = w.entities;
+    if (k.bed !== null && w.entities.get(k.bed)?.kind === 'bed') return;
+    k.bed = null;
+    const b = this.home;
+    if (!b) return;
+    let best: Entity | null = null;
+    let bd: number = COMMUNITY.baseRadius;
+    for (const e of w.entities.values()) {
+      if (e.kind !== 'bed') continue;
+      const d = Math.hypot(e.cx - b.cx, e.cy - b.cy);
+      if (d >= bd || this.workers.some((o) => o.bed === e.id)) continue;
+      bd = d;
+      best = e;
+    }
+    if (best) k.bed = best.id;
+  }
+
+  /** Nachts schlafen alle außer Wachen (im eigenen Bett, sonst am Feuer); true: schläft bzw. geht schlafen. */
+  private stepSleep(w: World, k: Worker): boolean {
+    const night = w.darkness >= HOME.sleepDark;
+    if (k.state === 'sleep') {
+      if (night) {
+        if (w.tick % 60 === 0) k.hp = Math.min(COMMUNITY.health, k.hp + HOME.sleepHeal);
+        k.phase = 0;
+        return true;
+      }
+      k.state = 'home';
+      return false;
+    }
+    if (!night || k.job === 'guard' || k.cargo.length || (k.state !== 'home' && k.state !== 'work')) return false;
+    this.bedCache = w.entities;
+    const bed = this.bedEntity(k);
+    const s: [number, number] | null = bed ? [bed.cx, bed.cy] : this.spot(k);
+    if (!s) return false;
+    if (Math.hypot(s[0] - k.x, s[1] - k.y) > 0.4) {
+      this.walkPoint(w, k, s[0], s[1], COMMUNITY.speed * 0.8);
+      return true;
+    }
+    k.state = 'sleep';
+    return true;
+  }
+
+  /** Gefolge: folgt der Figur (Wegsuche), kämpft über defend; ohne Figur geht es heim. */
+  private stepFollow(w: World, k: Worker): void {
+    const p = w.player && !w.player.dead ? w.player : null;
+    if (!p) {
+      k.follow = false;
+      k.state = 'back';
+      return;
+    }
+    k.state = 'follow';
+    const d = Math.hypot(p.x - k.x, p.y - k.y);
+    if (d > SURVIVOR.lostDistance * 2) {
+      k.follow = false;
+      k.state = 'back';
+      p.note(`${k.name} hat dich verloren und geht zurück ins Lager`);
+      return;
+    }
+    if (d <= ESCORT.keep) {
+      k.phase = 0;
+      return;
+    }
+    this.walkPoint(w, k, p.x, p.y, ESCORT.speed);
   }
 
   /** Am Feuer bleiben (bzw. dorthin gehen). */
@@ -1055,22 +1198,24 @@ export class Community {
       n: this.nextId,
       v: 2,
       w: this.workers.map((k) => [k.id, k.resident ? 1 : 0, k.x, k.y, k.state, k.pile, k.cargo.join(','), k.hp, k.wait, k.flee ? 1 : 0, k.angle, k.phase,
-        k.name, k.skill, k.job, k.rounds, k.hunger, k.cd, k.weapon, FACTIONS.indexOf(k.faction), k.hx, k.hy, k.gun ? 1 : 0]),
+        k.name, k.skill, k.job, k.rounds, k.hunger, k.cd, k.weapon, FACTIONS.indexOf(k.faction), k.hx, k.hy, k.gun ? 1 : 0, k.bed, k.morale, k.gloom, k.follow ? 1 : 0]),
       s: this.strangers,
+      dt: this.deathsToday,
     };
   }
 
-  load(d: { n?: number; v?: number; w?: unknown[]; s?: Community['strangers'] } | undefined): void {
+  load(d: { n?: number; v?: number; w?: unknown[]; s?: Community['strangers']; dt?: number } | undefined): void {
     this.workers.length = 0;
+    this.deathsToday = d?.dt ?? 0;
     const st = d?.s;
     Object.assign(this.strangers, { nextRaid: st?.nextRaid ?? -1, nextTrader: st?.nextTrader ?? -1, visits: st?.visits ?? 0, nextRecruit: st?.nextRecruit ?? 0,
       offers: (st?.offers ?? []).map((o) => ({ give: [...o.give] as [string, number], get: [...o.get] as [string, number], stock: o.stock })) });
     this.fields.clear();
     this.nextId = d?.n ?? 1;
     for (const r of (d?.w ?? []) as unknown[][]) {
-      const [id, res, x, y, state, pile, cargo, hp, wait, flee, angle, phase, name, skill, jb, rounds, hunger, cd, weapon, fac, hx, hy, gun] = r as [
+      const [id, res, x, y, state, pile, cargo, hp, wait, flee, angle, phase, name, skill, jb, rounds, hunger, cd, weapon, fac, hx, hy, gun, bed, morale, gloom, fol] = r as [
         number, number, number, number, WorkerState, number | null, string, number, number, number, number, number, string?, string?, string?, number?, number?, number?, (string | null)?,
-        number?, number?, number?, number?];
+        number?, number?, number?, number?, (number | null)?, number?, number?, number?];
       // alte Spielstände (v1): zweite Spalte = Sammelstelle (0: Überlebender), Sammler werden Bewohner
       const resident = d?.v === 2 ? res === 1 : res !== 0;
       const nm = name ?? NAMES[id % NAMES.length];
@@ -1079,6 +1224,7 @@ export class Community {
         id, resident, name: nm, skill: sk, job: job(jb ?? sk), x, y, state: resident && state === 'wait' ? 'home' : state, pile,
         cargo: cargo ? cargo.split(',').filter((it) => ITEMS[it]) : [], hp, wait, flee: !!flee, angle, phase, rounds: rounds ?? 0, hunger: hunger ?? 0,
         shot: -999, cd: cd ?? 0, weapon: weapon ?? null, faction: FACTIONS[fac ?? 0] ?? 'ours', hx: hx ?? 0, hy: hy ?? 0, gun: !!gun,
+        bed: bed ?? null, morale: morale ?? HOME.morale, gloom: gloom ?? 0, follow: !!fol,
       });
     }
   }

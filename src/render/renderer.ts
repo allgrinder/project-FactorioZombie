@@ -1637,6 +1637,10 @@ export class GameRenderer {
         sp.tint = 0xa8bce0;
         if (k.state === 'wait') sp.rotation = Math.sin(t / 15 + k.id) * 0.05;
       } else sp.tint = JOB_TINT[k.job];
+      if (k.state === 'sleep') {
+        sp.rotation = Math.PI / 2;
+        sp.tint = 0x9a9aa8;
+      }
       sp.zIndex = k.y * TILE;
       // Last bzw. Aufgabensymbol (klein) über dem Kopf
       const icon = k.cargo.length ? k.cargo[k.cargo.length - 1] : k.faction === 'raider' ? (k.gun ? 'pistol' : 'baseball-bat') : k.faction === 'trader' ? 'backpack' : k.resident ? JOBS[k.job].icon : null;

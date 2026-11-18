@@ -160,6 +160,15 @@ Plünderer); Zombies jagen auch Plünderer und Händler.
 **Händler** kommen ab Tag 3 alle 2 Tage ans Lagerfeuer (Start 55 Felder entfernt), bleiben ein Vierteltag und bieten
 4 von 12 Tauschgeschäften (je 3-mal) an: Klick auf den Händler öffnet das Tauschfenster.
 
+## Wohnen, Schlaf, Moral, Gefolge (`HOME`, `ESCORT` in `src/data/scavenge.ts`)
+
+Bewohner beziehen ein freies Bett im Lager (Feldbett, Bett, Pritsche; Umkreis 22 um das Feuer) und halten sich tagsüber
+daneben auf. Nachts (Dunkelheit ≥ 0,6) schlafen alle außer Wachen und Gefolge (1,2 LP/s). Moral 0–100 (Start 60):
+morgens +6 mit Essen bzw. −20 ohne, +6 mit Bett bzw. −8 ohne, −15 je Toten des Tages, −10 bei jedem Überfall; unter
+30 arbeiten sie mit 75 %, über 75 mit 115 %; zwei Morgen in Folge bei 0 gehen sie. **Mitkommen** (Fenster K): Der
+Bewohner folgt der Figur (Wegsuche), nimmt eine Pistole und Magazine aus dem Vorrat (10 Schuss, 8 Schaden, Reichweite
+10) und kämpft mit; Wachen nehmen ebenfalls Pistolen.
+
 ## Neue Aufgaben
 
 - **Plündern:** durchsucht Fundorte mit Beute im Umkreis von 90 Feldern ums Feuer (Suchzeit × 1,5), nimmt bis 16

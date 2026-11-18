@@ -1,5 +1,6 @@
 import { RAID, RAIDER, TRADER, TRADES } from '../data/strangers';
 import { DAY } from '../data/time';
+import { HOME } from '../data/scavenge';
 import type { Community, Worker } from './community';
 import { hash01 } from './rng';
 import type { Player } from './player';
@@ -32,6 +33,7 @@ export function strangersTick(c: Community, w: World): void {
     const ready = raiders.filter((k) => k.state === 'home' && k.hp > RAIDER.health * 0.6).slice(0, RAID.size);
     if (base && ready.length) {
       for (const k of ready) k.state = 'out';
+      for (const o of c.residents) o.morale = Math.max(0, o.morale + HOME.raid);
       w.events.push('horde', base.cx, base.cy);
       w.player?.note(`Plünderer sind auf dem Weg zu deinem Lager (${ready.length})! Wachen auf die Posten`);
     }

@@ -151,6 +151,23 @@ export const DEFENSE = {
   threatRadius: 2.2,
 } as const;
 
+/**
+ * Wohnen, Schlaf und Moral (Block B): Bewohner beanspruchen ein freies Bett im Lager (Umkreis baseRadius) und wohnen
+ * dort; nachts (Dunkelheit ab sleepDark) schlafen alle außer Wachen und Gefolge und heilen sleepHeal LP/s. Moral 0–100:
+ * jeden Morgen +fed bzw. -hungry, +bed bzw. -noBed, je Toter des Tages -death; unter low arbeiten sie mit lowFactor,
+ * über high mit highFactor; bei 0 Moral zwei Morgen in Folge gehen sie.
+ */
+export const HOME = {
+  sleepDark: 0.6,
+  sleepHeal: 1.2,
+  morale: 60,
+  fed: 6, hungry: -20, bed: 6, noBed: -8, death: -15, raid: -10,
+  low: 30, high: 75, lowFactor: 0.75, highFactor: 1.15,
+} as const;
+
+/** Gefolge („Mitkommen“): Abstand zur Figur, Tempo; mit Pistole Reichweite, Takt, Schaden. */
+export const ESCORT = { keep: 2.4, speed: 0.15, gunRange: 10, gunCooldown: 34, gunDamage: 8, gunNoise: 14, rounds: 10 } as const;
+
 export const MEDIC = { reach: 2.5, hpPerSecond: 2, residentHpPerSecond: 1 } as const;
 export const REPAIR = { hpPerSecond: 8 } as const;
 /** Gärtner: Wachstum je Tick zusätzlich, Ernte ab so vielen Stück heimbringen, Wildkräuter alle forageSeconds. */
