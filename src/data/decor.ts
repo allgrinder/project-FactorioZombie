@@ -45,6 +45,12 @@ export const DECOR: readonly DecorKind[] = [
   { id: 'pebbles', sprite: 'decal.pebbles', layer: 'decal', cell: 3, chance: 0.22, clearOfResources: 0, clearOfSpawn: 0, shadow: false, fertility: -0.5 },
   { id: 'tuft', sprite: 'decal.tuft', layer: 'decal', cell: 3, chance: 0.3, clearOfResources: 1, clearOfSpawn: 0, shadow: false, fertility: 0.2 },
   { id: 'flowers', sprite: 'decal.flowers', layer: 'decal', cell: 5, chance: 0.18, clearOfResources: 1, clearOfSpawn: 0, shadow: false, fertility: 0.9 },
+  // Spuren der Katastrophe (Vielfalt): Blut, Müll, Laub, Brandflecken, Reifenspuren
+  { id: 'blood', sprite: 'decal.blood', layer: 'decal', cell: 34, chance: 0.08, clearOfResources: 0, clearOfSpawn: 6, shadow: false, warp: true },
+  { id: 'trash', sprite: 'decal.trash', layer: 'decal', cell: 26, chance: 0.1, clearOfResources: 0, clearOfSpawn: 4, shadow: false, warp: true },
+  { id: 'leaves', sprite: 'decal.leaves', layer: 'decal', cell: 9, chance: 0.08, groveBoost: 4, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: 0.8 },
+  { id: 'burnt', sprite: 'decal.burnt', layer: 'decal', cell: 44, chance: 0.06, clearOfResources: 0, clearOfSpawn: 10, shadow: false, warp: true },
+  { id: 'tracks', sprite: 'decal.tracks', layer: 'decal', cell: 38, chance: 0.05, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.5 },
   { id: 'reed', sprite: 'flora.reed', layer: 'flora', cell: 2, chance: 0.85, shore: true, clearOfResources: 1, clearOfSpawn: 0, shadow: true },
   { id: 'shrub', sprite: 'flora.shrub', layer: 'flora', cell: 6, chance: 0.12, groveBoost: 4, waterBoost: 3, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: 1.0 },
   { id: 'boulder', sprite: 'flora.boulder', layer: 'flora', cell: 11, chance: 0.12, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: -0.7 },

@@ -326,6 +326,27 @@ export class SiteSystem {
             placed += +this.put(w, name === 'ruin-garage' ? 'parts-pile' : 'rubble-pile', ex, ey, level);
           }
         }
+        // Vorgarten und Hof (Vielfalt): Briefkasten am Weg, Mülltonnen an der Seite, hinten Kram nach Los
+        if (ok && level && walk && hk === 'home') {
+          const front = side === 0 ? off + depth : off - 1; // Feld zwischen Haus und Gehweg
+          const at = (al: number, dp: number): [number, number] => (horizontal ? [cx + a + al, cy + dp] : [cx + dp, cy + a + al]);
+          if (hi(20) < 0.7) {
+            const [mx, my] = at(Math.floor(hi(21) * along), side === 0 ? front + setback : front - setback);
+            if (setback > 0) this.put(w, 'mailbox', mx, my);
+          }
+          if (hi(22) < 0.6) {
+            const [tx2, ty2] = at(along + 0.0, side === 0 ? front - 1 : front + 1);
+            this.put(w, 'trash-bin', tx2, ty2);
+          }
+          const yard = ['swing', 'picnic-table', 'laundry-line', 'dog-house', 'garden-shed', 'pallets', 'oil-drums', 'tire-pile', 'trash-bin'];
+          const backRow = side === 0 ? off - 2 : off + depth + 1;
+          for (let q = 0; q < 2; q++) {
+            if (hi(30 + q) > (q === 0 ? 0.75 : 0.4)) continue;
+            const name = yard[Math.floor(hi(32 + q) * yard.length)];
+            const [yx, yy] = at(Math.floor(hi(34 + q) * Math.max(1, along - 3)), backRow - (side === 0 ? (name === 'garden-shed' ? 1 : 0) : 0));
+            this.put(w, name, yx, yy);
+          }
+        }
         // Gartenzaun hinter dem Haus und manchmal ein verwildertes Gemüsebeet
         if (ok && level && walk && hk === 'home' && hi(6) < 0.55) {
           const back = side === 0 ? off - 3 : off + depth + 2;
@@ -357,8 +378,33 @@ export class SiteSystem {
     // Wracks auf (waagerecht) bzw. neben (senkrecht) der Straße
     const cars = Math.round((profile === 'works' ? 0.16 : 0.09) * len) + Math.floor(h(3) * 2);
     for (let i = 0; i < cars; i++) {
-      const a = a0 + 2 + Math.floor(h(200 + i) * (len - 6));
-      placed += +(horizontal ? this.put(w, 'car-wreck', cx + a, cy, level) : this.put(w, 'car-wreck', cx - 4, cy + a, level));
+      const a = a0 + 2 + Math.floor(h(200 + i) * (len - 8));
+      const r = h(260 + i);
+      const name = r < 0.5 ? 'car-wreck' : r < 0.72 ? 'van-wreck' : r < 0.8 ? 'police-wreck' : r < 0.88 ? 'ambulance-wreck' : horizontal && r < 0.95 ? 'bus-wreck' : 'car-wreck';
+      placed += +(horizontal ? this.put(w, name, cx + a, cy, level) : this.put(w, name, cx - 4, cy + a, level));
+    }
+    // Straßenmöbel auf dem Gehweg: Bänke, Mülleimer, Telefonzelle, Bushaltestelle; Laub und Kegel
+    if (level && profile !== 'works') {
+      for (let a = a0 + 3; a < a0 + len - 4; a += 7 + Math.floor(h(300 + a) * 6)) {
+        const r = h(310 + a);
+        const sideRow = r < 0.5 ? -1 : 2;
+        const name = r < 0.18 ? 'bench' : r < 0.36 ? 'trash-bin' : r < 0.44 ? 'phone-booth' : r < 0.54 && len > 30 ? 'bus-stop' : r < 0.62 ? 'traffic-cone' : '';
+        if (!name) continue;
+        if (horizontal) this.put(w, name, cx + a, cy + sideRow, level);
+        else this.put(w, name, cx + (sideRow < 0 ? -1 : 2), cy + a, level);
+      }
+    }
+    // Straßensperre am Ortsende (manchmal): Absperrung, Kegel, Streifenwagen
+    if (level && h(320) < 0.35) {
+      const e = a0 + len - 2;
+      if (horizontal) {
+        this.put(w, 'road-barrier', cx + e, cy, level);
+        this.put(w, 'traffic-cone', cx + e - 1, cy + 1, level);
+        if (h(321) < 0.5) this.put(w, 'police-wreck', cx + e - 5, cy - 4, level);
+      } else {
+        this.put(w, 'traffic-cone', cx, cy + e, level);
+        this.put(w, 'traffic-cone', cx + 1, cy + e - 1, level);
+      }
     }
     return placed;
   }
@@ -448,7 +494,9 @@ export class SiteSystem {
           const side = hash01(WORLD.seed, ri, q, 880) < 0.5 ? 1 : -1;
           const cx = Math.round(px + nx * side * 4 - 1.5);
           const cy = Math.round(py + ny * side * 4 - 1);
-          if (!this.nearTown(cx, cy, 50) && this.put(w, 'car-wreck', cx, cy, true) && hash01(WORLD.seed, cx, cy, 881) < 0.45) {
+          const r = hash01(WORLD.seed, ri, q, 882);
+          const vehicle = r < 0.45 ? 'car-wreck' : r < 0.65 ? 'van-wreck' : r < 0.75 ? 'tractor-wreck' : r < 0.82 ? 'ambulance-wreck' : r < 0.88 ? 'police-wreck' : r < 0.94 ? 'fallen-log' : 'bus-wreck';
+          if (!this.nearTown(cx, cy, 50) && this.put(w, vehicle, cx, cy, true) && hash01(WORLD.seed, cx, cy, 881) < 0.45) {
             this.put(w, 'scrap-pile', Math.round(cx + nx * side * 3), Math.round(cy + ny * side * 3), true);
           }
         }
@@ -486,7 +534,10 @@ export class SiteSystem {
       this.track(x, y, rx, ry, i);
       placed += +this.put(w, 'ruin-shed', x + 4, y - 1 + Math.round(h(1) * 3), true);
       placed += +this.put(w, 'supply-crate', x + 3, y + 3, true);
-      if (h(2) < 0.5) placed += +this.put(w, 'car-wreck', x - 5, y + 3, true);
+      if (h(2) < 0.5) placed += +this.put(w, h(43) < 0.6 ? 'tractor-wreck' : 'car-wreck', x - 5, y + 3, true);
+      // Hofkram nach Los
+      const farmKram = ['pallets', 'oil-drums', 'tire-pile', 'dog-house', 'laundry-line', 'trash-bin', 'garden-shed'];
+      for (let q = 0; q < 3; q++) if (h(44 + q) < 0.6) placed += +this.put(w, farmKram[Math.floor(h(47 + q) * farmKram.length)], x + 4 + q * 2, y + 5 + (q % 2), true);
       // Hof: Holzstapel und Kohlenkeller bzw. Bauschutt einer eingestürzten Scheune
       placed += +this.put(w, 'wood-pile', x + 8, y + 2, true);
       placed += +this.put(w, h(3) < 0.5 ? 'coal-pile' : 'rubble-pile', x - 6, y - 5, true);
@@ -503,6 +554,14 @@ export class SiteSystem {
     });
     // Wildnis: vereinzelt ein Wrack oder ein verlassenes Lager, nicht bei Orten
     const s = w.seed;
+    // umgestürzte Bäume im Wald (je Zelle bis zu zwei, nur wo Bäume stehen)
+    for (let q = 0; q < 2; q++) {
+      const lx = Math.round((gx + hash01(s, gx, gy, 830 + q)) * c);
+      const ly = Math.round((gy + hash01(s, gx, gy, 832 + q)) * c);
+      let trees = 0;
+      for (let j = -3; j <= 3; j++) for (let i = -3; i <= 3; i++) if (w.map.trees.treeAt(lx + i, ly + j)) trees++;
+      if (trees >= 3 && !this.nearTown(lx, ly, 40)) this.put(w, 'fallen-log', lx, ly);
+    }
     if (hash01(s, gx, gy, 811) >= WORLD.wildChance) return;
     const x = Math.round((gx + 0.2 + hash01(s, gx, gy, 812) * 0.6) * c);
     const y = Math.round((gy + 0.2 + hash01(s, gx, gy, 813) * 0.6) * c);
@@ -517,7 +576,7 @@ export class SiteSystem {
       placed += +this.put(w, 'supply-crate', x + 2, y + 1);
       placed += +this.put(w, 'car-wreck', x - 5, y - 1);
       if (placed) this.sites.push({ x, y, r: 6, weight: 1.5, kind: 'camp' });
-    } else if (this.put(w, 'car-wreck', x, y)) this.sites.push({ x, y, r: 5, weight: 0.7, kind: 'wreck' });
+    } else if (this.put(w, hash01(s, gx, gy, 817) < 0.3 ? 'van-wreck' : 'car-wreck', x, y)) this.sites.push({ x, y, r: 5, weight: 0.7, kind: 'wreck' });
   }
 
   /** Ort: Hauptstraße (Ortskern) mit Querstraßen (Wohnhäuser); Gewerbeorte mit Werkstätten am Rand. */
@@ -712,6 +771,11 @@ export class SiteSystem {
     // Stacheldraht außen (Lücke vor dem Tor)
     for (let x = x0 - 2; x <= x1 + 2; x++) for (const y of [y0 - 2, y1 + 2]) if (!(y === y0 - 2 && Math.abs(x - p.x) <= 2)) this.put(w, 'barbed-wire', x, y);
     for (let y = y0 - 1; y <= y1 + 1; y++) for (const x of [x0 - 2, x1 + 2]) this.put(w, 'barbed-wire', x, y);
+    // Sandsäcke und Absperrung vor dem Tor
+    this.put(w, 'sandbags', p.x - 4, y0 - 4, true);
+    this.put(w, 'sandbags', p.x + 3, y0 - 4, true);
+    this.put(w, 'road-barrier', p.x - 1, y0 - 5, true);
+    this.put(w, 'police-wreck', p.x + 6, y0 - 8, true);
     // Wachtürme in den Ecken
     for (const [tx, ty] of [[x0 + 1, y0 + 1], [x1 - 2, y0 + 1], [x0 + 1, y1 - 2], [x1 - 2, y1 - 2]]) this.put(w, 'prison-tower', tx, ty);
     // Zellentrakt (Süden), Verwaltung (Nordwest), Kantine (Nordost)
@@ -834,6 +898,9 @@ export class SiteSystem {
     this.put(w, 'chimney', x0 + 18, y0 + 12, true);
     for (let k = 0; k < 3; k++) this.put(w, 'car-wreck', x1 - 5, y0 + 4 + k * 8, true);
     this.put(w, 'dumpster', x0 + 18, y0 + 3, true);
+    // Lagerplatz: Paletten, Fässer, Reifen, Kegel, Transporter
+    for (let k = 0; k < 6; k++) this.put(w, ['pallets', 'oil-drums', 'tire-pile', 'pallets', 'oil-drums', 'traffic-cone'][k], x1 - 3 - (k % 3) * 2, y1 - 3 - Math.floor(k / 3) * 2, true);
+    this.put(w, 'van-wreck', x0 + 22, y1 - 4, true);
     this.sites.push({ x: p.x, y: p.y, r: 16, weight: 4, kind: 'town' });
   }
 
@@ -847,8 +914,11 @@ export class SiteSystem {
     this.put(w, 'silo', p.x + 5, p.y + (s < 0 ? -8 : 4), true);
     this.put(w, 'wood-pile', p.x - 8, p.y + (s < 0 ? -7 : 5), true);
     this.put(w, 'scrap-pile', p.x + 10, p.y + (s < 0 ? -7 : 5), true);
-    this.put(w, 'car-wreck', p.x - 4, p.y - 2, true);
+    this.put(w, 'tractor-wreck', p.x - 4, p.y - 2, true);
     for (let k = 0; k < 3; k++) if (h(80 + k) < 0.8) this.put(w, 'garden', p.x - 12 + k * 3, p.y + (s < 0 ? -6 : 6));
+    for (const [n, dx] of [['pallets', 12], ['oil-drums', 13], ['tire-pile', 12], ['dog-house', -14], ['laundry-line', -13]] as const) {
+      this.put(w, n, p.x + dx, p.y + (s < 0 ? 1 : -2) + (n === 'tire-pile' ? 1 : 0), true);
+    }
     this.field(w, p.x - 34, p.y - 10, 16, 10, (n) => h(120 + n));
     this.track(p.x - 4, p.y, p.x - 26, p.y + 1, p.x * 7 + 1);
     this.track(p.x + 6, p.y, p.x + 25, p.y + 3, p.x * 7 + 2);
@@ -867,6 +937,9 @@ export class SiteSystem {
     this.put(w, 'military-crate', x, y, true);
     this.put(w, 'car-wreck', x - 8, y + 6, true);
     this.put(w, 'car-wreck', x + 5, y - 7, true);
+    for (const [dx, dy] of [[-6, -5], [3, -5], [-6, 4], [3, 4]]) this.put(w, 'sandbags', x + dx, y + dy, true);
+    this.put(w, 'oil-drums', x + 6, y + 2, true);
+    this.put(w, 'ambulance-wreck', x - 12, y - 2, true);
     this.put(w, 'ruin-shed', x - 9, y - 6, true);
     this.sites.push({ x, y, r: 10, weight: 7, kind: 'outpost' });
     w.community.addSurvivor(x + 0.5, y + 3.5, w.seed);

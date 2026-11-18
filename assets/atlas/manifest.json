@@ -1926,6 +1926,121 @@
     "track.slice.3"
    ]
   },
+  "vielfalt": {
+   "hash": "5e91b8289f7ef1e9",
+   "sprites": [
+    "van-wreck.v0",
+    "van-wreck.v0.nrm",
+    "van-wreck.v0.shadow",
+    "van-wreck.v1",
+    "van-wreck.v1.nrm",
+    "van-wreck.v1.shadow",
+    "van-wreck.v2",
+    "van-wreck.v2.nrm",
+    "van-wreck.v2.shadow",
+    "police-wreck.v0",
+    "police-wreck.v0.nrm",
+    "police-wreck.v0.shadow",
+    "ambulance-wreck.v0",
+    "ambulance-wreck.v0.nrm",
+    "ambulance-wreck.v0.shadow",
+    "bus-wreck.v0",
+    "bus-wreck.v0.nrm",
+    "bus-wreck.v0.shadow",
+    "tractor-wreck.v0",
+    "tractor-wreck.v0.nrm",
+    "tractor-wreck.v0.shadow",
+    "tractor-wreck.v1",
+    "tractor-wreck.v1.nrm",
+    "tractor-wreck.v1.shadow",
+    "mailbox.v0",
+    "mailbox.v0.nrm",
+    "mailbox.v0.shadow",
+    "trash-bin.v0",
+    "trash-bin.v0.nrm",
+    "trash-bin.v0.shadow",
+    "trash-bin.v1",
+    "trash-bin.v1.nrm",
+    "trash-bin.v1.shadow",
+    "trash-bin.v2",
+    "trash-bin.v2.nrm",
+    "trash-bin.v2.shadow",
+    "garden-shed.v0",
+    "garden-shed.v0.nrm",
+    "garden-shed.v0.shadow",
+    "garden-shed.v1",
+    "garden-shed.v1.nrm",
+    "garden-shed.v1.shadow",
+    "garden-shed.v2",
+    "garden-shed.v2.nrm",
+    "garden-shed.v2.shadow",
+    "picnic-table.v0",
+    "picnic-table.v0.nrm",
+    "picnic-table.v0.shadow",
+    "swing.v0",
+    "swing.v0.nrm",
+    "swing.v0.shadow",
+    "laundry-line.v0",
+    "laundry-line.v0.nrm",
+    "laundry-line.v0.shadow",
+    "dog-house.v0",
+    "dog-house.v0.nrm",
+    "dog-house.v0.shadow",
+    "bench.v0",
+    "bench.v0.nrm",
+    "bench.v0.shadow",
+    "bus-stop.v0",
+    "bus-stop.v0.nrm",
+    "bus-stop.v0.shadow",
+    "phone-booth.v0",
+    "phone-booth.v0.nrm",
+    "phone-booth.v0.shadow",
+    "oil-drums.v0",
+    "oil-drums.v0.nrm",
+    "oil-drums.v0.shadow",
+    "oil-drums.v1",
+    "oil-drums.v1.nrm",
+    "oil-drums.v1.shadow",
+    "pallets.v0",
+    "pallets.v0.nrm",
+    "pallets.v0.shadow",
+    "tire-pile.v0",
+    "tire-pile.v0.nrm",
+    "tire-pile.v0.shadow",
+    "traffic-cone.v0",
+    "traffic-cone.v0.nrm",
+    "traffic-cone.v0.shadow",
+    "road-barrier.v0",
+    "road-barrier.v0.nrm",
+    "road-barrier.v0.shadow",
+    "sandbags.v0",
+    "sandbags.v0.nrm",
+    "sandbags.v0.shadow",
+    "fallen-log.v0",
+    "fallen-log.v0.nrm",
+    "fallen-log.v0.shadow",
+    "roof.chimney",
+    "roof.antenna",
+    "roof.solar",
+    "roof.skylight",
+    "roof.dish",
+    "decal.blood.0",
+    "decal.blood.1",
+    "decal.blood.2",
+    "decal.trash.0",
+    "decal.trash.1",
+    "decal.trash.2",
+    "decal.leaves.0",
+    "decal.leaves.1",
+    "decal.leaves.2",
+    "decal.burnt.0",
+    "decal.burnt.1",
+    "decal.burnt.2",
+    "decal.tracks.0",
+    "decal.tracks.1",
+    "decal.tracks.2"
+   ]
+  },
   "water": {
    "hash": "ca7ea3be63be8211",
    "sprites": [
@@ -2553,6 +2668,10 @@
   {
    "group": "entities",
    "file": "atlas-entities-8.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-9.json"
   },
   {
    "group": "flora",
@@ -3944,6 +4063,78 @@
     "scale": 10
    }
   },
+  "decal.blood.0": {
+   "group": "decals",
+   "frames": [
+    "decal.blood.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.blood.1": {
+   "group": "decals",
+   "frames": [
+    "decal.blood.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.blood.2": {
+   "group": "decals",
+   "frames": [
+    "decal.blood.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.burnt.0": {
+   "group": "decals",
+   "frames": [
+    "decal.burnt.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.burnt.1": {
+   "group": "decals",
+   "frames": [
+    "decal.burnt.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.burnt.2": {
+   "group": "decals",
+   "frames": [
+    "decal.burnt.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "decal.dirt.0": {
    "group": "decals",
    "frames": [
@@ -4128,6 +4319,42 @@
    ],
    "w": 448,
    "h": 448,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.leaves.0": {
+   "group": "decals",
+   "frames": [
+    "decal.leaves.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.leaves.1": {
+   "group": "decals",
+   "frames": [
+    "decal.leaves.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.leaves.2": {
+   "group": "decals",
+   "frames": [
+    "decal.leaves.2#0"
+   ],
+   "w": 64,
+   "h": 64,
    "anchor": [
     0.5,
     0.5
@@ -4354,6 +4581,78 @@
    "meta": {
     "scale": 4
    }
+  },
+  "decal.tracks.0": {
+   "group": "decals",
+   "frames": [
+    "decal.tracks.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.tracks.1": {
+   "group": "decals",
+   "frames": [
+    "decal.tracks.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.tracks.2": {
+   "group": "decals",
+   "frames": [
+    "decal.tracks.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.trash.0": {
+   "group": "decals",
+   "frames": [
+    "decal.trash.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.trash.1": {
+   "group": "decals",
+   "frames": [
+    "decal.trash.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.trash.2": {
+   "group": "decals",
+   "frames": [
+    "decal.trash.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
   },
   "decal.tuft.0": {
    "group": "decals",
@@ -5147,6 +5446,42 @@
     0.5
    ]
   },
+  "roof.antenna": {
+   "group": "decals",
+   "frames": [
+    "roof.antenna#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "roof.chimney": {
+   "group": "decals",
+   "frames": [
+    "roof.chimney#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "roof.dish": {
+   "group": "decals",
+   "frames": [
+    "roof.dish#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "roof.flat.c.0": {
    "group": "decals",
    "frames": [
@@ -5411,6 +5746,18 @@
     0.5
    ]
   },
+  "roof.skylight": {
+   "group": "decals",
+   "frames": [
+    "roof.skylight#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "roof.slate.e.0": {
    "group": "decals",
    "frames": [
@@ -5547,6 +5894,18 @@
    "group": "decals",
    "frames": [
     "roof.slate.w.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "roof.solar": {
+   "group": "decals",
+   "frames": [
+    "roof.solar#0"
    ],
    "w": 64,
    "h": 64,
@@ -5997,6 +6356,30 @@
     0.22727272727272727
    ]
   },
+  "ambulance-wreck.v0": {
+   "group": "entities",
+   "frames": [
+    "ambulance-wreck.v0#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "ambulance-wreck.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "ambulance-wreck.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 352,
+   "anchor": [
+    0.25,
+    0.22727272727272727
+   ]
+  },
   "assembling-machine-1": {
    "group": "entities",
    "frames": [
@@ -6242,6 +6625,30 @@
    "anchor": [
     0.1875,
     0.22727272727272727
+   ]
+  },
+  "bench.v0": {
+   "group": "entities",
+   "frames": [
+    "bench.v0#0"
+   ],
+   "w": 160,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "bench.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "bench.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
    ]
   },
   "big-electric-pole": {
@@ -6621,6 +7028,57 @@
     0.22727272727272727
    ]
   },
+  "bus-stop.v0": {
+   "group": "entities",
+   "frames": [
+    "bus-stop.v0#0"
+   ],
+   "w": 224,
+   "h": 160,
+   "anchor": [
+    0.5,
+    0.72
+   ]
+  },
+  "bus-stop.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "bus-stop.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 256,
+   "anchor": [
+    0.25,
+    0.1875
+   ]
+  },
+  "bus-wreck.v0": {
+   "group": "entities",
+   "frames": [
+    "bus-wreck.v0#0"
+   ],
+   "w": 416,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "bus-wreck.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "bus-wreck.v0.shadow#0"
+   ],
+   "w": 368,
+   "h": 176,
+   "anchor": [
+    0.2826086956521739,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "campfire": {
    "group": "entities",
    "frames": [
@@ -6992,6 +7450,30 @@
    "group": "entities",
    "frames": [
     "desk.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "dog-house.v0": {
+   "group": "entities",
+   "frames": [
+    "dog-house.v0#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "dog-house.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "dog-house.v0.shadow#0"
    ],
    "w": 256,
    "h": 256,
@@ -7607,6 +8089,30 @@
     0.5714285714285714
    ]
   },
+  "fallen-log.v0": {
+   "group": "entities",
+   "frames": [
+    "fallen-log.v0#0"
+   ],
+   "w": 224,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "fallen-log.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "fallen-log.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 256,
+   "anchor": [
+    0.25,
+    0.1875
+   ]
+  },
   "fast-splitter.0": {
    "group": "entities",
    "frames": [
@@ -7980,6 +8486,78 @@
    "anchor": [
     0.5,
     0.5666666666666668
+   ]
+  },
+  "garden-shed.v0": {
+   "group": "entities",
+   "frames": [
+    "garden-shed.v0#0"
+   ],
+   "w": 160,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "garden-shed.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "garden-shed.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.22727272727272727,
+    0.22727272727272727
+   ]
+  },
+  "garden-shed.v1": {
+   "group": "entities",
+   "frames": [
+    "garden-shed.v1#0"
+   ],
+   "w": 160,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "garden-shed.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "garden-shed.v1.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.22727272727272727,
+    0.22727272727272727
+   ]
+  },
+  "garden-shed.v2": {
+   "group": "entities",
+   "frames": [
+    "garden-shed.v2#0"
+   ],
+   "w": 160,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "garden-shed.v2.shadow": {
+   "group": "entities",
+   "frames": [
+    "garden-shed.v2.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.22727272727272727,
+    0.22727272727272727
    ]
   },
   "garden.bare": {
@@ -9910,6 +10488,30 @@
     0.16
    ]
   },
+  "laundry-line.v0": {
+   "group": "entities",
+   "frames": [
+    "laundry-line.v0#0"
+   ],
+   "w": 224,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6888888888888888
+   ]
+  },
+  "laundry-line.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "laundry-line.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 256,
+   "anchor": [
+    0.25,
+    0.1875
+   ]
+  },
   "locker": {
    "group": "entities",
    "frames": [
@@ -9926,6 +10528,30 @@
    "group": "entities",
    "frames": [
     "locker.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "mailbox.v0": {
+   "group": "entities",
+   "frames": [
+    "mailbox.v0#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "mailbox.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "mailbox.v0.shadow#0"
    ],
    "w": 256,
    "h": 256,
@@ -10081,6 +10707,78 @@
     0.2222222222222222
    ]
   },
+  "oil-drums.v0": {
+   "group": "entities",
+   "frames": [
+    "oil-drums.v0#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "oil-drums.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "oil-drums.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "oil-drums.v1": {
+   "group": "entities",
+   "frames": [
+    "oil-drums.v1#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "oil-drums.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "oil-drums.v1.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "pallets.v0": {
+   "group": "entities",
+   "frames": [
+    "pallets.v0#0"
+   ],
+   "w": 96,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "pallets.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "pallets.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
   "parts-pile.half": {
    "group": "entities",
    "frames": [
@@ -10163,6 +10861,30 @@
    "anchor": [
     0.19999999999999998,
     0.19999999999999998
+   ]
+  },
+  "phone-booth.v0": {
+   "group": "entities",
+   "frames": [
+    "phone-booth.v0#0"
+   ],
+   "w": 96,
+   "h": 160,
+   "anchor": [
+    0.5,
+    0.72
+   ]
+  },
+  "phone-booth.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "phone-booth.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
    ]
   },
   "pickup-wreck.v0": {
@@ -10623,6 +11345,30 @@
    "meta": {
     "scale": 2
    }
+  },
+  "picnic-table.v0": {
+   "group": "entities",
+   "frames": [
+    "picnic-table.v0#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "picnic-table.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "picnic-table.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
+   ]
   },
   "pipe-to-ground.0": {
    "group": "entities",
@@ -11483,6 +12229,30 @@
     "scale": 2
    }
   },
+  "police-wreck.v0": {
+   "group": "entities",
+   "frames": [
+    "police-wreck.v0#0"
+   ],
+   "w": 224,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "police-wreck.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "police-wreck.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 352,
+   "anchor": [
+    0.25,
+    0.22727272727272727
+   ]
+  },
   "prison-tower": {
    "group": "entities",
    "frames": [
@@ -11746,6 +12516,30 @@
    "anchor": [
     0.19999999999999998,
     0.19999999999999998
+   ]
+  },
+  "road-barrier.v0": {
+   "group": "entities",
+   "frames": [
+    "road-barrier.v0#0"
+   ],
+   "w": 160,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "road-barrier.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "road-barrier.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
    ]
   },
   "roboport": {
@@ -12119,6 +12913,30 @@
    "meta": {
     "scale": 2
    }
+  },
+  "sandbags.v0": {
+   "group": "entities",
+   "frames": [
+    "sandbags.v0#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "sandbags.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "sandbags.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
+   ]
   },
   "scavenger-camp": {
    "group": "entities",
@@ -12931,6 +13749,30 @@
     0.1875
    ]
   },
+  "swing.v0": {
+   "group": "entities",
+   "frames": [
+    "swing.v0#0"
+   ],
+   "w": 160,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6888888888888888
+   ]
+  },
+  "swing.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "swing.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
+   ]
+  },
   "table": {
    "group": "entities",
    "frames": [
@@ -12955,6 +13797,30 @@
     0.1875
    ]
   },
+  "tire-pile.v0": {
+   "group": "entities",
+   "frames": [
+    "tire-pile.v0#0"
+   ],
+   "w": 96,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "tire-pile.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "tire-pile.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
   "town-sign": {
    "group": "entities",
    "frames": [
@@ -12971,6 +13837,78 @@
    "group": "entities",
    "frames": [
     "town-sign.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "tractor-wreck.v0": {
+   "group": "entities",
+   "frames": [
+    "tractor-wreck.v0#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "tractor-wreck.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "tractor-wreck.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 352,
+   "anchor": [
+    0.25,
+    0.22727272727272727
+   ]
+  },
+  "tractor-wreck.v1": {
+   "group": "entities",
+   "frames": [
+    "tractor-wreck.v1#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "tractor-wreck.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "tractor-wreck.v1.shadow#0"
+   ],
+   "w": 448,
+   "h": 352,
+   "anchor": [
+    0.25,
+    0.22727272727272727
+   ]
+  },
+  "traffic-cone.v0": {
+   "group": "entities",
+   "frames": [
+    "traffic-cone.v0#0"
+   ],
+   "w": 96,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "traffic-cone.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "traffic-cone.v0.shadow#0"
    ],
    "w": 256,
    "h": 256,
@@ -13005,6 +13943,78 @@
    "meta": {
     "scale": 2
    }
+  },
+  "trash-bin.v0": {
+   "group": "entities",
+   "frames": [
+    "trash-bin.v0#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "trash-bin.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "trash-bin.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "trash-bin.v1": {
+   "group": "entities",
+   "frames": [
+    "trash-bin.v1#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "trash-bin.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "trash-bin.v1.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "trash-bin.v2": {
+   "group": "entities",
+   "frames": [
+    "trash-bin.v2#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "trash-bin.v2.shadow": {
+   "group": "entities",
+   "frames": [
+    "trash-bin.v2.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
   },
   "underground-belt.in.0": {
    "group": "entities",
@@ -13124,6 +14134,78 @@
    "anchor": [
     0.1875,
     0.1875
+   ]
+  },
+  "van-wreck.v0": {
+   "group": "entities",
+   "frames": [
+    "van-wreck.v0#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "van-wreck.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "van-wreck.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 352,
+   "anchor": [
+    0.25,
+    0.22727272727272727
+   ]
+  },
+  "van-wreck.v1": {
+   "group": "entities",
+   "frames": [
+    "van-wreck.v1#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "van-wreck.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "van-wreck.v1.shadow#0"
+   ],
+   "w": 448,
+   "h": 352,
+   "anchor": [
+    0.25,
+    0.22727272727272727
+   ]
+  },
+  "van-wreck.v2": {
+   "group": "entities",
+   "frames": [
+    "van-wreck.v2#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "van-wreck.v2.shadow": {
+   "group": "entities",
+   "frames": [
+    "van-wreck.v2.shadow#0"
+   ],
+   "w": 448,
+   "h": 352,
+   "anchor": [
+    0.25,
+    0.22727272727272727
    ]
   },
   "wardrobe": {
@@ -17480,6 +18562,18 @@
     0.6000000000000001
    ]
   },
+  "ambulance-wreck.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "ambulance-wreck.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
   "assembling-machine-1.nrm": {
    "group": "normals",
    "frames": [
@@ -17562,6 +18656,18 @@
    "anchor": [
     0.5,
     0.5666666666666668
+   ]
+  },
+  "bench.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "bench.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
    ]
   },
   "big-electric-pole.nrm": {
@@ -17730,6 +18836,30 @@
    "anchor": [
     0.5,
     0.5927272727272727
+   ]
+  },
+  "bus-stop.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "bus-stop.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 160,
+   "anchor": [
+    0.5,
+    0.72
+   ]
+  },
+  "bus-wreck.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "bus-wreck.v0.nrm#0"
+   ],
+   "w": 416,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
    ]
   },
   "campfire.nrm": {
@@ -17910,6 +19040,18 @@
    "anchor": [
     0.5,
     0.6457142857142857
+   ]
+  },
+  "dog-house.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "dog-house.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
    ]
   },
   "dumpster.v0.nrm": {
@@ -18344,6 +19486,18 @@
     0.5714285714285714
    ]
   },
+  "fallen-log.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "fallen-log.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
   "fast-splitter.0.nrm": {
    "group": "normals",
    "frames": [
@@ -18558,6 +19712,42 @@
    "anchor": [
     0.5,
     0.6153846153846154
+   ]
+  },
+  "garden-shed.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "garden-shed.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "garden-shed.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "garden-shed.v1.nrm#0"
+   ],
+   "w": 160,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "garden-shed.v2.nrm": {
+   "group": "normals",
+   "frames": [
+    "garden-shed.v2.nrm#0"
+   ],
+   "w": 160,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
    ]
   },
   "garden.bare.nrm": {
@@ -19844,6 +21034,18 @@
     0.6666666666666666
    ]
   },
+  "laundry-line.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "laundry-line.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6888888888888888
+   ]
+  },
   "locker.nrm": {
    "group": "normals",
    "frames": [
@@ -19854,6 +21056,18 @@
    "anchor": [
     0.5,
     0.69
+   ]
+  },
+  "mailbox.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "mailbox.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
    ]
   },
   "medium-electric-pole.nrm": {
@@ -19928,6 +21142,42 @@
     0.509090909090909
    ]
   },
+  "oil-drums.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "oil-drums.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "oil-drums.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "oil-drums.v1.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "pallets.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "pallets.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
   "parts-pile.half.nrm": {
    "group": "normals",
    "frames": [
@@ -19974,6 +21224,18 @@
    "anchor": [
     0.5,
     0.5333333333333333
+   ]
+  },
+  "phone-booth.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "phone-booth.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 160,
+   "anchor": [
+    0.5,
+    0.72
    ]
   },
   "pickup-wreck.v0.nrm": {
@@ -20178,6 +21440,18 @@
    "anchor": [
     0.5,
     0.56
+   ]
+  },
+  "picnic-table.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "picnic-table.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
    ]
   },
   "pipe-to-ground.0.nrm": {
@@ -20720,6 +21994,18 @@
     0.5851851851851853
    ]
   },
+  "police-wreck.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "police-wreck.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
   "prison-tower.nrm": {
    "group": "normals",
    "frames": [
@@ -20826,6 +22112,18 @@
    "anchor": [
     0.5,
     0.5333333333333333
+   ]
+  },
+  "road-barrier.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "road-barrier.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
    ]
   },
   "roboport.nrm": {
@@ -21006,6 +22304,18 @@
    "anchor": [
     0.5,
     0.5818181818181819
+   ]
+  },
+  "sandbags.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "sandbags.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
    ]
   },
   "scavenger-camp.nrm": {
@@ -21380,6 +22690,18 @@
     0.6444444444444444
    ]
   },
+  "swing.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "swing.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6888888888888888
+   ]
+  },
   "table.nrm": {
    "group": "normals",
    "frames": [
@@ -21390,6 +22712,18 @@
    "anchor": [
     0.5,
     0.6457142857142857
+   ]
+  },
+  "tire-pile.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "tire-pile.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
    ]
   },
   "town-sign.nrm": {
@@ -21404,6 +22738,42 @@
     0.68
    ]
   },
+  "tractor-wreck.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "tractor-wreck.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "tractor-wreck.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "tractor-wreck.v1.nrm#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "traffic-cone.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "traffic-cone.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
   "transformer.nrm": {
    "group": "normals",
    "frames": [
@@ -21414,6 +22784,42 @@
    "anchor": [
     0.5,
     0.6285714285714287
+   ]
+  },
+  "trash-bin.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "trash-bin.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "trash-bin.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "trash-bin.v1.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "trash-bin.v2.nrm": {
+   "group": "normals",
+   "frames": [
+    "trash-bin.v2.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
    ]
   },
   "underground-belt.in.0.nrm": {
@@ -21522,6 +22928,42 @@
    "anchor": [
     0.5,
     0.7538461538461539
+   ]
+  },
+  "van-wreck.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "van-wreck.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "van-wreck.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "van-wreck.v1.nrm#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
+   ]
+  },
+  "van-wreck.v2.nrm": {
+   "group": "normals",
+   "frames": [
+    "van-wreck.v2.nrm#0"
+   ],
+   "w": 224,
+   "h": 208,
+   "anchor": [
+    0.5,
+    0.6307692307692307
    ]
   },
   "wardrobe.nrm": {

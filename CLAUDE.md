@@ -58,6 +58,9 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Pritschenwagen (`src/sim/cars.ts`, `src/data/vehicles.ts`, Modell `lib/fahrzeug.py`): Wrack am Start reparieren,
   Benzinkanister, Ladefläche, überfährt Zombies, Taste V. Test `fahrzeug.test.ts`.
 - Ortsbild: Gehwege, Mittellinien, Äcker (Beläge 7–10 in `src/data/floors.ts`), Zäune, Schilder, Masten, Laternen.
+- Vielfalt (`lib/vielfalt.py`, `models/vielfalt.py`): Fahrzeugwracks (Lieferwagen, Polizei, Kranken-, Bus, Traktor),
+  Hof-/Straßenkram als Requisiten mit Varianten, Dachaufbauten, Bodenflecken; Farbe je Haus/Dach/Zombie/Jahreszeit
+  im Renderer (`houseOf`, `seasonTint`). Test „Vielfalt“ in `welt.test.ts`.
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
   Feuerschale, Scheinwerfer, Wachturm, Vorratslager.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).

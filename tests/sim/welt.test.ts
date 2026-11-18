@@ -174,3 +174,24 @@ describe('Sonderorte', () => {
     expect(w.sites.houses.filter((h) => Math.hypot(h.x - lh.x, h.y - lh.y) < 20).length).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe('Vielfalt', () => {
+  it('Städte haben verschiedene Wracks, Straßenmöbel und Hofkram; Höfe Traktoren und Paletten', () => {
+    const w = new World(WORLD.seed, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
+    w.player = new Player(0.5, 0.5);
+    const t = WORLD.towns.find((x) => x.id === 'grauenfurt')!;
+    w.player.px = t.x * 256;
+    w.player.py = (t.y + 40) * 256;
+    w.run(61);
+    const near = new Set([...w.entities.values()].filter((e) => Math.hypot(e.cx - t.x, e.cy - t.y) < 90).map((e) => e.name));
+    const extras = ['van-wreck', 'police-wreck', 'ambulance-wreck', 'bus-wreck', 'mailbox', 'trash-bin', 'garden-shed', 'swing', 'picnic-table',
+      'laundry-line', 'dog-house', 'bench', 'bus-stop', 'phone-booth', 'pallets', 'oil-drums', 'tire-pile', 'traffic-cone', 'road-barrier'];
+    expect(extras.filter((n) => near.has(n)).length).toBeGreaterThanOrEqual(8);
+    const lh = WORLD.places.find((p) => p.id === 'lindenhof')!;
+    w.player.px = lh.x * 256;
+    w.player.py = (lh.y + 30) * 256;
+    w.run(61);
+    const farm = new Set([...w.entities.values()].filter((e) => Math.hypot(e.cx - lh.x, e.cy - lh.y) < 20).map((e) => e.name));
+    expect(farm.has('tractor-wreck') && farm.has('pallets')).toBe(true);
+  });
+});

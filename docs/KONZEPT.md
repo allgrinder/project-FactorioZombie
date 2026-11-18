@@ -229,6 +229,19 @@ Ortsstraßen haben Gehwege und eine gestrichelte Mittellinie, Ortsschilder an de
 verlaufen gerade mit rechtwinkligen Kurven, Mittellinie, Holzmasten und liegengebliebenen Autos; Höfe einen eingezäunten Acker mit Heuballen; Schrottplätze einen Maschendrahtzaun mit Einfahrt.
 Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffen.
 
+## Vielfalt (`lib/vielfalt.py`, `models/vielfalt.py`)
+- Wracks als Fundorte: Lieferwagen (3 Farben), Streifenwagen, Krankenwagen, Linienbus, Traktor (2 Farben); Beute je
+  Fahrzeug (Tabellen `van`, `police`, `ambulance`, `bus`, `tractor`). Mülltonne, Gartenhütte, Ölfässer ebenfalls Beute.
+- Kram als Requisiten (`kind: 'prop'`, Varianten `<name>.v<n>`): Briefkasten, Picknicktisch, Schaukel, Wäscheleine,
+  Hundehütte, Bank, Bushaltestelle, Telefonzelle, Paletten, Reifenstapel, Pylon, Absperrung, Sandsäcke, Baumstamm.
+- Verteilung (`SiteSystem.street` u. a.): Vorgarten mit Briefkasten, Tonne und 0–2 Gartenstücken; Gehwegmöbel alle
+  7–12 Felder; Straßensperren am Ortsrand; gemischte Wracks auf Landstraßen; Höfe, Gewerbe, Gefängnis, Posten mit
+  eigenem Kram; umgestürzte Stämme im Wald.
+- Darstellung: Farbe je Haus (Putz, Ziegel, Holz, Beton) und Dach, Dachaufbauten (Schornstein, Antenne, Solar, Schüssel,
+  Oberlicht), Zombies und Menschen mit Farb- und Größenstreuung, Bäume nach Jahreszeit (Herbstfarben je Baum, Winter
+  kahl/bereift), Bodenflecken (Blut, Müll, Laub, Brandstellen, Reifenspuren).
+- Erstes Wetter immer klar, damit der Start nicht im Nebel liegt.
+
 ## Fundorte (`src/sim/sites.ts`, `src/data/loot.ts`)
 
 Dorf (Straße, Häuser, Laden, Werkstatt, Wracks), Hof, Werkstatt mit Wracks, Lager mit Militärkiste, einzelnes Wrack;

@@ -675,6 +675,28 @@ const list: EntityDef[] = [
   ...([['sofa', 'Sofa', 2, 1, 'cloth', 4], ['table', 'Tisch', 1, 1, 'wood', 3]] as const).map(([id, name, w, h, item, n]): PropDef => ({
     kind: 'prop', id, name, width: w, height: h, health: 100, item, itemCount: n, mineTime: 1, solid: true, rotatable: false,
   })),
+  // Vielfalt (lib/vielfalt.py): Fahrzeugwracks und Kram mit Beute
+  ...([
+    ['van-wreck', 'Transporter-Wrack', 3, 2, 'van', 3], ['police-wreck', 'Streifenwagen-Wrack', 3, 2, 'police', 3],
+    ['ambulance-wreck', 'Krankenwagen-Wrack', 3, 2, 'ambulance', 3], ['bus-wreck', 'Bus-Wrack', 6, 2, 'bus', 4],
+    ['tractor-wreck', 'Traktor-Wrack', 3, 2, 'shed', 3], ['trash-bin', 'Mülltonne', 1, 1, 'trash', 1],
+    ['garden-shed', 'Gartenhaus', 2, 2, 'shed', 2], ['oil-drums', 'Ölfässer', 1, 1, 'drums', 1.5],
+  ] as const).map(([id, name, w, h, table, t]): LootDef => ({
+    kind: 'loot', id, name, width: w, height: h, health: w * h * 120, item: w > 2 ? 'iron-plate' : 'wood', itemCount: w * h, mineTime: 2 + w,
+    solid: true, rotatable: false, slots: 8, table, searchTime: t,
+    salvage: w > 2 ? [{ item: 'iron-plate', amount: w * 4 }, { item: 'iron-gear-wheel', amount: w }] : [{ item: 'wood', amount: 4 }],
+  })),
+  ...([
+    ['mailbox', 'Briefkasten', 1, 1, 'iron-plate', 1, true], ['picnic-table', 'Picknicktisch', 2, 1, 'wood', 4, true],
+    ['swing', 'Schaukel', 2, 1, 'iron-stick', 4, true], ['laundry-line', 'Wäscheleine', 3, 1, 'cloth', 4, false],
+    ['dog-house', 'Hundehütte', 1, 1, 'wood', 3, true], ['bench', 'Bank', 2, 1, 'wood', 3, true],
+    ['bus-stop', 'Bushaltestelle', 3, 1, 'iron-plate', 4, true], ['phone-booth', 'Telefonzelle', 1, 1, 'iron-plate', 3, true],
+    ['pallets', 'Palettenstapel', 1, 1, 'wood', 6, true], ['tire-pile', 'Reifenstapel', 1, 1, 'iron-plate', 1, true],
+    ['traffic-cone', 'Leitkegel', 1, 1, 'iron-plate', 1, false], ['road-barrier', 'Absperrung', 2, 1, 'iron-stick', 3, true],
+    ['sandbags', 'Sandsäcke', 2, 1, 'stone', 4, true], ['fallen-log', 'Umgestürzter Baum', 3, 1, 'wood', 10, true],
+  ] as const).map(([id, name, w, h, item, n, solid]): PropDef => ({
+    kind: 'prop', id, name, width: w, height: h, health: 150, item, itemCount: n, mineTime: 1, solid, rotatable: false,
+  })),
   // Großbauten der Sonderorte (lib/grossbau.py)
   ...([
     ['cooling-tower', 'Kühlturm', 6, 6, 'stone', 30, 6000], ['chimney', 'Schornstein', 2, 2, 'stone', 12, 3000],

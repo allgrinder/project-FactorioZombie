@@ -27,6 +27,31 @@ import { COMMUNITY, type Job, JOBS, SURVIVOR } from '../data/scavenge';
 const ROOF_LIFT = 0.46;
 const ROOF_OVERHANG = 0.18;
 
+/** Farben multiplizieren (Tönung kombinieren). */
+function mulTint(a: number, b: number): number {
+  const r = (((a >> 16) & 255) * ((b >> 16) & 255)) / 255;
+  const g = (((a >> 8) & 255) * ((b >> 8) & 255)) / 255;
+  const bl = ((a & 255) * (b & 255)) / 255;
+  return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(bl);
+}
+
+/** Kleidung der Zombies und Menschen (Vielfalt), Herbstlaub, Hausfarben je Bauart und Dach. */
+const ZOMBIE_TINTS = [0xffffff, 0xe6ccb8, 0xb8c6dc, 0xdcb0a8, 0xc8d2b0, 0xd8d8d2, 0xb4a490, 0xeedcc4, 0xc0b0c8];
+const PEOPLE_TINTS = [0xffffff, 0xeedcc8, 0xd0dcec, 0xe8c8c0, 0xd8e4cc, 0xe0e0e0];
+const AUTUMN = [0xf0c070, 0xe8a060, 0xd88a58, 0xf0d888, 0xd8b070, 0xe0e0a0];
+const WALL_TINTS: Record<string, number[]> = {
+  plaster: [0xffffff, 0xf6e8c0, 0xecd2c4, 0xd8e0ea, 0xe2ecd6, 0xf2d8b0, 0xe8e4dc],
+  brick: [0xffffff, 0xecd4cc, 0xdcc8c0, 0xf0e0d0],
+  wood: [0xffffff, 0xc8bcb0, 0xbccab4, 0xd4c0a0, 0xb0b8c8],
+  concrete: [0xffffff, 0xe8e4dc, 0xd8dce0],
+};
+const ROOF_TINTS: Record<string, number[]> = {
+  tile: [0xffffff, 0xecccb8, 0xdcb2a2, 0xc8a284, 0xf0d8c0],
+  slate: [0xffffff, 0xccd4dc, 0xbcbcca, 0xd8d0c8],
+  metal: [0xffffff, 0xd4bca4, 0xbccac4, 0xc8b0a0],
+  flat: [0xffffff, 0xe0dcd4, 0xd0d4d8],
+};
+
 /** Kleidung je Aufgabe (Tönung der Arbeiterfigur). */
 const JOB_TINT: Record<Job, number> = { scavenge: 0xffffff, loot: 0xc8b8a0, guard: 0x9fb0c8, farm: 0xd8e8a8, repair: 0xf0d098, medic: 0xf4eeee, rest: 0xc8c0b8 };
 
@@ -454,7 +479,7 @@ export class GameRenderer {
       }
     }
     // Nebel, Regenschleier, Blitz
-    const veil = wk === 'fog' ? 0.38 : wk === 'storm' ? 0.16 : wk === 'rain' ? 0.1 : wk === 'snow' ? 0.08 : 0;
+    const veil = wk === 'fog' ? 0.24 : wk === 'storm' ? 0.16 : wk === 'rain' ? 0.1 : wk === 'snow' ? 0.08 : 0;
     if (wk === 'storm' && Math.random() < 0.004) this.flash = 0.55;
     this.flash *= 0.9;
     for (const [a, tint] of [[veil, wk === 'fog' ? 0xc8ccd0 : 0x6a7280], [this.flash, 0xffffff]] as const) {
@@ -803,6 +828,7 @@ export class GameRenderer {
       const sp = this.ents.get(s.frame(name));
       sp.position.set(d.x * TILE, d.y * TILE);
       sp.zIndex = d.y * TILE;
+      if (d.kind.id === 'shrub') sp.tint = this.seasonTint(world, 0, Math.floor(d.x * 7 + d.y * 13));
     }
     // Bäume aus der Simulation (fällbar)
     const CS = MAPGEN.chunkSize;
@@ -821,10 +847,32 @@ export class GameRenderer {
           const sp = this.ents.get(s.frame(name));
           sp.position.set(t.x * TILE, t.y * TILE);
           sp.zIndex = t.y * TILE;
+          sp.tint = this.seasonTint(world, t.kind, t.tx * 31 + t.ty * 17 + t.variant);
+          sp.scale.set(0.9 + ((t.tx * 13 + t.ty * 7) & 7) * 0.03);
         }
       }
     }
     this.drawCliffs(world, v);
+  }
+
+  /**
+   * Laub je Jahreszeit und Baum: Frühling frisch, Sommer satt, Herbst gelb bis rostrot (je Baum verschieden), Winter
+   * kahl-grau bzw. bereift (Nadelbäume); dazu kleine Helligkeitsunterschiede je Baum.
+   */
+  private seasonTint(world: World, kind: number, h: number): number {
+    const season = world.settings.plan ? world.weather.season(world.tick) : 'summer';
+    const j = ((h * 2654435761) >>> 0) % 997;
+    const bright = 0.9 + (j % 13) * 0.009;
+    const conifer = kind === 1;
+    const dead = kind === 2;
+    let base = 0xffffff;
+    if (!dead) {
+      if (season === 'spring') base = conifer ? 0xf0fff0 : 0xe8ffd8;
+      else if (season === 'autumn' && !conifer) base = AUTUMN[j % AUTUMN.length];
+      else if (season === 'winter') base = conifer ? 0xe4ecf4 : 0xbcb4ac;
+    }
+    const g = Math.min(255, Math.round(255 * bright));
+    return mulTint(base, (g << 16) | (g << 8) | g);
   }
 
   private cliffCount = -1;
@@ -1083,7 +1131,12 @@ export class GameRenderer {
           const n = (dx: number, dy: number) => world.entityAt(e.x + dx, e.y + dy)?.name === 'fence';
           const hz = n(-1, 0) || n(1, 0) || !(n(0, -1) || n(0, 1));
           this.drawNamed(hz ? 'fence.h' : 'fence.v', cx, cy, z);
-        } else this.drawGeneric(e, cx, cy, z);
+        } else {
+          // Varianten <name>.v<n> nach der Lage
+          const n = s.countPrefix(`${e.name}.v`);
+          if (n) this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy, z);
+          else this.drawGeneric(e, cx, cy, z);
+        }
         break;
       }
       case 'furnace': {
@@ -1267,12 +1320,39 @@ export class GameRenderer {
       this.drawGeneric(e, cx, cy, z);
       return;
     }
-    this.drawNamed(base, cx, cy, z, shadow);
+    const wsp = this.drawNamed(base, cx, cy, z, shadow);
+    // Hausfarbe: jedes Haus bekommt seinen Farbton (Putz gelb, rosa, hellblau …; Ziegel, Holz, Beton dezent)
+    if (!e.def.gate && e.def.house) {
+      const hs = this.houseOf(world, e.x, e.y);
+      if (hs) {
+        const pal = WALL_TINTS[e.def.house] ?? WALL_TINTS.concrete;
+        wsp.tint = pal[hs.hue % pal.length];
+      }
+    }
     if (e.boardHp > 0 && s.has(`boards.${axis}.1`)) {
       const sp = this.ents.get(s.frame(`boards.${axis}.${Math.min(3, e.boards)}`));
       sp.position.set(cx, cy);
       sp.zIndex = z + 1;
     }
+  }
+
+  /** Haus zu einem Feld (Zwischenspeicher, wächst mit der Hausliste) und Farbwahl je Haus. */
+  private houseTiles = new Map<number, { hue: number }>();
+  private houseCount = 0;
+  private houseOf(world: World, x: number, y: number): { hue: number } | undefined {
+    const hs = world.sites.houses;
+    if (hs.length < this.houseCount) {
+      this.houseTiles.clear();
+      this.houseCount = 0;
+    }
+    for (let i = this.houseCount; i < hs.length; i++) {
+      const h = hs[i];
+      const main = h.g !== undefined ? hs[h.g] : h;
+      const hue = ((main.x * 73856093) ^ (main.y * 19349663)) >>> 0;
+      for (let j = h.y; j < h.y + h.h; j++) for (let k = h.x; k < h.x + h.w; k++) this.houseTiles.set((k + 32768) * 65536 + (j + 32768), { hue });
+    }
+    this.houseCount = hs.length;
+    return this.houseTiles.get((x + 32768) * 65536 + (y + 32768));
   }
 
   /** Dachdeckung je Haus (1 = sichtbar); blendet aus, solange die Figur drinnen ist. */
@@ -1329,15 +1409,42 @@ export class GameRenderer {
           sp.position.set(ccx + (i + 0.5 - h.w / 2) * TILE * sx, ccy + (j + 0.5 - h.h / 2) * TILE * sy);
           sp.scale.set(sx * 1.02, sy * 1.02);
           sp.alpha = a;
-          if (world.weather.winter) sp.tint = 0xe2e7ee;
+          const main = h.g !== undefined ? hs[h.g] : h;
+          const pal = ROOF_TINTS[kind] ?? ROOF_TINTS.flat;
+          sp.tint = pal[(((main.x * 73856093) ^ (main.y * 19349663)) >>> 0) % pal.length];
+          if (world.weather.winter) sp.tint = mulTint(sp.tint, 0xe2e7ee);
           sp.zIndex = (h.y + h.h) * TILE - 2;
+        }
+      }
+      // Dachaufbauten je Haus (nicht über Anbauten): Schornstein am First, Antenne, Schüssel, Solar, Dachfenster
+      if (h.g === undefined && h.w * h.h >= 20) {
+        const hh = ((h.x * 2654435761) ^ (h.y * 40503)) >>> 0;
+        const props: [string, number, number][] = [];
+        if (kind !== 'flat') {
+          const along = h.ridge === 0 ? h.w : h.h;
+          const at = 1 + (hh % Math.max(1, along - 2));
+          props.push(['roof.chimney', h.ridge === 0 ? at : (h.w - 1) / 2, h.ridge === 0 ? (h.h - 1) / 2 - 0.3 : at]);
+          if ((hh >> 4) % 3 === 0) props.push(['roof.antenna', h.ridge === 0 ? along - 1.5 : (h.w - 1) / 2 + 0.6, h.ridge === 0 ? (h.h - 1) / 2 : along - 1.5]);
+          if ((hh >> 7) % 4 === 0) props.push(['roof.solar', h.ridge === 0 ? 1.5 + ((hh >> 9) % Math.max(1, h.w - 3)) : h.w - 1.6, h.ridge === 0 ? h.h - 1.6 : 1.5]);
+          if ((hh >> 11) % 3 === 0) props.push(['roof.dish', h.ridge === 0 ? 0.8 : h.w - 1, h.ridge === 0 ? h.h - 1.4 : 0.8]);
+          if ((hh >> 13) % 3 === 0) props.push(['roof.skylight', h.ridge === 0 ? h.w - 2 : 1, h.ridge === 0 ? 1 : h.h - 2]);
+        } else {
+          if ((hh >> 3) % 2 === 0) props.push(['roof.dish', 1.2, 1.2]);
+          for (let q = 0; q < (hh >> 5) % 3; q++) props.push(['roof.skylight', 2 + ((hh >> (q * 3)) % Math.max(1, h.w - 4)), 2 + q * 2]);
+        }
+        for (const [nm, i2, j2] of props) {
+          if (!s.has(nm) || i2 < 0 || j2 < 0 || i2 > h.w - 1 || j2 > h.h - 1) continue;
+          const sp = this.ents.get(s.frame(nm));
+          sp.position.set(ccx + (i2 + 0.5 - h.w / 2) * TILE * sx, ccy + (j2 + 0.5 - h.h / 2) * TILE * sy);
+          sp.alpha = a;
+          sp.zIndex = (h.y + h.h) * TILE - 1;
         }
       }
     }
   }
 
   /** Sprite mit Schatten unter festem Namen. */
-  private drawNamed(base: string, cx: number, cy: number, z: number, shadow = `${base}.shadow`): void {
+  private drawNamed(base: string, cx: number, cy: number, z: number, shadow = `${base}.shadow`): Sprite {
     const s = this.sprites;
     if (s.has(shadow)) {
       const sh = this.shadows.get(s.frame(shadow));
@@ -1347,6 +1454,7 @@ export class GameRenderer {
     const sp = this.ents.get(s.frame(base));
     sp.position.set(cx, cy);
     sp.zIndex = z;
+    return sp;
   }
 
   private dotTex: Texture | null = null;
@@ -1661,11 +1769,11 @@ export class GameRenderer {
       const sp = this.ents.get(s.frame(`${base}.${k}`, f));
       const sway = moving ? 0 : Math.sin(t / 22 + u.id) * 0.03;
       sp.position.set(u.x * TILE, u.y * TILE);
-      sp.scale.set(def.scale);
+      // Größe und Kleidung je Zombie (Vielfalt): ±8 % Größe, Farbe aus einer Palette, dazu Verwesung
+      sp.scale.set(def.scale * (0.92 + ((u.id * 7) % 9) * 0.02));
       sp.rotation = sway + (u.stun > 0 ? 0.12 : 0);
-      // leichte Farbabweichung je Zombie (Kleidung, Verwesung)
-      const v8 = 200 + ((u.id * 37) % 56);
-      sp.tint = (v8 << 16) | ((v8 - ((u.id * 13) % 24)) << 8) | (v8 - ((u.id * 7) % 30));
+      const v8 = 215 + ((u.id * 37) % 41);
+      sp.tint = mulTint(ZOMBIE_TINTS[(u.id * 5 + 3) % ZOMBIE_TINTS.length], (v8 << 16) | ((v8 - ((u.id * 13) % 20)) << 8) | (v8 - ((u.id * 7) % 26)));
       sp.zIndex = u.y * TILE;
     }
   }
@@ -1691,7 +1799,8 @@ export class GameRenderer {
       else if (!k.resident) {
         sp.tint = 0xa8bce0;
         if (k.state === 'wait') sp.rotation = Math.sin(t / 15 + k.id) * 0.05;
-      } else sp.tint = JOB_TINT[k.job];
+      } else sp.tint = mulTint(JOB_TINT[k.job], PEOPLE_TINTS[(k.id * 3) % PEOPLE_TINTS.length]);
+      sp.scale.set(0.88 + ((k.id * 5) % 5) * 0.025);
       if (k.state === 'sleep') {
         sp.rotation = Math.PI / 2;
         sp.tint = 0x9a9aa8;

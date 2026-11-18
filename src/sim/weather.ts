@@ -52,7 +52,8 @@ export class WeatherSystem {
       let k = 0;
       while (r >= wt[k]) r -= wt[k++];
       const prev = this.kind;
-      this.kind = KINDS[Math.min(k, KINDS.length - 1)];
+      // der erste Vormittag ist immer klar (erster Eindruck)
+      this.kind = this.spell === 0 ? 'clear' : KINDS[Math.min(k, KINDS.length - 1)];
       const hours = CLIMATE.minHours + hash01(w.seed, this.spell, 4402) * (CLIMATE.maxHours - CLIMATE.minHours);
       this.until = w.tick + Math.round((hours / 24) * DAY.ticks);
       this.spell++;
