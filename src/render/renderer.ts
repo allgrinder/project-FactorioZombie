@@ -2210,6 +2210,16 @@ export class GameRenderer {
       const v8 = 215 + ((u.id * 37) % 41);
       sp.tint = mulTint(ZOMBIE_TINTS[(u.id * 5 + 3) % ZOMBIE_TINTS.length], (v8 << 16) | ((v8 - ((u.id * 13) % 20)) << 8) | (v8 - ((u.id * 7) % 26)));
       sp.zIndex = u.y * TILE;
+      // Fressende Zombies: im Ruhezustand neben einer Leiche gebückt, mit rhythmischem Nicken
+      if (u.mode === 'idle' && u.kind !== 'crawler' && u.kind !== 'brute') {
+        const c = world.entityAt(Math.floor(u.x + 0.6), Math.floor(u.y)) ?? world.entityAt(Math.floor(u.x - 0.6), Math.floor(u.y)) ?? world.entityAt(Math.floor(u.x), Math.floor(u.y + 0.6));
+        if (c && (c.name === 'corpse' || c.name === 'body-bags')) {
+          const nod = Math.sin((t + u.id * 17) * 0.12);
+          sp.scale.y *= 0.72 + 0.04 * nod;
+          sp.rotation += 0.18 + 0.05 * nod;
+          sp.position.y += 6;
+        }
+      }
       // Kriecher im Gras: halb verdeckt, bis man nah dran ist
       if (u.kind === 'crawler' && !world.map.floorAt(Math.floor(u.x), Math.floor(u.y))) {
         const p = world.player;

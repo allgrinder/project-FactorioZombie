@@ -74,6 +74,8 @@ export const ZOMBIE = {
   /** Sichtweite am Tag und in der Nacht (Felder); dazwischen nach Dunkelheit. */
   sightDay: 11,
   sightNight: 7,
+  /** Anteil der Leichen, neben denen ein fressender Zombie hockt. */
+  feeders: 0.45,
   /** Verfolgung bricht ab, wenn die Figur so lange (Ticks) weiter als sight × loseFactor entfernt ist. */
   loseFactor: 1.7,
   loseTicks: 240,

@@ -154,6 +154,14 @@ export class EnemySystem {
         if (Math.hypot(x, y) >= g.startFree * 0.9 && this.free(w, x, y)) this.spawnAt(x, y, this.pickKind(day));
       }
     }
+    // Leichen: manchmal hockt ein Zombie daneben und frisst (Darstellung im Renderer)
+    for (const e of w.entities.values()) {
+      if (e.name !== 'corpse' || e.x < gx * c || e.x >= (gx + 1) * c || e.y < gy * c || e.y >= (gy + 1) * c) continue;
+      if (hash01(s, e.x, e.y, 790) >= ZOMBIE.feeders || Math.hypot(e.cx, e.cy) < g.startFree * 0.9) continue;
+      const x = e.cx - 1.1;
+      const y = e.cy;
+      if (this.units.size < ZOMBIE.maxUnits && this.free(w, x, y)) this.spawnAt(x, y, 'walker');
+    }
   }
 
   private free(w: World, x: number, y: number): boolean {

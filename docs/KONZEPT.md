@@ -289,6 +289,7 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
   schwelen noch (Rauch, nachts Glut, `AMBIENT.burningWrecks`).
 - Ortsparks in Dörfern und Städten (Brunnen, Rutsche, Sandkasten, Klettergerüst, Schaukel, Bänke; `lib/park.py`), Bootsstege
   bei Ruderbooten.
+- Fressende Zombies: neben 45 % der Leichen hockt ein Schlurfer (`ZOMBIE.feeders`), gebückt mit Nicken, solange er ruht.
 - Wasserleben (nur Darstellung): Entengruppen schwimmen auf Seen und flüchten vor der Figur, Fische springen (Wellenringe); nicht
   im Winter.
 - Kulturlandschaft (`lib/flurstuecke.py`): Hochsitze an Waldrändern (Wald ringsum, eine Seite frei), Vogelscheuchen auf 60 % der
