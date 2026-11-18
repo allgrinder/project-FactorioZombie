@@ -23,6 +23,8 @@ export interface DecorKind {
   readonly shadow: boolean;
   /** Flache Flecken zufällig drehen und strecken (nur ohne gerichtete Schatten sinnvoll). */
   readonly warp?: boolean;
+  /** Nur auf Wasser nahe dem Ufer (Seerosen). */
+  readonly water?: boolean;
   /** Nur auf Belägen (Straße, Gehweg, Hof): Unkraut in Ritzen. */
   readonly floor?: boolean;
   /** Nur direkt am Ufer (Wasser im Nachbarfeld). */
@@ -58,6 +60,7 @@ export const DECOR: readonly DecorKind[] = [
   { id: 'needles', sprite: 'decal.needles', layer: 'decal', cell: 10, chance: 0.03, groveBoost: 4, clearOfResources: 1, clearOfSpawn: 0, shadow: false, warp: true, fertility: -0.2 },
   { id: 'puddle', sprite: 'decal.puddle', layer: 'decal', cell: 22, chance: 0.06, clearOfResources: 0, clearOfSpawn: 4, shadow: false, warp: true, fertility: 0.6 },
   { id: 'weeds', sprite: 'decal.weeds', layer: 'decal', cell: 2, chance: 0.22, floor: true, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
+  { id: 'lily', sprite: 'decal.lily', layer: 'decal', cell: 3, chance: 0.22, water: true, clearOfResources: 0, clearOfSpawn: 0, shadow: false, warp: true },
   { id: 'reed', sprite: 'flora.reed', layer: 'flora', cell: 2, chance: 0.85, shore: true, clearOfResources: 1, clearOfSpawn: 0, shadow: true },
   { id: 'shrub', sprite: 'flora.shrub', layer: 'flora', cell: 6, chance: 0.16, groveBoost: 4, waterBoost: 3, clearOfResources: 2, clearOfSpawn: 9, shadow: true, fertility: 1.0 },
   { id: 'tallgrass', sprite: 'flora.tallgrass', layer: 'flora', cell: 3, chance: 0.15, groveBoost: 1.6, waterBoost: 2, clearOfResources: 1, clearOfSpawn: 5, shadow: true, fertility: 0.5 },

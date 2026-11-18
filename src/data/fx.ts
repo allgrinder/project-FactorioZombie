@@ -67,6 +67,10 @@ export const NIGHT = {
   goldenStrength: 0.4,
   goldenEvening: 0xffa060,
   goldenMorning: 0xffb8a0,
+  /** Kerze bei Bewohnern zu Hause, Fackel der Plünderer (Radius in Feldern). */
+  candleRadius: 4,
+  candleColor: 0xffc070,
+  torchRadius: 6,
   /** Kameraneigung der Blender-Renders (eisen.TILT) für die Bodennormale. */
   tiltDeg: 30,
   /** Höhe der Lichtquellen über dem Boden (Felder). */

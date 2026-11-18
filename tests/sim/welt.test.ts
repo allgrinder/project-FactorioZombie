@@ -193,5 +193,32 @@ describe('Vielfalt', () => {
     w.run(61);
     const farm = new Set([...w.entities.values()].filter((e) => Math.hypot(e.cx - lh.x, e.cy - lh.y) < 20).map((e) => e.name));
     expect(farm.has('tractor-wreck') && farm.has('pallets')).toBe(true);
+    // Streuobstwiese hinter dem Gutshof: gepflanzte Obstbäume (Gruppe in der Variante)
+    let orchard = 0;
+    for (let cy = Math.floor((lh.y - 40) / 32); cy <= Math.floor((lh.y + 40) / 32); cy++)
+      for (let cx = Math.floor((lh.x - 10) / 32); cx <= Math.floor((lh.x + 60) / 32); cx++)
+        for (const tr of w.map.trees.treesIn(cx, cy)) if (tr.variant >= 160 && tr.variant < 170) orchard++;
+    expect(orchard).toBeGreaterThanOrEqual(6);
+  });
+
+  it('Friedhof an der Dorfkirche, Hecken in Gärten, Notlager mit Zelten und Lastwagen', () => {
+    const w = new World(WORLD.seed, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
+    w.player = new Player(0.5, 0.5);
+    const t = WORLD.towns.find((x) => x.id === 'dornfeld')!;
+    w.player.px = t.x * 256;
+    w.player.py = t.y * 256;
+    w.run(61);
+    const names = [...w.entities.values()].filter((e) => Math.hypot(e.cx - t.x, e.cy - t.y) < 80).map((e) => e.name);
+    expect(names.filter((n) => n === 'grave').length).toBeGreaterThanOrEqual(10);
+    expect(names).toContain('hedge');
+    const ev = WORLD.places.find((p) => p.id === 'notlager')!;
+    w.player.px = ev.x * 256;
+    w.player.py = (ev.y + 25) * 256;
+    w.run(61);
+    const camp = [...w.entities.values()].filter((e) => Math.hypot(e.cx - ev.x, e.cy - ev.y) < 22).map((e) => e.name);
+    expect(camp.filter((n) => n === 'army-tent').length).toBeGreaterThanOrEqual(8);
+    expect(camp).toContain('medical-tent');
+    expect(camp).toContain('army-truck');
+    expect(camp.filter((n) => n === 'site-fence').length).toBeGreaterThan(80);
   });
 });

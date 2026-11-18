@@ -165,36 +165,37 @@ def mushrooms(v):
 
 
 def litter(kind, v):
-    """Bodenflecken von oben: Laubstreu, Nadelstreu, Moos, Unkraut in Ritzen, Pfütze."""
+    """Bodenflecken von oben (weich auslaufend, ohne Grundscheibe): Laubstreu, Nadelstreu, Moos, Unkraut in Ritzen,
+    Pfütze."""
     rnd = random.Random(4400 + v + 17 * len(kind))
     o = []
+
+    def spot(r=0.42):
+        # Dichte fällt nach außen ab (weicher Rand)
+        rr = min(r, abs(rnd.gauss(0, r * 0.45)))
+        a = rnd.uniform(0, math.tau)
+        return math.cos(a) * rr, math.sin(a) * rr
+
     if kind == 'litter':
-        base = gw_ground.pmat('ww_soil', lin('#3e3224'), 0.95, 0.5, 0.8, 18)
-        o.append(eisen.cylinder('b', 0.46, 0.003, (0, 0, 0.0015), base, segments=24))
         mats = [gw_ground.pmat(f'ww_lf{i}', lin(c), 0.9, 0.4, 0.6, 30)
-                for i, c in enumerate(('#6a5432', '#7a6236', '#55462c', '#6a6a3a', '#8a6a3a'))]
-        for k in range(120):
-            rr = 0.42 * math.sqrt(rnd.random())
-            a = rnd.uniform(0, math.tau)
-            o.append(eisen.box(f'l{k}', (0.05, 0.035, 0.003), (math.cos(a) * rr, math.sin(a) * rr, 0.004 + k * 0.00005),
-                               rnd.choice(mats), rot=(0, 0, rnd.uniform(0, 3))))
+                for i, c in enumerate(('#6a5432', '#7a6236', '#55462c', '#6a6a3a', '#8a6a3a', '#4a3a26'))]
+        for k in range(260):
+            x, y = spot()
+            o.append(eisen.box(f'l{k}', (0.05, 0.035, 0.003), (x, y, 0.002 + k * 0.00004), rnd.choice(mats), rot=(0, 0, rnd.uniform(0, 3))))
     elif kind == 'needles':
-        base = gw_ground.pmat('ww_needle', lin('#5a3e26'), 0.95, 0.5, 0.8, 40)
-        o.append(eisen.cylinder('b', 0.46, 0.003, (0, 0, 0.0015), base, segments=24))
+        mats = [gw_ground.pmat(f'ww_nd{i}', lin(c), 0.9, 0.3, 0.5, 30) for i, c in enumerate(('#6a4a2a', '#7a5a34', '#5a3e24'))]
+        for k in range(420):
+            x, y = spot()
+            o.append(eisen.box(f'n{k}', (0.05, 0.006, 0.003), (x, y, 0.002 + k * 0.00003), rnd.choice(mats), rot=(0, 0, rnd.uniform(0, 3))))
         cone = gw_ground.pmat('ww_cone', lin('#6a4a2a'), 0.9, 0.4, 0.6, 30)
-        for k in range(8):
-            rr = 0.38 * math.sqrt(rnd.random())
-            a = rnd.uniform(0, math.tau)
-            c = eisen.cylinder(f'z{k}', 0.02, 0.06, (math.cos(a) * rr, math.sin(a) * rr, 0.02), cone, segments=8,
-                               rot=(math.pi / 2, 0, rnd.uniform(0, 3)))
-            o.append(c)
+        for k in range(6):
+            x, y = spot(0.35)
+            o.append(eisen.cylinder(f'z{k}', 0.02, 0.06, (x, y, 0.02), cone, segments=8, rot=(math.pi / 2, 0, rnd.uniform(0, 3))))
     elif kind == 'moss':
-        mats = [gw_ground.pmat(f'ww_ms{i}', lin(c), 0.95, 0.4, 0.8, 40) for i, c in enumerate(('#4a5a2e', '#5a6a34', '#3e4e28'))]
-        for k in range(14):
-            rr = 0.3 * math.sqrt(rnd.random())
-            a = rnd.uniform(0, math.tau)
-            o.append(eisen.cylinder(f'm{k}', rnd.uniform(0.06, 0.18), 0.01, (math.cos(a) * rr, math.sin(a) * rr, 0.005),
-                                    rnd.choice(mats), segments=12))
+        mats = [gw_ground.pmat(f'ww_ms{i}', lin(c), 0.95, 0.4, 0.8, 40) for i, c in enumerate(('#5a6a34', '#6a7a3a', '#4e5e2e'))]
+        for k in range(16):
+            x, y = spot(0.32)
+            o.append(eisen.cylinder(f'm{k}', rnd.uniform(0.05, 0.14), 0.006, (x, y, 0.003 + k * 0.0015), rnd.choice(mats), segments=12))
     elif kind == 'weeds':
         go = tufts(rnd, 240, 0.0, 0.28, 0.03, 0.12)
         o.append(go)
@@ -202,12 +203,14 @@ def litter(kind, v):
         for k in range(5):
             o.append(eisen.box(f'c{k}', (rnd.uniform(0.15, 0.4), 0.012, 0.002),
                                (rnd.uniform(-0.25, 0.25), rnd.uniform(-0.25, 0.25), 0.001), crack, rot=(0, 0, rnd.uniform(0, 3))))
-    else:  # puddle
-        water = gw_ground.pmat('ww_water', lin('#3a4248'), 0.05, 0.1, 0.1, 10)
-        mud = gw_ground.pmat('ww_mud', lin('#3a2e22'), 0.9, 0.4, 0.6, 30)
-        o.append(eisen.cylinder('m', 0.44, 0.003, (0, 0, 0.0015), mud, segments=24))
-        for k in range(3 + v):
-            o.append(eisen.cylinder(f'w{k}', rnd.uniform(0.12, 0.3), 0.004, (rnd.uniform(-0.15, 0.15), rnd.uniform(-0.15, 0.15), 0.003),
+    else:  # puddle: matt spiegelndes Wasser auf Schlamm
+        water = gw_ground.pmat('ww_water', lin('#56646c'), 0.3, 0.1, 0.1, 10)
+        mud = gw_ground.pmat('ww_mud', lin('#4a3c2c'), 0.9, 0.4, 0.6, 30)
+        for k in range(10):
+            x, y = spot(0.3)
+            o.append(eisen.cylinder(f'm{k}', rnd.uniform(0.08, 0.16), 0.003, (x, y, 0.0015 + k * 0.0005), mud, segments=16))
+        for k in range(2 + v):
+            o.append(eisen.cylinder(f'w{k}', rnd.uniform(0.1, 0.22), 0.004, (rnd.uniform(-0.12, 0.12), rnd.uniform(-0.12, 0.12), 0.01 + k * 0.001),
                                     water, segments=20))
     return o
 

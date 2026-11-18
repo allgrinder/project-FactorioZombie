@@ -4,7 +4,7 @@
  */
 import type { EnemySetting } from './mapgen';
 
-export type UnitKind = 'walker' | 'runner' | 'brute' | 'screamer';
+export type UnitKind = 'walker' | 'runner' | 'brute' | 'screamer' | 'crawler';
 
 export interface UnitDef {
   readonly kind: UnitKind;
@@ -53,6 +53,11 @@ export const UNITS: Readonly<Record<UnitKind, UnitDef>> = {
   brute: {
     kind: 'brute', name: 'Brocken', health: 450, damage: 22, structureDamage: 45, cooldown: 80, reach: 0.7, speed: 0.055,
     armorFlat: 3, armorPercent: 0.15, radius: 0.45, scale: 1, fromDay: 6, share: 0.02, sharePerDay: 0.012, shareMax: 0.12, bleedChance: 0.5, infectChance: 0.03,
+  },
+  // Kriecher: ohne Beine, langsam und niedrig – im hohen Gras kaum zu sehen; der Biss ins Bein blutet stark
+  crawler: {
+    kind: 'crawler', name: 'Kriecher', health: 22, damage: 9, structureDamage: 2, cooldown: 60, reach: 0.4, speed: 0.022,
+    armorFlat: 0, armorPercent: 0, radius: 0.3, scale: 1, fromDay: 2, share: 0.05, sharePerDay: 0.01, shareMax: 0.12, bleedChance: 0.45, infectChance: 0.05,
   },
   screamer: {
     kind: 'screamer', name: 'Schreier', health: 48, damage: 5, structureDamage: 3, cooldown: 60, reach: 0.45, speed: 0.06,

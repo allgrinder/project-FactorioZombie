@@ -681,10 +681,14 @@ const list: EntityDef[] = [
     ['ambulance-wreck', 'Krankenwagen-Wrack', 3, 2, 'ambulance', 3], ['bus-wreck', 'Bus-Wrack', 6, 2, 'bus', 4],
     ['tractor-wreck', 'Traktor-Wrack', 3, 2, 'shed', 3], ['trash-bin', 'Mülltonne', 1, 1, 'trash', 1],
     ['garden-shed', 'Gartenhaus', 2, 2, 'shed', 2], ['oil-drums', 'Ölfässer', 1, 1, 'drums', 1.5],
+    // Evakuierungs-Sammelstelle (lib/staetten.py)
+    ['army-tent', 'Armeezelt', 3, 3, 'tent', 3], ['medical-tent', 'Sanitätszelt', 3, 3, 'medtent', 3],
+    ['army-truck', 'Militär-Lastwagen', 4, 2, 'military', 3.5], ['body-bags', 'Leichensäcke', 2, 1, 'bodies', 2.5],
+    ['corpse', 'Leiche', 1, 1, 'bodies', 1.5],
   ] as const).map(([id, name, w, h, table, t]): LootDef => ({
     kind: 'loot', id, name, width: w, height: h, health: w * h * 120, item: w > 2 ? 'iron-plate' : 'wood', itemCount: w * h, mineTime: 2 + w,
-    solid: true, rotatable: false, slots: 8, table, searchTime: t,
-    salvage: w > 2 ? [{ item: 'iron-plate', amount: w * 4 }, { item: 'iron-gear-wheel', amount: w }] : [{ item: 'wood', amount: 4 }],
+    solid: id !== 'corpse', rotatable: false, slots: 8, table, searchTime: t,
+    salvage: id === 'corpse' ? [{ item: 'cloth', amount: 2 }] : w > 2 ? [{ item: 'iron-plate', amount: w * 4 }, { item: 'iron-gear-wheel', amount: w }] : [{ item: 'wood', amount: 4 }],
   })),
   ...([
     ['mailbox', 'Briefkasten', 1, 1, 'iron-plate', 1, true], ['picnic-table', 'Picknicktisch', 2, 1, 'wood', 4, true],
@@ -694,6 +698,8 @@ const list: EntityDef[] = [
     ['pallets', 'Palettenstapel', 1, 1, 'wood', 6, true], ['tire-pile', 'Reifenstapel', 1, 1, 'iron-plate', 1, true],
     ['traffic-cone', 'Leitkegel', 1, 1, 'iron-plate', 1, false], ['road-barrier', 'Absperrung', 2, 1, 'iron-stick', 3, true],
     ['sandbags', 'Sandsäcke', 2, 1, 'stone', 4, true], ['fallen-log', 'Umgestürzter Baum', 3, 1, 'wood', 10, true],
+    ['grave', 'Grab', 1, 1, 'stone', 2, false], ['site-fence', 'Bauzaun', 1, 1, 'iron-stick', 3, true],
+    ['porta-potty', 'Dixi-Klo', 1, 1, 'iron-plate', 1, true], ['cot', 'Feldbett', 1, 1, 'cloth', 2, false],
   ] as const).map(([id, name, w, h, item, n, solid]): PropDef => ({
     kind: 'prop', id, name, width: w, height: h, health: 150, item, itemCount: n, mineTime: 1, solid, rotatable: false,
   })),
@@ -714,7 +720,7 @@ const list: EntityDef[] = [
   },
   // Requisiten der alten Welt (Abbau liefert item × itemCount)
   ...([
-    ['fence', 'Zaun', 1, 1, 'wood', 1], ['hay-bale', 'Heuballen', 1, 1, 'wood', 1], ['town-sign', 'Ortsschild', 1, 1, 'iron-plate', 2],
+    ['fence', 'Zaun', 1, 1, 'wood', 1], ['hedge', 'Hecke', 1, 1, 'wood', 2], ['hay-bale', 'Heuballen', 1, 1, 'wood', 1], ['town-sign', 'Ortsschild', 1, 1, 'iron-plate', 2],
     ['utility-pole', 'Holzmast', 1, 1, 'wood', 3], ['street-lamp', 'Straßenlaterne', 1, 1, 'iron-stick', 3],
   ] as const).map(([id, name, w, h, item, n]): PropDef => ({
     kind: 'prop', id, name, width: w, height: h, health: 200, item, itemCount: n, mineTime: 0.8, solid: true, rotatable: false,

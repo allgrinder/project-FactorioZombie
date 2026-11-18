@@ -249,6 +249,22 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
 - Umgebungsleben (nur Darstellung, `src/render/ambient.ts`): Krähenschwärme auf Feldern und bei Kadavern fliegen auf,
   Schmetterlinge (Frühling/Sommer), Glühwürmchen in Sommernächten, fallendes Herbstlaub.
 
+## Flur, Friedhof, Notlager (`models/flur.py`, `lib/staetten.py`)
+- Feldfrüchte auf jedem Acker (nur Darstellung, `drawCrops`): Weizen, Mais, Sonnenblumen oder Rüben je Acker; Frühling
+  jung, Sommer reif, Herbst dürr, Winter Stoppeln; 12 % Lücken; wiegen im Wind.
+- Hecken (`hedge`, Hainbuche/Liguster/Thuja) statt Zaun an 45 % der Gartengrenzen und um Friedhöfe.
+- Seerosen auf Wasser nahe dem Ufer (Deko `lily`, Flag `water`).
+- Friedhof neben der Kirche (Dorf und Stadt): Hecke, Weg, Grabsteine, Kreuze, offene und frische Gräber, zwei Eiben.
+- Evakuierungs-Sammelstellen (`kind: 'evac'`: Notlager Nord, Sammelstelle Moorbrück): Bauzaun, Sandsäcke, 2 Zeltreihen
+  (Armee- und Sanitätszelte als Fundorte, Tabellen `tent`/`medtent`), Militär-Lastwagen, Dixi-Klos, Feldbetten,
+  Leichensäcke (`bodies`), Kisten; Zombie-Gewicht 6.
+- Leichen (`corpse`, Fundort ohne Kollision, Tabelle `bodies`) neben Wracks, auf Gehwegen, an Landstraßen und im Notlager.
+- Kriecher (Zombie ohne Beine, ab Tag 2, 5–12 %): 22 Leben, langsam (0,022), Biss 9 mit 45 % Blutung; im Gras halb
+  unsichtbar, bis man auf 4 Felder heran ist; nie in Horden.
+- Atmosphäre: Rauch über 35 % der ausgebrannten Häuser, Bodennebel morgens und bei Nebel, Kerzenlicht bei Bewohnern zu
+  Hause, Fackeln der Plünderer, Pfützen nur nach Regen satt, Flachdächer mit Unkraut/Laub/Unrat, verkohlte Möbel,
+  großräumige Wiesenfarben (grün bis strohgelb, `LOOK.macro.hue*`).
+
 ## Ortsbild 2
 - Zombies in 8 weiteren Kleidungen (`models/zombievolk.py`: Warnweste, Polizei, Kittel, Latzhose, Anzug, Flecktarn …).
 - Ausgebrannte Häuser (10 %, nur Darstellung): verkohlte Wände, Dach mit Löchern, Ruß am Boden (`HOUSES`).

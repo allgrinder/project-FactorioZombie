@@ -48,9 +48,15 @@ export class AmbientLife {
   private readonly leaves: Mote[] = [];
   private lastT = -1;
   private readonly crowsOk: boolean;
+  private readonly smokeTex: Texture[] = [];
+  private readonly smoke: Mote[] = [];
+  private readonly mist: Mote[] = [];
+  /** Schwelende Ruinen im Bild (vom Renderer je Bild gefüllt). */
+  readonly smokers: { x: number; y: number }[] = [];
 
   constructor(private readonly sprites: SpriteLib, private readonly tile: number) {
     this.crowsOk = sprites.has('crow.sit.0') && sprites.has('crow.fly.0');
+    for (let i = 0; sprites.has(`fx.smoke.${i}`); i++) this.smokeTex.push(sprites.frame(`fx.smoke.${i}`));
   }
 
   /** Sitzende Krähen (im Gebäude-Layer, nach y sortiert). */
@@ -147,8 +153,66 @@ export class AmbientLife {
       l.position.set(m.x * T, (m.y - m.z * 0.6) * T);
       l.alpha = Math.min(1, (m.life - m.age) / 40);
     }
+    this.updateSmoke(world, dt, t, pool);
+    this.updateMist(world, dt, t, view, pool);
     pool.end();
     glow.end();
+  }
+
+  /** Rauchsäulen über schwelenden Ruinen: dunkler Rauch steigt auf und treibt mit dem Wind. */
+  private updateSmoke(world: World, dt: number, t: number, pool: SpritePool): void {
+    if (!this.smokeTex.length) return;
+    const T = this.tile;
+    for (const s of this.smokers) if (this.smoke.length < AMBIENT.smokeMax && Math.random() < AMBIENT.smokeRate * dt) {
+      this.smoke.push({ x: s.x + (Math.random() - 0.5) * 1.5, y: s.y + (Math.random() - 0.5), vx: 0.004 + Math.random() * 0.004, vy: 0, age: 0, life: 420 + Math.random() * 240, seed: Math.floor(Math.random() * 1000), z: 0 });
+    }
+    for (let i = this.smoke.length - 1; i >= 0; i--) {
+      const m = this.smoke[i];
+      m.age += dt;
+      if (m.age > m.life) {
+        this.smoke.splice(i, 1);
+        continue;
+      }
+      const k = m.age / m.life;
+      m.z += 0.02 * dt;
+      m.x += m.vx * dt;
+      const sp = pool.get(this.smokeTex[m.seed % this.smokeTex.length]);
+      sp.position.set(m.x * T, (m.y - m.z * 0.6) * T);
+      sp.scale.set(0.8 + k * 3.2);
+      sp.rotation = m.seed + t * 0.002;
+      sp.tint = 0x3a3632;
+      sp.alpha = Math.min(1, m.age / 40) * (1 - k) * 0.55;
+    }
+    void world;
+  }
+
+  /** Bodennebel in der Morgendämmerung und bei Nebelwetter: große, langsam ziehende Schwaden. */
+  private updateMist(world: World, dt: number, t: number, view: { x0: number; y0: number; x1: number; y1: number }, pool: SpritePool): void {
+    if (!this.smokeTex.length) return;
+    const dtime = world.daytime;
+    const fog = world.settings.plan && world.weather.kind === 'fog';
+    const morning = dtime > 0.58 && dtime < 0.8 ? Math.min(1, (dtime - 0.58) / 0.04, (0.8 - dtime) / 0.06) : 0;
+    const want = Math.round((fog ? 1 : morning) * AMBIENT.mist);
+    const T = this.tile;
+    if (this.mist.length < want && Math.random() < 0.3 * dt) {
+      this.mist.push({ x: view.x0 + Math.random() * (view.x1 - view.x0), y: view.y0 + Math.random() * (view.y1 - view.y0), vx: 0.003, vy: 0, age: 0, life: 900 + Math.random() * 600, seed: Math.floor(Math.random() * 1000), z: 0 });
+    }
+    for (let i = this.mist.length - 1; i >= 0; i--) {
+      const m = this.mist[i];
+      m.age += dt;
+      m.x += m.vx * dt;
+      if (m.age > m.life || this.mist.length > want + 2) {
+        this.mist.splice(i, 1);
+        continue;
+      }
+      const sp = pool.get(this.smokeTex[m.seed % this.smokeTex.length]);
+      sp.position.set(m.x * T, m.y * T);
+      sp.scale.set(5 + (m.seed % 5));
+      sp.rotation = m.seed;
+      sp.tint = 0xe8ecf0;
+      sp.alpha = Math.min(1, m.age / 120, (m.life - m.age) / 120) * AMBIENT.mistAlpha;
+    }
+    void t;
   }
 
   /** Schwebeteilchen in Sichtweite halten (erscheinen im Bild, verschwinden nach ihrer Lebenszeit). */

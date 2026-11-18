@@ -43,6 +43,15 @@ export const SOUNDS: Record<string, Params> = {
   use: [0.22, 0, 640, 0.01, 0.03, 0.1, 0, 1, , , 120, 0.04, , , , , , 0.6],
   rescue: [0.5, 0, 392, 0.05, 0.5, 0.7, 0, 1, , , 196, 0.15, 0.15, , , , 0.1, 0.6],
   playerdeath: [0.7, 0, 110, 0.05, 0.5, 1.2, 2, 0.4, -1, , , , 0.2, 0.5, , , , 0.5, 0.3],
+  // Natur und Umgebung (eigene Formeln)
+  bird1: [0.14, 0.05, 2400, 0.01, 0.03, 0.06, 0, 1.5, 30, , 400, 0.04, 0.05, , , , , 0.6],
+  bird2: [0.1, 0.1, 3200, 0, 0.02, 0.04, 0, 1, -40, , , , 0.06, , 8],
+  bird3: [0.13, 0.1, 1800, 0.02, 0.08, 0.1, 0, 1.2, 10, , 300, 0.05, 0.1, , 6],
+  cricket: [0.05, 0.05, 4200, 0, 0.02, 0.02, 0, 1, , , , , 0.03, , 30, , , 0.5],
+  crow: [0.16, 0.1, 520, 0.01, 0.08, 0.1, 2, 2.5, -8, , , , 0.08, 1, , 0.2, , 0.5],
+  rain: [0.09, 0, 300, 0.1, 0.3, 0.2, 4, 0, , , , , , 3, , , , 0.5],
+  thunder: [0.7, 0.2, 40, 0.05, 0.6, 1.8, 4, 0.3, -0.5, , , , , 3, 3, 0.4, 0.2, 0.4, 0.5],
+  moan: [0.2, 0.3, 95, 0.12, 0.35, 0.4, 2, 0.6, -0.4, , , , 0.12, 0.3, 2, , , 0.5, 0.15],
 };
 
 /** Gebäudeart → Umgebungsklang. */
@@ -159,11 +168,33 @@ export class SoundSystem {
       const a = atten(e.cx, e.cy);
       if (a > 0) near.push({ name: s, a, x: e.cx });
     }
-    let krabbler = 0;
+    // Zombies: Stöhnen des nächsten wachen Zombies (in Bewegung)
+    let moan = 0;
+    let moanX = cam.x;
     for (const u of world.enemies.units.values()) {
       const a = atten(u.x, u.y);
-      if (a > 0.2 && u.mode !== 'idle') krabbler = Math.max(krabbler, a);
+      if (a > 0.2 && u.mode !== 'idle' && a > moan) {
+        moan = a;
+        moanX = u.x;
+      }
     }
+    if (moan > 0 && Math.random() < 0.25) this.play('moan', moan * 0.8, (moanX - cam.x) / Math.max(1, halfW), 1400);
+    // Natur: Vögel am Tag, Grillen in warmen Nächten, Krähen, Regen und Donner (nur Stimmung, Zufall ohne Simulation)
+    const plan = world.settings.plan;
+    const wk = plan ? world.weather.kind : 'clear';
+    const season = plan ? world.weather.season(world.tick) : 'summer';
+    const dark = world.darkness;
+    const wet = wk === 'rain' || wk === 'storm';
+    if (wet) {
+      this.play('rain', wk === 'storm' ? 0.9 : 0.6, (Math.random() - 0.5) * 0.8, 300);
+      if (wk === 'storm' && Math.random() < 0.012) this.play('thunder', 0.6 + Math.random() * 0.4, (Math.random() - 0.5) * 1.2, 4000);
+    } else if (dark < 0.35 && season !== 'winter') {
+      if (Math.random() < 0.22) this.play(`bird${1 + Math.floor(Math.random() * 3)}`, 0.3 + Math.random() * 0.5, (Math.random() - 0.5) * 1.6, 500);
+      if (Math.random() < 0.03) this.play('crow', 0.4 + Math.random() * 0.4, (Math.random() - 0.5) * 1.6, 2500);
+    } else if (dark > 0.6 && (season === 'summer' || season === 'spring')) {
+      if (Math.random() < 0.6) this.play('cricket', 0.4 + Math.random() * 0.4, (Math.random() - 0.5) * 1.6, 250);
+    }
+    const krabbler = 0;
     near.sort((p, q) => q.a - p.a);
     const used = new Set<string>();
     for (const n of near) {

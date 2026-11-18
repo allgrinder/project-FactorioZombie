@@ -352,10 +352,11 @@ export class SiteSystem {
         // Gartenzaun hinter dem Haus und manchmal ein verwildertes Gemüsebeet
         if (ok && level && walk && hk === 'home' && hi(6) < 0.55) {
           const back = side === 0 ? off - 3 : off + depth + 2;
+          const border = hi(9) < 0.45 ? 'hedge' : 'fence';
           for (let q = -1; q <= along; q++) {
             if (q === Math.floor(along / 2)) continue;
-            if (horizontal) this.put(w, 'fence', cx + a + q, cy + back);
-            else this.put(w, 'fence', cx + back, cy + a + q);
+            if (horizontal) this.put(w, border, cx + a + q, cy + back);
+            else this.put(w, border, cx + back, cy + a + q);
           }
           if (hi(7) < 0.5) {
             const gb = side === 0 ? off - 2 : off + depth;
@@ -384,6 +385,15 @@ export class SiteSystem {
       const r = h(260 + i);
       const name = r < 0.5 ? 'car-wreck' : r < 0.72 ? 'van-wreck' : r < 0.8 ? 'police-wreck' : r < 0.88 ? 'ambulance-wreck' : horizontal && r < 0.95 ? 'bus-wreck' : 'car-wreck';
       placed += +(horizontal ? this.put(w, name, cx + a, cy, level) : this.put(w, name, cx - 4, cy + a, level));
+      // Leiche neben dem Wrack (manchmal)
+      if (h(280 + i) < 0.3) horizontal ? this.put(w, 'corpse', cx + a + 1, cy + 2, level) : this.put(w, 'corpse', cx - 1, cy + a + 1, level);
+    }
+    // Leichen auf Gehweg und Straße
+    for (let i = 0; i < Math.floor(len / 14); i++) {
+      if (h(290 + i) < 0.5) continue;
+      const a = a0 + 2 + Math.floor(h(295 + i) * (len - 4));
+      if (horizontal) this.put(w, 'corpse', cx + a, cy + (h(299 + i) < 0.5 ? -1 : 2), level);
+      else this.put(w, 'corpse', cx + (h(299 + i) < 0.5 ? -1 : 2), cy + a, level);
     }
     // Straßenmöbel auf dem Gehweg: Bänke, Mülleimer, Telefonzelle, Bushaltestelle; Laub und Kegel
     if (level && profile !== 'works') {
@@ -498,8 +508,9 @@ export class SiteSystem {
           const cy = Math.round(py + ny * side * 4 - 1);
           const r = hash01(WORLD.seed, ri, q, 882);
           const vehicle = r < 0.45 ? 'car-wreck' : r < 0.65 ? 'van-wreck' : r < 0.75 ? 'tractor-wreck' : r < 0.82 ? 'ambulance-wreck' : r < 0.88 ? 'police-wreck' : r < 0.94 ? 'fallen-log' : 'bus-wreck';
-          if (!this.nearTown(cx, cy, 50) && this.put(w, vehicle, cx, cy, true) && hash01(WORLD.seed, cx, cy, 881) < 0.45) {
-            this.put(w, 'scrap-pile', Math.round(cx + nx * side * 3), Math.round(cy + ny * side * 3), true);
+          if (!this.nearTown(cx, cy, 50) && this.put(w, vehicle, cx, cy, true)) {
+            if (hash01(WORLD.seed, cx, cy, 881) < 0.45) this.put(w, 'scrap-pile', Math.round(cx + nx * side * 3), Math.round(cy + ny * side * 3), true);
+            else if (hash01(WORLD.seed, cx, cy, 883) < 0.4) this.put(w, 'corpse', Math.round(cx - nx * side * 2), Math.round(cy - ny * side * 2), true);
           }
         }
         // Holzmasten auf einer Seite, alle 14 Felder
@@ -630,6 +641,7 @@ export class SiteSystem {
       const ch = 12;
       this.house(w, horizontal ? px + 13 : px, horizontal ? py + (side < 0 ? -3 : 1) : py + 13, horizontal ? cw : ch, horizontal ? ch : cw,
         'church', horizontal ? (side < 0 ? 2 : 0) : side < 0 ? 1 : 3, 'plaster', 'slate', hs(51), true);
+      this.cemetery(w, horizontal ? px : px + (side < 0 ? -13 : 11), horizontal ? py + (side < 0 ? -13 : 11) : py, horizontal, hs(52));
     }
     for (let k = 0; k < n; k++) {
       // Querstraßen an unregelmäßigen Stellen, zu beiden Seiten nach Los, unterschiedlich lang
@@ -729,6 +741,31 @@ export class SiteSystem {
   }
 
   /** Umfassung aus Einzelteilen (Mauer, Zaun) mit Lücke für eine Einfahrt (gate: Seite, gw: Breite, gateName: Tor). */
+  /** Friedhof neben dem Dorfplatz: Hecke ringsum, Gräberreihen mit Weg, Grabsteine, Kreuze, offene Gräber, Eiben. */
+  private cemetery(w: World, x0: number, y0: number, horizontal: boolean, h: (n: number) => number): void {
+    const W2 = horizontal ? 12 : 10;
+    const H2 = horizontal ? 10 : 12;
+    for (let y = y0 - 1; y <= y0 + H2; y++) for (let x = x0 - 1; x <= x0 + W2; x++) if (w.map.floorAt(x, y) || w.entityAt(x, y)) return;
+    this.ground(w, x0 - 1, y0 - 1, x0 + W2, y0 + H2);
+    this.ring(w, x0 - 1, y0 - 1, x0 + W2, y0 + H2, 'hedge', horizontal ? 2 : 1, 2, null);
+    let i = 0;
+    for (let y = y0 + 1; y < y0 + H2 - 1; y += 2) {
+      for (let x = x0 + 1; x < x0 + W2 - 1; x++) {
+        i++;
+        if (Math.abs(x - (x0 + W2 / 2)) < 1) {
+          this.paint(w, x, y, PAVEMENT);
+          this.paint(w, x, y + 1, PAVEMENT);
+          continue;
+        }
+        if (h(i) < 0.2) continue;
+        this.put(w, 'grave', x, y);
+      }
+    }
+    this.tree(w, x0 + 0.5, y0 + 0.5, 1);
+    this.tree(w, x0 + W2 - 1.5, y0 + H2 - 1.5, 1);
+    this.sites.push({ x: x0 + W2 / 2, y: y0 + H2 / 2, r: 8, weight: 1.5, kind: 'town' });
+  }
+
   private ring(w: World, x0: number, y0: number, x1: number, y1: number, name: string, gate: number, gw: number, gateName: string | null): void {
     const gx = Math.round((x0 + x1) / 2) - Math.floor(gw / 2);
     const gy = Math.round((y0 + y1) / 2) - Math.floor(gw / 2);
@@ -753,6 +790,7 @@ export class SiteSystem {
       case 'powerplant': return this.powerplant(w, p, h);
       case 'industrial': return this.industrial(w, p, h);
       case 'raidercamp': return this.raiderCamp(w, p, h);
+      case 'evac': return this.evac(w, p, h);
       default: return this.farmstead(w, p, h);
     }
   }
@@ -936,6 +974,51 @@ export class SiteSystem {
   }
 
   /** Militärposten: Kisten hinter Wracks, stark bewacht. */
+  /**
+   * Evakuierungs-Sammelstelle (eigene Idee): Bauzaun mit Einfahrt, Sandsäcke und Absperrung am Tor, Reihen von
+   * Armeezelten, Sanitätszelt mit Feldbetten, Lastwagen, Dixi-Klos, Leichensäcke. Überrannt: viele Zombies, viel Beute.
+   */
+  private evac(w: World, p: PlaceDef, h: (n: number) => number): void {
+    const x0 = p.x - 17;
+    const y0 = p.y - 12;
+    const x1 = p.x + 17;
+    const y1 = p.y + 12;
+    this.ground(w, x0 - 3, y0 - 3, x1 + 3, y1 + 3);
+    // Lagerstraße aus Asphalt quer durch, Kies vor den Zelten
+    for (let x = x0 + 1; x < x1; x++) for (const y of [p.y, p.y + 1]) w.map.setFloor(x, y, ASPHALT);
+    this.ring(w, x0, y0, x1, y1, 'site-fence', p.gate, 4, null);
+    const gy = p.gate === 0 ? y0 : y1;
+    const out = p.gate === 0 ? -1 : 1;
+    this.put(w, 'sandbags', p.x - 5, gy + out * 2, true);
+    this.put(w, 'sandbags', p.x + 4, gy + out * 2, true);
+    this.put(w, 'road-barrier', p.x - 1, gy + out * 3, true);
+    this.put(w, 'traffic-cone', p.x + 2, gy + out * 3, true);
+    // Zeltreihen nördlich und südlich der Lagerstraße
+    let k = 0;
+    for (const ty of [p.y - 5, p.y + 3]) {
+      for (let tx = x0 + 2; tx + 3 < x1 - 1; tx += 4) {
+        k++;
+        if (h(10 + k) < 0.12) continue;
+        const med = k === 3 || k === 10;
+        this.put(w, med ? 'medical-tent' : 'army-tent', tx, ty, true);
+      }
+    }
+    // Feldbetten neben dem Sanitätszelt, Leichensäcke, Lastwagen, Dixi-Klos, Kisten
+    for (let i = 0; i < 5; i++) if (h(40 + i) < 0.75) this.put(w, 'cot', x0 + 2 + i, y0 + 1, true);
+    for (let i = 0; i < 3; i++) this.put(w, 'body-bags', x1 - 7 + (i % 2) * 2, y1 - 2 - i, true);
+    for (let i = 0; i < 5; i++) if (h(70 + i) < 0.7) this.put(w, 'corpse', x0 + 3 + Math.floor(h(75 + i) * 28), p.y + (i % 2 ? 2 : -2), true);
+    this.put(w, 'army-truck', p.x - 2, p.y - 1 + (h(50) < 0.5 ? 0 : 0), true);
+    this.put(w, 'army-truck', x0 + 3, p.y, true);
+    for (let i = 0; i < 3; i++) this.put(w, 'porta-potty', x1 - 2, y0 + 2 + i, true);
+    this.put(w, 'military-crate', x1 - 4, p.y - 2, true);
+    this.put(w, 'supply-crate', x1 - 5, p.y - 2, true);
+    this.put(w, 'supply-crate', x1 - 4, p.y + 3, true);
+    this.put(w, 'oil-drums', x0 + 1, y1 - 1, true);
+    this.put(w, 'ambulance-wreck', p.x + 6, gy + out * 6, true);
+    this.sites.push({ x: p.x, y: p.y, r: 16, weight: 6, kind: 'outpost' });
+    if (h(60) < 0.6) w.community.addSurvivor(x0 + 2.5, y0 + 2.5, w.seed);
+  }
+
   private outpost(w: World, x: number, y: number): void {
     this.asphalt(w, x - 6, y - 4, x + 7, y + 5, true);
     for (const [dx, dy] of [[-3, -2], [-1, -2], [1, -2], [3, -2], [-3, 2], [3, 2]] as const) this.put(w, dx % 2 ? 'military-crate' : 'supply-crate', x + dx, y + dy, true);

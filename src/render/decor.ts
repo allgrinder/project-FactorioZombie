@@ -51,6 +51,11 @@ export class DecorField {
     return false;
   }
 
+  private landWithin(x: number, y: number, r: number): boolean {
+    for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) if (!this.map.isWater(x + dx, y + dy)) return true;
+    return false;
+  }
+
   private nearResource(x: number, y: number, r: number): boolean {
     if (r <= 0) return false;
     for (let dy = -r; dy <= r; dy++)
@@ -90,7 +95,8 @@ export class DecorField {
           if (kind.clearOfSpawn > 0 && Math.hypot(x, y) < kind.clearOfSpawn) continue;
           const tx = Math.floor(x);
           const ty = Math.floor(y);
-          if (this.map.isWater(tx, ty)) continue;
+          if (this.map.isWater(tx, ty) !== (kind.water === true)) continue;
+          if (kind.water && !this.landWithin(tx, ty, 3)) continue;
           if (kind.shore && !this.waterWithin(tx, ty, 1)) continue;
           if (this.nearResource(tx, ty, kind.clearOfResources)) continue;
           const w = kind.warp === true;

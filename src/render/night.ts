@@ -195,6 +195,12 @@ export class NightLayer {
       const dy = Math.sin(c.angle);
       add(c.x + dx * 1.4, c.y + dy * 1.4, NIGHT.headlightRange, 1.2, NIGHT.flashlightColor, { dx, dy, cos: Math.cos((NIGHT.headlightAngle * Math.PI) / 360) });
     }
+    // Kerzen bei Bewohnern, die zu Hause sind oder schlafen; Fackeln der Plünderer
+    for (const w of world.community.workers) {
+      const fl = 0.85 + 0.15 * Math.sin(world.tick * 0.31 + w.id * 7);
+      if (w.faction === 'raider') add(w.x, w.y - 0.5, NIGHT.torchRadius * fl, 0.95, NIGHT.fireColor);
+      else if (w.resident && (w.state === 'home' || w.state === 'sleep')) add(w.x, w.y - 0.3, NIGHT.candleRadius * fl, 0.8, NIGHT.candleColor);
+    }
     // Lampen zuerst (falls mehr Lichter als Plätze), dann Feuer und Masten
     const poles = world.research.bonus('pole-light') > 0 && d >= DAY.lampOn;
     const rest: Entity[] = [];

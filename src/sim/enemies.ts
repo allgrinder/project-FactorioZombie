@@ -236,7 +236,9 @@ export class EnemySystem {
         const x = ox + (this.rand() - 0.5) * 2 * HORDE.spread;
         const y = oy + (this.rand() - 0.5) * 2 * HORDE.spread;
         if (!this.free(w, x, y)) continue;
-        const u = this.spawnAt(x, y, this.pickKind(day), 'horde');
+        // Kriecher sind zu langsam für eine Horde: sie bleiben, wo sie liegen
+        const k = this.pickKind(day);
+        const u = this.spawnAt(x, y, k === 'crawler' ? 'walker' : k, 'horde');
         u.tx = c[0];
         u.ty = c[1];
         made++;

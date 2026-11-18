@@ -9,6 +9,11 @@ function lerpColor(a: number, b: number, t: number): number {
   return (Math.round(r) << 16) | (Math.round(g) << 8) | Math.round(bl);
 }
 
+function mulColor(a: number, b: number): number {
+  const f = (sh: number) => Math.round((((a >> sh) & 255) * ((b >> sh) & 255)) / 255);
+  return (f(16) << 16) | (f(8) << 8) | f(0);
+}
+
 function scaleColor(c: number, k: number): number {
   const f = (v: number) => Math.max(0, Math.min(255, Math.round(v * k)));
   return (f((c >> 16) & 255) << 16) | (f((c >> 8) & 255) << 8) | f(c & 255);
@@ -53,8 +58,10 @@ export class BiomeField {
   }
 
   color(tx: number, ty: number): number {
-    const c = biomeColor(this.fertility(tx, ty));
     const m = LOOK.macro;
+    // Farbflecken: saftig grüne und strohgelbe Wiesenstücke (großräumig, unabhängig von der Helligkeit)
+    const hue = valueNoise(tx / m.hueScale, ty / m.hueScale, 37) * 0.7 + valueNoise(tx / (m.hueScale * 0.35), ty / (m.hueScale * 0.35), 41) * 0.3;
+    const c = mulColor(biomeColor(this.fertility(tx, ty)), lerpColor(m.hueDry, m.hueLush, Math.max(0, Math.min(1, (hue - 0.5) * 1.8 + 0.5))));
     const k = 1 + m.amp * (valueNoise(tx / m.scale, ty / m.scale, 11) * 2 - 1) + m.amp2 * (valueNoise(tx / m.scale2, ty / m.scale2, 23) * 2 - 1);
     return scaleColor(c, k);
   }

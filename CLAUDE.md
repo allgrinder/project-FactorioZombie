@@ -66,6 +66,9 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Wildtiere (`src/sim/wildlife.ts`, `src/data/wildlife.ts`, `lib/tiere.py`): Reh, Hase, Wildschwein; Jagd über
   `World.prey`, Fleisch/Braten/Fell. Umgebungsleben `src/render/ambient.ts` (Krähen, Schmetterlinge, Glühwürmchen, Laub).
   Test `wildtiere.test.ts`. Zombie-Kleidungen `models/zombievolk.py` (`zombieBase`), ausgebrannte Häuser (`HOUSES`).
+- Flur/Stätten: Feldfrüchte je Acker und Jahreszeit (`drawCrops`, `models/flur.py`), Hecken, Seerosen; Friedhof an der
+  Kirche (`SiteSystem.cemetery`), Sammelstellen (`kind: 'evac'`, `SiteSystem.evac`, `lib/staetten.py`), Leichen (`corpse`).
+  Kriecher (`crawler`, `lib/kriecher.py`), Rauch/Bodennebel in `ambient.ts`, Kerzen/Fackeln in `night.ts`.
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
   Feuerschale, Scheinwerfer, Wachturm, Vorratslager.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).

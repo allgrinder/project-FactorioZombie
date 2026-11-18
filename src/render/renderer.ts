@@ -57,7 +57,7 @@ const ROOF_TINTS: Record<string, number[]> = {
 const JOB_TINT: Record<Job, number> = { scavenge: 0xffffff, loot: 0xc8b8a0, guard: 0x9fb0c8, farm: 0xd8e8a8, repair: 0xf0d098, medic: 0xf4eeee, rest: 0xc8c0b8 };
 
 /** Ersatzfarben der Zombies, solange die Sprites fehlen (Kreise in drawCombat). */
-const ZOMBIE_COLOR: Record<UnitKind, number> = { walker: 0x6f7f4a, runner: 0x9a6a3a, brute: 0x4a5a3a, screamer: 0x8a4a6a };
+const ZOMBIE_COLOR: Record<UnitKind, number> = { walker: 0x6f7f4a, runner: 0x9a6a3a, brute: 0x4a5a3a, screamer: 0x8a4a6a, crawler: 0x5a5048 };
 import { CloudShadows } from './clouds';
 import { bloomEnabled, gradeFilter, lookEnabled } from './look';
 import { NightLayer } from './night';
@@ -118,8 +118,16 @@ const ITEM_SCALE_BELT = 0.5;
 const ITEM_OUTLINE = { scale: 1.16, alpha: 0.6 };
 
 /** Pflanzen-Deko, die mit der Jahreszeit die Farbe wechselt. */
+/** Belag „Acker“ (src/data/floors.ts) und Feldfrüchte (models/flur.py). */
+const CROP_FLOOR = 8;
+const CROPS = ['wheat', 'maize', 'sunflower', 'beet'] as const;
+
+/** Flecken auf Flachdächern. */
+const ROOF_GRIME = ['decal.weeds', 'decal.leaves', 'decal.weeds', 'decal.trash'] as const;
+
 /** Flecken, die auch auf Straße, Gehweg und Hausboden liegen. */
 const URBAN_DECALS = new Set(['blood', 'trash', 'burnt', 'tracks', 'puddle', 'weeds', 'leaves']);
+const BUSHY = new Set(['rocks', 'shrub', 'thicket', 'bramble', 'boulder']);
 const LEAFY = new Set(['shrub', 'fern', 'bramble', 'thicket', 'tallgrass', 'wild', 'reed']);
 
 export class Camera {
@@ -801,6 +809,8 @@ export class GameRenderer {
     const q = this.floorDecals;
     q.begin();
     const small = this.camera.zoom >= DECOR_MIN_ZOOM_SMALL;
+    const wk = world.settings.plan ? world.weather.kind : 'clear';
+    const wet = wk === 'rain' || wk === 'storm' ? 1 : wk === 'snow' ? 0 : 0.35;
     let n = 0;
     for (const d of this.visibleDecor(world, v, 6)) {
       if (d.kind.layer !== 'decal') continue;
@@ -811,6 +821,8 @@ export class GameRenderer {
       if (onFloor && !URBAN_DECALS.has(d.kind.id)) continue;
       const name = `${d.kind.sprite}.${d.variant}`;
       const sp = (onFloor ? q : p).get(this.sprites.frame(name));
+      // Pfützen: nach Regen voll, sonst nur feuchte Reste
+      if (d.kind.id === 'puddle') sp.alpha = wet;
       sp.position.set(d.x * TILE, d.y * TILE);
       const k = this.sprites.info(name)?.meta?.scale ?? 1;
       sp.scale.set(k * d.sx, k * d.sy);
@@ -884,7 +896,7 @@ export class GameRenderer {
       if (d.kind.layer !== 'flora') continue;
       if (world.map.isCliff(d.tx, d.ty) || world.map.floorAt(d.tx, d.ty)) continue;
       // Bäume halten Abstand zu Gebäuden (Krone), kleinere Pflanzen nur zum eigenen Feld
-      const r = d.kind.id === 'tree' || d.kind.id === 'conifer' ? 2 : d.kind.id === 'rocks' ? 1 : 0;
+      const r = d.kind.id === 'tree' || d.kind.id === 'conifer' ? 2 : BUSHY.has(d.kind.id) ? 1 : 0;
       let blocked = false;
       for (let oy = -r; oy <= r && !blocked; oy++) for (let ox = -r; ox <= r && !blocked; ox++) if (world.entityAt(d.tx + ox, d.ty + oy)) blocked = true;
       if (blocked) continue;
@@ -902,6 +914,7 @@ export class GameRenderer {
         sp.skew.x = this.windSway(world, d.x, d.y) * (d.kind.id === 'tallgrass' || d.kind.id === 'reed' ? 1.6 : 0.8);
       }
     }
+    this.drawCrops(world, v);
     // Bäume aus der Simulation (fällbar)
     const CS = MAPGEN.chunkSize;
     const m = 7;
@@ -926,6 +939,52 @@ export class GameRenderer {
       }
     }
     this.drawCliffs(world, v);
+  }
+
+  /** Acker-Ursprung je Feld (Art der Feldfrucht gilt für den ganzen Acker). */
+  private readonly fieldCrop = new Map<number, number>();
+  private fieldMapRef: World['map'] | null = null;
+
+  /**
+   * Feldfrüchte auf verwilderten Äckern (nur Darstellung): Art je Acker (Weizen, Mais, Sonnenblumen, Rüben), Stufe je
+   * Jahreszeit (jung, reif, dürr; im Winter nur Stoppeln), Lücken wo die Saat nicht aufging.
+   */
+  private drawCrops(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const s = this.sprites;
+    if (!s.has('crop.wheat.ripe.0')) return;
+    if (this.fieldMapRef !== world.map) {
+      this.fieldCrop.clear();
+      this.fieldMapRef = world.map;
+    }
+    const season = world.settings.plan ? world.weather.season(world.tick) : 'summer';
+    const stage = season === 'spring' ? 'young' : season === 'summer' ? 'ripe' : 'dry';
+    const map = world.map;
+    for (let ty = v.y0 - 2; ty <= v.y1 + 1; ty++) {
+      for (let tx = v.x0 - 1; tx <= v.x1 + 1; tx++) {
+        if (map.floorAt(tx, ty) !== CROP_FLOOR) continue;
+        if (world.entityAt(tx, ty)) continue;
+        const key = (tx + 32768) * 65536 + (ty + 32768);
+        let crop = this.fieldCrop.get(key);
+        if (crop === undefined) {
+          let x0 = tx;
+          let y0 = ty;
+          while (map.floorAt(x0 - 1, ty) === CROP_FLOOR && tx - x0 < 40) x0--;
+          while (map.floorAt(x0, y0 - 1) === CROP_FLOOR && ty - y0 < 40) y0--;
+          crop = (((x0 * 2246822519) ^ (y0 * 3266489917)) >>> 0) % CROPS.length;
+          this.fieldCrop.set(key, crop);
+          if (this.fieldCrop.size > 60000) this.fieldCrop.clear();
+        }
+        const h = ((Math.imul(tx, 374761393) ^ Math.imul(ty, 668265263)) >>> 0) % 100;
+        if (h < 12 || (season === 'winter' && h < 60)) continue;
+        const name = `crop.${CROPS[crop]}.${stage}.${h & 1}`;
+        if (!s.has(name)) continue;
+        const sp = this.ents.get(s.frame(name));
+        sp.position.set((tx + 0.5) * TILE, (ty + 0.5) * TILE);
+        sp.zIndex = (ty + 0.5) * TILE;
+        sp.skew.x = this.windSway(world, tx, ty) * 1.4;
+        if (season === 'winter') sp.tint = 0xb8b0a4;
+      }
+    }
   }
 
   /** Wind: Scherung der Pflanzen-Sprites (am Fuß verankert), Böen wandern als Welle über die Karte; Sturm stärker. */
@@ -1233,7 +1292,12 @@ export class GameRenderer {
       }
       case 'prop': {
         // Zaun: Richtung nach den Nachbarn (waagerecht, wenn links oder rechts ein Zaun steht)
-        if (e.name === 'fence' && s.has('fence.h')) {
+        if (e.name === 'hedge' && s.has('hedge.v0')) {
+          // Hecke: eine Art je Gartenstück (grobes Raster), zwei Formen im Wechsel
+          const sp = (((Math.floor(e.x / 9) * 73856093) ^ (Math.floor(e.y / 9) * 19349663)) >>> 0) % 3;
+          const hsp = this.drawNamed(`hedge.v${sp * 2 + ((e.x + e.y) & 1)}`, cx, cy, z);
+          hsp.tint = this.seasonTint(world, 0, e.x * 3 + e.y);
+        } else if (e.name === 'fence' && s.has('fence.h')) {
           const n = (dx: number, dy: number) => world.entityAt(e.x + dx, e.y + dy)?.name === 'fence';
           const hz = n(-1, 0) || n(1, 0) || !(n(0, -1) || n(0, 1));
           this.drawNamed(hz ? 'fence.h' : 'fence.v', cx, cy, z);
@@ -1360,10 +1424,29 @@ export class GameRenderer {
             }
           }
         }
+        // Leiche: Kadaver-Bild eines Zombies in wechselnder Kleidung, gedreht nach der Lage
+        if (e.name === 'corpse') {
+          const hh = ((Math.imul(e.x, 73856093) ^ Math.imul(e.y, 19349663)) >>> 0);
+          const v = hh % 7;
+          const key = v === 0 ? 'zombie.walker.dead' : `zombie.walker.v${v}.dead`;
+          if (s.has(key)) {
+            const csp = this.ents.get(s.frame(key, (hh >> 4) & 1));
+            csp.position.set(cx, cy);
+            csp.rotation = (((hh >> 6) % 100) / 100 - 0.5) * 0.9;
+            if ((hh >> 3) & 1) csp.scale.x = -1;
+            csp.tint = 0xb8b0a4;
+            csp.zIndex = z - 60;
+            break;
+          }
+        }
         // Fundorte: Variante nach der Lage (gleiche Karte → gleiches Bild)
         const n = s.countPrefix(`${e.name}.v`);
         if (!n) this.drawGeneric(e, cx, cy - lift, z + (lift ? 2000 : 0));
-        else this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy - lift, z + (lift ? 2000 : 0));
+        else {
+          const lsp = this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy - lift, z + (lift ? 2000 : 0));
+          // Möbel in ausgebrannten Häusern: verkohlt
+          if (this.houseOf(world, e.x, e.y)?.burnt) lsp.tint = 0x5a524a;
+        }
         break;
       }
       case 'pile': {
@@ -1478,6 +1561,7 @@ export class GameRenderer {
     const py = p && !p.dead ? p.y : -1e9;
     const lift = ROOF_LIFT * TILE;
     const hs = world.sites.houses;
+    if (this.ambient) this.ambient.smokers.length = 0;
     const within = (h: (typeof hs)[number]) => px >= h.x && px < h.x + h.w && py >= h.y - 0.2 && py < h.y + h.h;
     // Haupthaus und Anbau blenden gemeinsam aus
     const groupIn = new Set<number>();
@@ -1496,6 +1580,7 @@ export class GameRenderer {
       if (a <= 0.01) continue;
       const kind = h.roof;
       const burnt = GameRenderer.burnt(h.g !== undefined ? hs[h.g] : h);
+      if (burnt && h.g === undefined && this.ambient && (Math.abs(h.x * 31 + h.y * 17) % 100) < HOUSES.smoulder * 100) this.ambient.smokers.push({ x: h.x + h.w / 2, y: h.y + h.h / 2 });
       const sx = (h.w + ROOF_OVERHANG * 2) / h.w;
       const sy = (h.h + ROOF_OVERHANG * 2) / h.h;
       const ccx = (h.x + h.w / 2) * TILE;
@@ -1528,8 +1613,23 @@ export class GameRenderer {
           const pal = ROOF_TINTS[kind] ?? ROOF_TINTS.flat;
           sp.tint = pal[(((main.x * 73856093) ^ (main.y * 19349663)) >>> 0) % pal.length];
           if (world.weather.winter) sp.tint = mulTint(sp.tint, 0xe2e7ee);
-          if (burnt) sp.tint = mulTint(sp.tint, 0x3a3430);
+          if (burnt) sp.tint = 0x34302c;
           sp.zIndex = (h.y + h.h) * TILE - 2;
+          // Flachdächer: Moos, Pfützen, Laub und Unrat
+          if (kind === 'flat') {
+            const rh = ((Math.imul(h.x + i, 2654435761) ^ Math.imul(h.y + j, 40503)) >>> 0) % 1000;
+            if (rh < ROOF_GRIME.length * 36) {
+              const dn = `${ROOF_GRIME[rh % ROOF_GRIME.length]}.${(rh >> 3) % 3}`;
+              if (s.has(dn)) {
+                const d = this.ents.get(s.frame(dn));
+                d.position.copyFrom(sp.position);
+                d.scale.set((s.info(dn)?.meta?.scale ?? 1) * (1 + (rh % 5) * 0.12));
+                d.rotation = rh * 0.37;
+                d.alpha = a * 0.75;
+                d.zIndex = sp.zIndex + 0.5;
+              }
+            }
+          }
         }
       }
       // Dachaufbauten je Haus (nicht über Anbauten): Schornstein am First, Antenne, Schüssel, Solar, Dachfenster
@@ -1902,6 +2002,12 @@ export class GameRenderer {
       const v8 = 215 + ((u.id * 37) % 41);
       sp.tint = mulTint(ZOMBIE_TINTS[(u.id * 5 + 3) % ZOMBIE_TINTS.length], (v8 << 16) | ((v8 - ((u.id * 13) % 20)) << 8) | (v8 - ((u.id * 7) % 26)));
       sp.zIndex = u.y * TILE;
+      // Kriecher im Gras: halb verdeckt, bis man nah dran ist
+      if (u.kind === 'crawler' && !world.map.floorAt(Math.floor(u.x), Math.floor(u.y))) {
+        const p = world.player;
+        const d = p ? Math.hypot(p.x - u.x, p.y - u.y) : 99;
+        sp.alpha = d < 4 ? 1 : Math.max(0.45, 1 - (d - 4) * 0.08);
+      }
     }
   }
 

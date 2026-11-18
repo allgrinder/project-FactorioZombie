@@ -294,3 +294,17 @@ describe('Horden', () => {
     expect(JSON.stringify(serializeWorld(b))).toBe(JSON.stringify(serializeWorld(w)));
   });
 });
+
+describe('Kriecher', () => {
+  it('kommt ab Tag 2 vor, ist langsam und nie Teil einer Horde', () => {
+    const w = arena();
+    const kinds = new Set<string>();
+    for (let i = 0; i < 400; i++) kinds.add(w.enemies.pickKind(1));
+    expect(kinds.has('crawler')).toBe(false);
+    for (let i = 0; i < 400; i++) kinds.add(w.enemies.pickKind(5));
+    expect(kinds.has('crawler')).toBe(true);
+    expect(UNITS.crawler.speed).toBeLessThan(UNITS.walker.speed);
+    w.enemies.spawnHorde(w, 40, 0.3);
+    expect([...w.enemies.units.values()].some((u) => u.mode === 'horde' && u.kind === 'crawler')).toBe(false);
+  });
+});

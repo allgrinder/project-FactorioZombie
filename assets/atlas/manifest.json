@@ -480,6 +480,57 @@
     "storage-tank.3.shadow"
    ]
   },
+  "flur": {
+   "hash": "bf6f38dca47e733a",
+   "sprites": [
+    "crop.wheat.young.0",
+    "crop.wheat.young.1",
+    "crop.wheat.ripe.0",
+    "crop.wheat.ripe.1",
+    "crop.wheat.dry.0",
+    "crop.wheat.dry.1",
+    "crop.maize.young.0",
+    "crop.maize.young.1",
+    "crop.maize.ripe.0",
+    "crop.maize.ripe.1",
+    "crop.maize.dry.0",
+    "crop.maize.dry.1",
+    "crop.sunflower.young.0",
+    "crop.sunflower.young.1",
+    "crop.sunflower.ripe.0",
+    "crop.sunflower.ripe.1",
+    "crop.sunflower.dry.0",
+    "crop.sunflower.dry.1",
+    "crop.beet.young.0",
+    "crop.beet.young.1",
+    "crop.beet.ripe.0",
+    "crop.beet.ripe.1",
+    "crop.beet.dry.0",
+    "crop.beet.dry.1",
+    "hedge.v0",
+    "hedge.v0.nrm",
+    "hedge.v0.shadow",
+    "hedge.v1",
+    "hedge.v1.nrm",
+    "hedge.v1.shadow",
+    "hedge.v2",
+    "hedge.v2.nrm",
+    "hedge.v2.shadow",
+    "hedge.v3",
+    "hedge.v3.nrm",
+    "hedge.v3.shadow",
+    "hedge.v4",
+    "hedge.v4.nrm",
+    "hedge.v4.shadow",
+    "hedge.v5",
+    "hedge.v5.nrm",
+    "hedge.v5.shadow",
+    "decal.lily.0",
+    "decal.lily.1",
+    "decal.lily.2",
+    "decal.lily.3"
+   ]
+  },
   "furnace": {
    "hash": "7e5dc35970315340",
    "sprites": [
@@ -1252,6 +1303,65 @@
     "item.cliff-explosives"
    ]
   },
+  "kriecher": {
+   "hash": "9e0006a1b20267b6",
+   "sprites": [
+    "zombie.crawler.0",
+    "zombie.crawler.0.nrm",
+    "zombie.crawler.1",
+    "zombie.crawler.1.nrm",
+    "zombie.crawler.2",
+    "zombie.crawler.2.nrm",
+    "zombie.crawler.3",
+    "zombie.crawler.3.nrm",
+    "zombie.crawler.4",
+    "zombie.crawler.4.nrm",
+    "zombie.crawler.5",
+    "zombie.crawler.5.nrm",
+    "zombie.crawler.6",
+    "zombie.crawler.6.nrm",
+    "zombie.crawler.7",
+    "zombie.crawler.7.nrm",
+    "zombie.crawler.dead",
+    "zombie.crawler.dead.nrm",
+    "zombie.crawler.v1.0",
+    "zombie.crawler.v1.0.nrm",
+    "zombie.crawler.v1.1",
+    "zombie.crawler.v1.1.nrm",
+    "zombie.crawler.v1.2",
+    "zombie.crawler.v1.2.nrm",
+    "zombie.crawler.v1.3",
+    "zombie.crawler.v1.3.nrm",
+    "zombie.crawler.v1.4",
+    "zombie.crawler.v1.4.nrm",
+    "zombie.crawler.v1.5",
+    "zombie.crawler.v1.5.nrm",
+    "zombie.crawler.v1.6",
+    "zombie.crawler.v1.6.nrm",
+    "zombie.crawler.v1.7",
+    "zombie.crawler.v1.7.nrm",
+    "zombie.crawler.v1.dead",
+    "zombie.crawler.v1.dead.nrm",
+    "zombie.crawler.v2.0",
+    "zombie.crawler.v2.0.nrm",
+    "zombie.crawler.v2.1",
+    "zombie.crawler.v2.1.nrm",
+    "zombie.crawler.v2.2",
+    "zombie.crawler.v2.2.nrm",
+    "zombie.crawler.v2.3",
+    "zombie.crawler.v2.3.nrm",
+    "zombie.crawler.v2.4",
+    "zombie.crawler.v2.4.nrm",
+    "zombie.crawler.v2.5",
+    "zombie.crawler.v2.5.nrm",
+    "zombie.crawler.v2.6",
+    "zombie.crawler.v2.6.nrm",
+    "zombie.crawler.v2.7",
+    "zombie.crawler.v2.7.nrm",
+    "zombie.crawler.v2.dead",
+    "zombie.crawler.v2.dead.nrm"
+   ]
+  },
   "lager": {
    "hash": "1ed529d20dacf30a",
    "sprites": [
@@ -1896,6 +2006,56 @@
     "accumulator.shadow",
     "item.solar-panel",
     "item.accumulator"
+   ]
+  },
+  "staetten": {
+   "hash": "d988b0d6041ff828",
+   "sprites": [
+    "grave.v0",
+    "grave.v0.nrm",
+    "grave.v0.shadow",
+    "grave.v1",
+    "grave.v1.nrm",
+    "grave.v1.shadow",
+    "grave.v2",
+    "grave.v2.nrm",
+    "grave.v2.shadow",
+    "grave.v3",
+    "grave.v3.nrm",
+    "grave.v3.shadow",
+    "grave.v4",
+    "grave.v4.nrm",
+    "grave.v4.shadow",
+    "army-tent.v0",
+    "army-tent.v0.nrm",
+    "army-tent.v0.shadow",
+    "army-tent.v1",
+    "army-tent.v1.nrm",
+    "army-tent.v1.shadow",
+    "medical-tent.v0",
+    "medical-tent.v0.nrm",
+    "medical-tent.v0.shadow",
+    "army-truck.v0",
+    "army-truck.v0.nrm",
+    "army-truck.v0.shadow",
+    "army-truck.v1",
+    "army-truck.v1.nrm",
+    "army-truck.v1.shadow",
+    "site-fence.v0",
+    "site-fence.v0.nrm",
+    "site-fence.v0.shadow",
+    "porta-potty.v0",
+    "porta-potty.v0.nrm",
+    "porta-potty.v0.shadow",
+    "body-bags.v0",
+    "body-bags.v0.nrm",
+    "body-bags.v0.shadow",
+    "body-bags.v1",
+    "body-bags.v1.nrm",
+    "body-bags.v1.shadow",
+    "cot.v0",
+    "cot.v0.nrm",
+    "cot.v0.shadow"
    ]
   },
   "steelfurnace": {
@@ -2635,7 +2795,7 @@
    ]
   },
   "wildwuchs": {
-   "hash": "ddfe17ba4574cd53",
+   "hash": "b8e73eb9451c20ec",
    "sprites": [
     "flora.tree.8",
     "flora.tree.8.shadow",
@@ -3079,6 +3239,10 @@
   {
    "group": "entities",
    "file": "atlas-entities-10.json"
+  },
+  {
+   "group": "entities",
+   "file": "atlas-entities-11.json"
   },
   {
    "group": "flora",
@@ -4771,6 +4935,54 @@
    "group": "decals",
    "frames": [
     "decal.leaves.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.lily.0": {
+   "group": "decals",
+   "frames": [
+    "decal.lily.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.lily.1": {
+   "group": "decals",
+   "frames": [
+    "decal.lily.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.lily.2": {
+   "group": "decals",
+   "frames": [
+    "decal.lily.2#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.lily.3": {
+   "group": "decals",
+   "frames": [
+    "decal.lily.3#0"
    ],
    "w": 64,
    "h": 64,
@@ -7807,6 +8019,108 @@
     0.6
    ]
   },
+  "army-tent.v0": {
+   "group": "entities",
+   "frames": [
+    "army-tent.v0#0"
+   ],
+   "w": 224,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6421052631578947
+   ]
+  },
+  "army-tent.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "army-tent.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 448,
+   "anchor": [
+    0.25,
+    0.25
+   ]
+  },
+  "army-tent.v1": {
+   "group": "entities",
+   "frames": [
+    "army-tent.v1#0"
+   ],
+   "w": 224,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6421052631578947
+   ]
+  },
+  "army-tent.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "army-tent.v1.shadow#0"
+   ],
+   "w": 448,
+   "h": 448,
+   "anchor": [
+    0.25,
+    0.25
+   ]
+  },
+  "army-truck.v0": {
+   "group": "entities",
+   "frames": [
+    "army-truck.v0#0"
+   ],
+   "w": 288,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6799999999999999
+   ]
+  },
+  "army-truck.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "army-truck.v0.shadow#0"
+   ],
+   "w": 272,
+   "h": 176,
+   "anchor": [
+    0.2647058823529412,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "army-truck.v1": {
+   "group": "entities",
+   "frames": [
+    "army-truck.v1#0"
+   ],
+   "w": 288,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6799999999999999
+   ]
+  },
+  "army-truck.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "army-truck.v1.shadow#0"
+   ],
+   "w": 272,
+   "h": 176,
+   "anchor": [
+    0.2647058823529412,
+    0.22727272727272727
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "assembling-machine-1": {
    "group": "entities",
    "frames": [
@@ -8178,6 +8492,54 @@
    "anchor": [
     0.5,
     0.6457142857142857
+   ]
+  },
+  "body-bags.v0": {
+   "group": "entities",
+   "frames": [
+    "body-bags.v0#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "body-bags.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "body-bags.v0.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
+   ]
+  },
+  "body-bags.v1": {
+   "group": "entities",
+   "frames": [
+    "body-bags.v1#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "body-bags.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "body-bags.v1.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
    ]
   },
   "boiler.0": {
@@ -8860,6 +9222,30 @@
    "meta": {
     "scale": 2
    }
+  },
+  "cot.v0": {
+   "group": "entities",
+   "frames": [
+    "cot.v0#0"
+   ],
+   "w": 96,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "cot.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "cot.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
   },
   "crow.fly.0": {
    "group": "entities",
@@ -10250,6 +10636,126 @@
     0.1875
    ]
   },
+  "grave.v0": {
+   "group": "entities",
+   "frames": [
+    "grave.v0#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "grave.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "grave.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "grave.v1": {
+   "group": "entities",
+   "frames": [
+    "grave.v1#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "grave.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "grave.v1.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "grave.v2": {
+   "group": "entities",
+   "frames": [
+    "grave.v2#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "grave.v2.shadow": {
+   "group": "entities",
+   "frames": [
+    "grave.v2.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "grave.v3": {
+   "group": "entities",
+   "frames": [
+    "grave.v3#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "grave.v3.shadow": {
+   "group": "entities",
+   "frames": [
+    "grave.v3.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "grave.v4": {
+   "group": "entities",
+   "frames": [
+    "grave.v4#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "grave.v4.shadow": {
+   "group": "entities",
+   "frames": [
+    "grave.v4.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
   "gun-turret.base": {
    "group": "entities",
    "frames": [
@@ -10392,6 +10898,150 @@
    "group": "entities",
    "frames": [
     "hdoor.v.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "hedge.v0": {
+   "group": "entities",
+   "frames": [
+    "hedge.v0#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "hedge.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "hedge.v1": {
+   "group": "entities",
+   "frames": [
+    "hedge.v1#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "hedge.v1.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "hedge.v2": {
+   "group": "entities",
+   "frames": [
+    "hedge.v2#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v2.shadow": {
+   "group": "entities",
+   "frames": [
+    "hedge.v2.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "hedge.v3": {
+   "group": "entities",
+   "frames": [
+    "hedge.v3#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v3.shadow": {
+   "group": "entities",
+   "frames": [
+    "hedge.v3.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "hedge.v4": {
+   "group": "entities",
+   "frames": [
+    "hedge.v4#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v4.shadow": {
+   "group": "entities",
+   "frames": [
+    "hedge.v4.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "hedge.v5": {
+   "group": "entities",
+   "frames": [
+    "hedge.v5#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v5.shadow": {
+   "group": "entities",
+   "frames": [
+    "hedge.v5.shadow#0"
    ],
    "w": 256,
    "h": 256,
@@ -12163,6 +12813,30 @@
     0.1875
    ]
   },
+  "medical-tent.v0": {
+   "group": "entities",
+   "frames": [
+    "medical-tent.v0#0"
+   ],
+   "w": 224,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6421052631578947
+   ]
+  },
+  "medical-tent.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "medical-tent.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 448,
+   "anchor": [
+    0.25,
+    0.25
+   ]
+  },
   "medium-electric-pole": {
    "group": "entities",
    "frames": [
@@ -13856,6 +14530,30 @@
     0.22727272727272727
    ]
   },
+  "porta-potty.v0": {
+   "group": "entities",
+   "frames": [
+    "porta-potty.v0#0"
+   ],
+   "w": 96,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7454545454545454
+   ]
+  },
+  "porta-potty.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "porta-potty.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
   "prison-tower": {
    "group": "entities",
    "frames": [
@@ -14678,6 +15376,30 @@
    "meta": {
     "scale": 2
    }
+  },
+  "site-fence.v0": {
+   "group": "entities",
+   "frames": [
+    "site-fence.v0#0"
+   ],
+   "w": 96,
+   "h": 160,
+   "anchor": [
+    0.5,
+    0.72
+   ]
+  },
+  "site-fence.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "site-fence.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
   },
   "small-electric-pole": {
    "group": "entities",
@@ -16485,6 +17207,546 @@
    ],
    "w": 176,
    "h": 144,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.crawler.0": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.0#0",
+    "zombie.crawler.0#1",
+    "zombie.crawler.0#2",
+    "zombie.crawler.0#3",
+    "zombie.crawler.0#4",
+    "zombie.crawler.0#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.1": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.1#0",
+    "zombie.crawler.1#1",
+    "zombie.crawler.1#2",
+    "zombie.crawler.1#3",
+    "zombie.crawler.1#4",
+    "zombie.crawler.1#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.2": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.2#0",
+    "zombie.crawler.2#1",
+    "zombie.crawler.2#2",
+    "zombie.crawler.2#3",
+    "zombie.crawler.2#4",
+    "zombie.crawler.2#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.3": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.3#0",
+    "zombie.crawler.3#1",
+    "zombie.crawler.3#2",
+    "zombie.crawler.3#3",
+    "zombie.crawler.3#4",
+    "zombie.crawler.3#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.4": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.4#0",
+    "zombie.crawler.4#1",
+    "zombie.crawler.4#2",
+    "zombie.crawler.4#3",
+    "zombie.crawler.4#4",
+    "zombie.crawler.4#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.5": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.5#0",
+    "zombie.crawler.5#1",
+    "zombie.crawler.5#2",
+    "zombie.crawler.5#3",
+    "zombie.crawler.5#4",
+    "zombie.crawler.5#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.6": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.6#0",
+    "zombie.crawler.6#1",
+    "zombie.crawler.6#2",
+    "zombie.crawler.6#3",
+    "zombie.crawler.6#4",
+    "zombie.crawler.6#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.7": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.7#0",
+    "zombie.crawler.7#1",
+    "zombie.crawler.7#2",
+    "zombie.crawler.7#3",
+    "zombie.crawler.7#4",
+    "zombie.crawler.7#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.dead": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.dead#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.crawler.v1.0": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v1.0#0",
+    "zombie.crawler.v1.0#1",
+    "zombie.crawler.v1.0#2",
+    "zombie.crawler.v1.0#3",
+    "zombie.crawler.v1.0#4",
+    "zombie.crawler.v1.0#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v1.1": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v1.1#0",
+    "zombie.crawler.v1.1#1",
+    "zombie.crawler.v1.1#2",
+    "zombie.crawler.v1.1#3",
+    "zombie.crawler.v1.1#4",
+    "zombie.crawler.v1.1#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v1.2": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v1.2#0",
+    "zombie.crawler.v1.2#1",
+    "zombie.crawler.v1.2#2",
+    "zombie.crawler.v1.2#3",
+    "zombie.crawler.v1.2#4",
+    "zombie.crawler.v1.2#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v1.3": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v1.3#0",
+    "zombie.crawler.v1.3#1",
+    "zombie.crawler.v1.3#2",
+    "zombie.crawler.v1.3#3",
+    "zombie.crawler.v1.3#4",
+    "zombie.crawler.v1.3#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v1.4": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v1.4#0",
+    "zombie.crawler.v1.4#1",
+    "zombie.crawler.v1.4#2",
+    "zombie.crawler.v1.4#3",
+    "zombie.crawler.v1.4#4",
+    "zombie.crawler.v1.4#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v1.5": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v1.5#0",
+    "zombie.crawler.v1.5#1",
+    "zombie.crawler.v1.5#2",
+    "zombie.crawler.v1.5#3",
+    "zombie.crawler.v1.5#4",
+    "zombie.crawler.v1.5#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v1.6": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v1.6#0",
+    "zombie.crawler.v1.6#1",
+    "zombie.crawler.v1.6#2",
+    "zombie.crawler.v1.6#3",
+    "zombie.crawler.v1.6#4",
+    "zombie.crawler.v1.6#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v1.7": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v1.7#0",
+    "zombie.crawler.v1.7#1",
+    "zombie.crawler.v1.7#2",
+    "zombie.crawler.v1.7#3",
+    "zombie.crawler.v1.7#4",
+    "zombie.crawler.v1.7#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v1.dead": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v1.dead#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.crawler.v2.0": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v2.0#0",
+    "zombie.crawler.v2.0#1",
+    "zombie.crawler.v2.0#2",
+    "zombie.crawler.v2.0#3",
+    "zombie.crawler.v2.0#4",
+    "zombie.crawler.v2.0#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v2.1": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v2.1#0",
+    "zombie.crawler.v2.1#1",
+    "zombie.crawler.v2.1#2",
+    "zombie.crawler.v2.1#3",
+    "zombie.crawler.v2.1#4",
+    "zombie.crawler.v2.1#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v2.2": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v2.2#0",
+    "zombie.crawler.v2.2#1",
+    "zombie.crawler.v2.2#2",
+    "zombie.crawler.v2.2#3",
+    "zombie.crawler.v2.2#4",
+    "zombie.crawler.v2.2#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v2.3": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v2.3#0",
+    "zombie.crawler.v2.3#1",
+    "zombie.crawler.v2.3#2",
+    "zombie.crawler.v2.3#3",
+    "zombie.crawler.v2.3#4",
+    "zombie.crawler.v2.3#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v2.4": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v2.4#0",
+    "zombie.crawler.v2.4#1",
+    "zombie.crawler.v2.4#2",
+    "zombie.crawler.v2.4#3",
+    "zombie.crawler.v2.4#4",
+    "zombie.crawler.v2.4#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v2.5": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v2.5#0",
+    "zombie.crawler.v2.5#1",
+    "zombie.crawler.v2.5#2",
+    "zombie.crawler.v2.5#3",
+    "zombie.crawler.v2.5#4",
+    "zombie.crawler.v2.5#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v2.6": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v2.6#0",
+    "zombie.crawler.v2.6#1",
+    "zombie.crawler.v2.6#2",
+    "zombie.crawler.v2.6#3",
+    "zombie.crawler.v2.6#4",
+    "zombie.crawler.v2.6#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v2.7": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v2.7#0",
+    "zombie.crawler.v2.7#1",
+    "zombie.crawler.v2.7#2",
+    "zombie.crawler.v2.7#3",
+    "zombie.crawler.v2.7#4",
+    "zombie.crawler.v2.7#5"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "fps": 8,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.crawler.v2.dead": {
+   "group": "entities",
+   "frames": [
+    "zombie.crawler.v2.dead#0"
+   ],
+   "w": 80,
+   "h": 80,
    "anchor": [
     0.5,
     0.55
@@ -18663,6 +19925,294 @@
    "anchor": [
     0.2545454545454545,
     0.2545454545454545
+   ]
+  },
+  "crop.beet.dry.0": {
+   "group": "flora",
+   "frames": [
+    "crop.beet.dry.0#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.beet.dry.1": {
+   "group": "flora",
+   "frames": [
+    "crop.beet.dry.1#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.beet.ripe.0": {
+   "group": "flora",
+   "frames": [
+    "crop.beet.ripe.0#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.beet.ripe.1": {
+   "group": "flora",
+   "frames": [
+    "crop.beet.ripe.1#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.beet.young.0": {
+   "group": "flora",
+   "frames": [
+    "crop.beet.young.0#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.beet.young.1": {
+   "group": "flora",
+   "frames": [
+    "crop.beet.young.1#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.maize.dry.0": {
+   "group": "flora",
+   "frames": [
+    "crop.maize.dry.0#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.maize.dry.1": {
+   "group": "flora",
+   "frames": [
+    "crop.maize.dry.1#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.maize.ripe.0": {
+   "group": "flora",
+   "frames": [
+    "crop.maize.ripe.0#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.maize.ripe.1": {
+   "group": "flora",
+   "frames": [
+    "crop.maize.ripe.1#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.maize.young.0": {
+   "group": "flora",
+   "frames": [
+    "crop.maize.young.0#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.maize.young.1": {
+   "group": "flora",
+   "frames": [
+    "crop.maize.young.1#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.sunflower.dry.0": {
+   "group": "flora",
+   "frames": [
+    "crop.sunflower.dry.0#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.sunflower.dry.1": {
+   "group": "flora",
+   "frames": [
+    "crop.sunflower.dry.1#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.sunflower.ripe.0": {
+   "group": "flora",
+   "frames": [
+    "crop.sunflower.ripe.0#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.sunflower.ripe.1": {
+   "group": "flora",
+   "frames": [
+    "crop.sunflower.ripe.1#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.sunflower.young.0": {
+   "group": "flora",
+   "frames": [
+    "crop.sunflower.young.0#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.sunflower.young.1": {
+   "group": "flora",
+   "frames": [
+    "crop.sunflower.young.1#0"
+   ],
+   "w": 80,
+   "h": 192,
+   "anchor": [
+    0.5,
+    0.6733901974057256
+   ]
+  },
+  "crop.wheat.dry.0": {
+   "group": "flora",
+   "frames": [
+    "crop.wheat.dry.0#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.wheat.dry.1": {
+   "group": "flora",
+   "frames": [
+    "crop.wheat.dry.1#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.wheat.ripe.0": {
+   "group": "flora",
+   "frames": [
+    "crop.wheat.ripe.0#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.wheat.ripe.1": {
+   "group": "flora",
+   "frames": [
+    "crop.wheat.ripe.1#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.wheat.young.0": {
+   "group": "flora",
+   "frames": [
+    "crop.wheat.young.0#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
+   ]
+  },
+  "crop.wheat.young.1": {
+   "group": "flora",
+   "frames": [
+    "crop.wheat.young.1#0"
+   ],
+   "w": 80,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.6155934649371504
    ]
   },
   "flora.boulder.0": {
@@ -23513,6 +25063,54 @@
     0.6
    ]
   },
+  "army-tent.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "army-tent.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6421052631578947
+   ]
+  },
+  "army-tent.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "army-tent.v1.nrm#0"
+   ],
+   "w": 224,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6421052631578947
+   ]
+  },
+  "army-truck.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "army-truck.v0.nrm#0"
+   ],
+   "w": 288,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6799999999999999
+   ]
+  },
+  "army-truck.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "army-truck.v1.nrm#0"
+   ],
+   "w": 288,
+   "h": 240,
+   "anchor": [
+    0.5,
+    0.6799999999999999
+   ]
+  },
   "assembling-machine-1.nrm": {
    "group": "normals",
    "frames": [
@@ -23691,6 +25289,30 @@
    "anchor": [
     0.5,
     0.6457142857142857
+   ]
+  },
+  "body-bags.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "body-bags.v0.nrm#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "body-bags.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "body-bags.v1.nrm#0"
+   ],
+   "w": 160,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
    ]
   },
   "boiler.0.nrm": {
@@ -23967,6 +25589,18 @@
    "anchor": [
     0.5,
     0.6526315789473683
+   ]
+  },
+  "cot.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "cot.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 112,
+   "anchor": [
+    0.5,
+    0.6
    ]
   },
   "crow.fly.0.nrm": {
@@ -24893,6 +26527,66 @@
     0.6444444444444444
    ]
   },
+  "grave.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "grave.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "grave.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "grave.v1.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "grave.v2.nrm": {
+   "group": "normals",
+   "frames": [
+    "grave.v2.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "grave.v3.nrm": {
+   "group": "normals",
+   "frames": [
+    "grave.v3.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "grave.v4.nrm": {
+   "group": "normals",
+   "frames": [
+    "grave.v4.nrm#0"
+   ],
+   "w": 96,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
   "gun-turret.base.nrm": {
    "group": "normals",
    "frames": [
@@ -24975,6 +26669,78 @@
    "anchor": [
     0.5,
     0.6457142857142857
+   ]
+  },
+  "hedge.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "hedge.v0.nrm#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "hedge.v1.nrm#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v2.nrm": {
+   "group": "normals",
+   "frames": [
+    "hedge.v2.nrm#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v3.nrm": {
+   "group": "normals",
+   "frames": [
+    "hedge.v3.nrm#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v4.nrm": {
+   "group": "normals",
+   "frames": [
+    "hedge.v4.nrm#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
+   ]
+  },
+  "hedge.v5.nrm": {
+   "group": "normals",
+   "frames": [
+    "hedge.v5.nrm#0"
+   ],
+   "w": 112,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7090909090909091
    ]
   },
   "house-bed.nrm": {
@@ -26153,6 +27919,18 @@
     0.65
    ]
   },
+  "medical-tent.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "medical-tent.v0.nrm#0"
+   ],
+   "w": 224,
+   "h": 304,
+   "anchor": [
+    0.5,
+    0.6421052631578947
+   ]
+  },
   "medium-electric-pole.nrm": {
    "group": "normals",
    "frames": [
@@ -27089,6 +28867,18 @@
     0.6
    ]
   },
+  "porta-potty.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "porta-potty.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.7454545454545454
+   ]
+  },
   "prison-tower.nrm": {
    "group": "normals",
    "frames": [
@@ -27471,6 +29261,18 @@
    "anchor": [
     0.5,
     0.7120000000000001
+   ]
+  },
+  "site-fence.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "site-fence.v0.nrm#0"
+   ],
+   "w": 96,
+   "h": 160,
+   "anchor": [
+    0.5,
+    0.72
    ]
   },
   "small-electric-pole.nrm": {
@@ -28452,6 +30254,330 @@
    ],
    "w": 176,
    "h": 144,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.crawler.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.0.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.1.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.2.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.3.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.4.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.5.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.6.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.7.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.dead.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.dead.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.crawler.v1.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v1.0.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v1.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v1.1.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v1.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v1.2.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v1.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v1.3.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v1.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v1.4.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v1.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v1.5.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v1.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v1.6.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v1.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v1.7.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v1.dead.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v1.dead.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.crawler.v2.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v2.0.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v2.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v2.1.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v2.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v2.2.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v2.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v2.3.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v2.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v2.4.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v2.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v2.5.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v2.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v2.6.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v2.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v2.7.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
+   "anchor": [
+    0.5,
+    0.62
+   ]
+  },
+  "zombie.crawler.v2.dead.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.crawler.v2.dead.nrm#0"
+   ],
+   "w": 80,
+   "h": 80,
    "anchor": [
     0.5,
     0.55

@@ -82,6 +82,9 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
     R('cloth', 4, 12, 0.4), R('canned-food', 2, 8, 0.35), R('water-bottle', 2, 6, 0.3), R('iron-plate', 4, 12, 0.4), R('copper-cable', 4, 12, 0.3),
     R('iron-gear-wheel', 2, 8, 0.3), R('pipe', 2, 8, 0.25), R('fuel-can', 1, 2, 0.15), R('repair-pack', 1, 3, 0.2), R('electronic-circuit', 1, 4, 0.2),
   ],
+  tent: [R('canned-food', 1, 3, 0.6), R('water-bottle', 1, 3, 0.6), R('cloth', 2, 5, 0.6), R('bandage', 1, 2, 0.35), R('backpack', 1, 1, 0.06, true), R('firearm-magazine', 1, 2, 0.15)],
+  medtent: [R('bandage', 2, 6, 0.9), R('first-aid-kit', 1, 3, 0.6), R('antibiotics', 1, 3, 0.5, true), R('water-bottle', 1, 2, 0.5)],
+  bodies: [R('cloth', 1, 3, 0.5), R('pistol', 1, 1, 0.06, true), R('firearm-magazine', 1, 2, 0.2), R('snack', 1, 1, 0.2), R('radio-parts', 1, 1, 0.05, true)],
   trash: [
     R('iron-ore', 2, 8, 0.8), R('empty-bottle', 1, 4, 0.6), R('cloth', 1, 4, 0.5), R('wood', 1, 5, 0.4), R('snack', 1, 1, 0.15), R('iron-stick', 1, 4, 0.3),
   ],
