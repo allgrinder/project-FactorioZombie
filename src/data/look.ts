@@ -28,3 +28,26 @@ export const LOOK = {
   /** Großflächige Helligkeitsschwankung des Bodens: Stärke (±) und Größe der Flecken in Feldern. */
   macro: { amp: 0.13, scale: 22, amp2: 0.06, scale2: 7 },
 } as const;
+
+/** Umgebungsleben (nur Darstellung, src/render/ambient.ts): Höchstzahlen im Bild, Fluchtabstand der Krähen, Farben. */
+export const AMBIENT = {
+  crowFlocks: 2,
+  crowScare: 6,
+  butterflies: 10,
+  fireflies: 36,
+  leaves: 40,
+  butterflyColors: [0xf0e8d0, 0xe8c040, 0xd87a30, 0x9ab0e0, 0xf8f8f0],
+  leafColors: [0xb0702a, 0xc89a38, 0x8a4a22, 0xa8862e],
+} as const;
+
+/** Vignette (Bildränder abgedunkelt): freier Innenbereich in Prozent, Deckkraft am Rand. Aus mit ?look=0. */
+export const VIGNETTE = { inner: 58, alpha: 0.38 } as const;
+
+/** Wind in Bäumen und Gras (Scherung in Bogenmaß): Grundstärke je Wetter, Schwingung (1/s), Böenwelle. */
+export const WIND = { calm: 0.012, rain: 0.03, storm: 0.07, speed: 1.3, gustSpeed: 0.5, gustScale: 0.06 } as const;
+
+/** Ausgebrannte Häuser (nur Darstellung): Anteil, Dachlöcher, verkohlte Wandfarben. */
+export const HOUSES = { burnt: 0.1, roofHoles: 0.45, charred: [0x4a4038, 0x3e3632, 0x564a40] } as const;
+
+/** Bodenfarbe je Jahreszeit (multipliziert mit der Landschaftsfarbe): Frühling frisch, Herbst braun, Winter fahl. */
+export const SEASON_GROUND = { spring: 0xe4f6d0, summer: 0xf6f8e8, autumn: 0xfff0d0, winter: 0xe4e8ee } as const;

@@ -229,6 +229,30 @@ Ortsstraßen haben Gehwege und eine gestrichelte Mittellinie, Ortsschilder an de
 verlaufen gerade mit rechtwinkligen Kurven, Mittellinie, Holzmasten und liegengebliebenen Autos; Höfe einen eingezäunten Acker mit Heuballen; Schrottplätze einen Maschendrahtzaun mit Einfahrt.
 Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffen.
 
+## Dichte Natur (`models/wildwuchs.py`, `src/data/decor.ts`)
+- Baumdichte etwa verdreifacht (`MAPGEN.trees`: Laubbaum Raster 4, Hain-Schwelle 0,42): echte Wälder mit Lichtungen.
+- 16 neue Laubbäume (`flora.tree.8–23`): Birken, Esskastanien, Alteichen, Rosskastanien, Walnuss, Apfel, Birne, Kirsche,
+  Jungbäume. Wilde Bäume wählen ihre Art über großräumige Artenflecken (Birkenhain, Mischwald, Eichenwald,
+  Kastanienwald, Ufergehölz, 14 % Jungwuchs; `TREE_GROUPS`, `TREE_PATCH`). Gepflanzte Bäume tragen die Gruppe in der
+  Variante (100 + Gruppe·10 + v): Alleen (Rosskastanie), Gärten, Hofbäume (Eiche, Kastanie), Streuobstwiesen.
+- Unterholz als Deko: hohes Gras, Wildblumen, Farne, Brombeeren/Wildsträucher, Dickicht, Stümpfe, Totholz, Pilze; Boden:
+  Laub- bzw. Nadelstreu unter jedem Baum, Moos, Pfützen, Unkraut in Ritzen von Straßen und Gehwegen.
+- Wind: Bäume und Gras wiegen sich (Scherung, Böenwelle; bei Regen/Sturm stärker, `WIND`).
+- Bodenfarbe je Jahreszeit (`SEASON_GROUND`), goldene Stunde in der Dämmerung (`NIGHT.golden*`), Vignette (`VIGNETTE`).
+
+## Wildtiere (`src/sim/wildlife.ts`, Werte `src/data/wildlife.ts`, Modelle `lib/tiere.py`)
+- Rehe (Rudel 2–4), Hasen, Wildschweine leben auf fruchtbarem Land abseits der Orte, erscheinen außer Sicht (34–56 Felder)
+  und verschwinden über 80 Felder. Sie fliehen vor Figur, Bewohnern und Zombies (nachts weniger scheu, im Wagen doppelt).
+- Jagd mit Nahkampf oder Schusswaffe (nur wenn kein Gegner näher ist). Beute: Reh 4 Fleisch + Fell, Hase 1 Fleisch,
+  Wildschwein 5 Fleisch + Fell. Verletzte Wildschweine greifen an (12 Schaden, alle 70 Ticks).
+- Rohes Fleisch (Hunger 8, Durst −6), Braten aus 2 Fleisch + 1 Holz (Hunger 42), Fell zu 3 Stoff.
+- Umgebungsleben (nur Darstellung, `src/render/ambient.ts`): Krähenschwärme auf Feldern und bei Kadavern fliegen auf,
+  Schmetterlinge (Frühling/Sommer), Glühwürmchen in Sommernächten, fallendes Herbstlaub.
+
+## Ortsbild 2
+- Zombies in 8 weiteren Kleidungen (`models/zombievolk.py`: Warnweste, Polizei, Kittel, Latzhose, Anzug, Flecktarn …).
+- Ausgebrannte Häuser (10 %, nur Darstellung): verkohlte Wände, Dach mit Löchern, Ruß am Boden (`HOUSES`).
+
 ## Vielfalt (`lib/vielfalt.py`, `models/vielfalt.py`)
 - Wracks als Fundorte: Lieferwagen (3 Farben), Streifenwagen, Krankenwagen, Linienbus, Traktor (2 Farben); Beute je
   Fahrzeug (Tabellen `van`, `police`, `ambulance`, `bus`, `tractor`). Mülltonne, Gartenhütte, Ölfässer ebenfalls Beute.

@@ -81,6 +81,7 @@ export interface SaveData {
   scav?: ReturnType<import('./community').Community['serialize']>;
   weather?: ReturnType<import('./weather').WeatherSystem['serialize']>;
   drops?: ReturnType<World['drops']['serialize']>;
+  wildlife?: ReturnType<World['wildlife']['serialize']>;
   cars?: ReturnType<World['cars']['serialize']>;
   sites?: ReturnType<SiteSystem['serialize']>;
   /** Tick der Rettung (Funkturm), sonst nicht gesetzt. */
@@ -157,6 +158,7 @@ export function serializeWorld(w: World): SaveData {
     weather: w.weather.serialize(),
     scav: w.community.serialize(),
     drops: w.drops.serialize(),
+    ...(w.wildlife.animals.length ? { wildlife: w.wildlife.serialize() } : {}),
     ...(w.cars.cars.length ? { cars: w.cars.serialize() } : {}),
     sites: w.sites.serialize(),
     ...(w.rescuedAt !== null ? { rescued: w.rescuedAt } : {}),
@@ -223,6 +225,7 @@ export function deserializeWorld(d: SaveData): World {
   w.community.load(d.scav);
   w.weather.load(d.weather);
   w.drops.load(d.drops);
+  w.wildlife.load(d.wildlife);
   w.cars.load(d.cars);
   w.sites.load(d.sites);
   w.rescuedAt = d.rescued ?? null;

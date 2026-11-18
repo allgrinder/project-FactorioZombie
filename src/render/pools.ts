@@ -73,6 +73,7 @@ export class SpritePool {
     s.tint = 0xffffff;
     s.rotation = 0;
     s.scale.set(1);
+    if (s.skew.x !== 0) s.skew.x = 0;
     s.anchor.copyFrom(tex.defaultAnchor ?? { x: 0.5, y: 0.5 });
     s.zIndex = 0;
     this.n++;

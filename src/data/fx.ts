@@ -61,6 +61,12 @@ export const NIGHT = {
   alpha: 0.86,
   /** Farbe des Restlichts (Mondlicht), mit der die Welt nachts multipliziert wird. */
   ambient: 0x2a3a5c,
+  /** Goldene Stunde um die Dämmerung: Mitte (Abstand zu dusk/dawn), halbe Breite (Tageszeit), Stärke, Farben. */
+  goldenShift: 0.02,
+  goldenWidth: 0.07,
+  goldenStrength: 0.4,
+  goldenEvening: 0xffa060,
+  goldenMorning: 0xffb8a0,
   /** Kameraneigung der Blender-Renders (eisen.TILT) für die Bodennormale. */
   tiltDeg: 30,
   /** Höhe der Lichtquellen über dem Boden (Felder). */

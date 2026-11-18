@@ -9,6 +9,7 @@ import { NoiseSystem } from './noise';
 import { SiteSystem } from './sites';
 import { Community } from './community';
 import { DropSystem } from './drops';
+import { WildlifeSystem } from './wildlife';
 import { CarSystem } from './cars';
 import { ChartSystem } from './chart';
 import { EventQueue } from './events';
@@ -80,6 +81,7 @@ export class World {
   readonly community = new Community();
   /** Versorgungsabwürfe. */
   readonly drops = new DropSystem();
+  readonly wildlife = new WildlifeSystem();
   /** Fahrzeuge (Pritschenwagen). */
   readonly cars = new CarSystem();
   /** Aufgedeckte Kartenabschnitte (Figur, Radar, Roboterhangar). */
@@ -406,6 +408,7 @@ export class World {
     this.enemies.update(this);
     this.weather.update(this);
     this.community.update(this);
+    this.wildlife.update(this);
     this.drops.update(this);
     this.capsules.update(this);
     this.player?.update(this);
@@ -420,6 +423,12 @@ export class World {
   }
 
   /** Nächster Feind (Zombie oder Plünderer) im Umkreis – Ziel für Figur, Türme, Wachen und Bewohner. */
+  /** Jagdbeute im Umkreis (nur wenn kein Gegner näher ist: siehe Player.strike/shoot). */
+  prey(x: number, y: number, r: number): Target | null {
+    const a = this.wildlife.nearest(x, y, r);
+    return a ? { kind: 'animal', id: a.id, x: a.x, y: a.y } : null;
+  }
+
   foe(x: number, y: number, r: number): Target | null {
     const z = this.enemies.nearestTarget(x, y, r, this.tick);
     const dz = z ? Math.hypot(z.x - x, z.y - y) : Infinity;

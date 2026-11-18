@@ -1,0 +1,266 @@
+import { Texture } from 'pixi.js';
+import { AMBIENT } from '../data/look';
+import { MAPGEN } from '../data/mapgen';
+import type { World } from '../sim/world';
+import type { SpriteLib } from './assets';
+import type { SpritePool } from './pools';
+
+interface Crow {
+  x: number;
+  y: number;
+  /** Flughöhe in Feldern (0 = sitzt). */
+  alt: number;
+  vx: number;
+  vy: number;
+  dir: number;
+  /** Nächstes Hüpfen/Picken (Zeit in Ticks). */
+  next: number;
+  phase: number;
+}
+
+interface Flock {
+  crows: Crow[];
+  flying: boolean;
+  age: number;
+}
+
+interface Mote {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  age: number;
+  life: number;
+  seed: number;
+  /** Höhe über dem Boden (Laub fällt). */
+  z: number;
+}
+
+/**
+ * Umgebungsleben als reine Darstellung (eigener Zufall, ohne Einfluss auf die Simulation): Krähenschwärme auf
+ * Feldern und bei Kadavern, die auffliegen, wenn jemand näher kommt; Schmetterlinge über Wiesen; Glühwürmchen in
+ * Sommernächten; fallendes Laub im Herbst. Werte in src/data/look.ts (AMBIENT).
+ */
+export class AmbientLife {
+  private readonly flocks: Flock[] = [];
+  private readonly butterflies: Mote[] = [];
+  private readonly fireflies: Mote[] = [];
+  private readonly leaves: Mote[] = [];
+  private lastT = -1;
+  private readonly crowsOk: boolean;
+
+  constructor(private readonly sprites: SpriteLib, private readonly tile: number) {
+    this.crowsOk = sprites.has('crow.sit.0') && sprites.has('crow.fly.0');
+  }
+
+  /** Sitzende Krähen (im Gebäude-Layer, nach y sortiert). */
+  drawGround(ents: SpritePool): void {
+    if (!this.crowsOk) return;
+    const T = this.tile;
+    for (const f of this.flocks) {
+      if (f.flying) continue;
+      for (const c of f.crows) {
+        const sp = ents.get(this.sprites.frame(`crow.sit.${c.dir}`));
+        sp.position.set(c.x * T, c.y * T);
+        sp.zIndex = c.y * T;
+      }
+    }
+  }
+
+  update(world: World, alpha: number, view: { x0: number; y0: number; x1: number; y1: number }, pool: SpritePool, glow: SpritePool): void {
+    pool.begin();
+    glow.begin();
+    const t = world.tick + alpha;
+    const dt = this.lastT < 0 ? 0 : Math.max(0, Math.min(10, t - this.lastT));
+    this.lastT = t;
+    const season = world.settings.plan ? world.weather.season(world.tick) : 'summer';
+    const dark = world.darkness;
+    const rain = world.settings.plan && (world.weather.kind === 'rain' || world.weather.kind === 'storm') ? 1 : 0;
+    this.updateCrows(world, dt, view, pool, dark);
+    // Schmetterlinge: Frühling/Sommer am Tag, ohne Regen
+    const wantB = dark < 0.3 && rain < 0.2 && (season === 'spring' || season === 'summer') ? AMBIENT.butterflies : 0;
+    this.motes(this.butterflies, wantB, view, dt, world, (m) => {
+      m.vx += (Math.random() - 0.5) * 0.004 * dt;
+      m.vy += (Math.random() - 0.5) * 0.004 * dt;
+      m.vx = Math.max(-0.03, Math.min(0.03, m.vx));
+      m.vy = Math.max(-0.03, Math.min(0.03, m.vy));
+    });
+    const T = this.tile;
+    for (const m of this.butterflies) {
+      const flap = Math.abs(Math.sin((t + m.seed * 50) * 0.5));
+      const col = AMBIENT.butterflyColors[m.seed % AMBIENT.butterflyColors.length];
+      for (const s of [-1, 1]) {
+        const w = pool.get(Texture.WHITE);
+        w.tint = col;
+        w.width = 3 * flap + 0.5;
+        w.height = 3.5;
+        w.anchor.set(s < 0 ? 1 : 0, 0.5);
+        w.position.set(m.x * T, (m.y - 0.8 - Math.sin(t * 0.05 + m.seed) * 0.15) * T);
+        w.alpha = 0.9 * Math.min(1, m.age / 30, (m.life - m.age) / 30);
+      }
+    }
+    // Glühwürmchen: warme Nächte im Grünen
+    const wantF = dark > 0.55 && rain < 0.2 && season === 'summer' ? AMBIENT.fireflies : 0;
+    this.motes(this.fireflies, wantF, view, dt, world, (m) => {
+      m.vx += (Math.random() - 0.5) * 0.002 * dt;
+      m.vy += (Math.random() - 0.5) * 0.002 * dt;
+      m.vx *= 0.98;
+      m.vy *= 0.98;
+    }, true);
+    for (const m of this.fireflies) {
+      const blink = Math.max(0, Math.sin((t + m.seed * 97) * 0.06)) ** 3;
+      if (blink < 0.05) continue;
+      const g = glow.get(Texture.WHITE);
+      g.tint = 0xd8ff70;
+      g.width = g.height = 4;
+      g.anchor.set(0.5);
+      g.position.set(m.x * T, (m.y - 0.6) * T);
+      g.alpha = blink * Math.min(1, m.age / 40, (m.life - m.age) / 40);
+      const h = glow.get(Texture.WHITE);
+      h.tint = 0x88aa30;
+      h.width = h.height = 14;
+      h.anchor.set(0.5);
+      h.position.copyFrom(g.position);
+      h.alpha = g.alpha * 0.25;
+    }
+    // Herbstlaub: fällt unter Bäumen
+    const wantL = season === 'autumn' ? AMBIENT.leaves : 0;
+    if (this.leaves.length < wantL && Math.random() < 0.3 * dt) {
+      const tr = this.randomTree(world, view);
+      if (tr) this.leaves.push({ x: tr.x + (Math.random() - 0.5) * 2.5, y: tr.y + (Math.random() - 0.5) * 1.5, vx: 0.004, vy: 0, age: 0, life: 260, seed: Math.floor(Math.random() * 1000), z: 2 + Math.random() * 2 });
+    }
+    for (let i = this.leaves.length - 1; i >= 0; i--) {
+      const m = this.leaves[i];
+      m.age += dt;
+      m.z = Math.max(0, m.z - 0.012 * dt);
+      if (m.z > 0) m.x += (m.vx + Math.sin((t + m.seed) * 0.04) * 0.01) * dt;
+      if (m.age > m.life) {
+        this.leaves.splice(i, 1);
+        continue;
+      }
+      const l = pool.get(Texture.WHITE);
+      l.tint = AMBIENT.leafColors[m.seed % AMBIENT.leafColors.length];
+      l.width = 6;
+      l.height = 4;
+      l.anchor.set(0.5);
+      l.rotation = (t + m.seed) * 0.08 * (m.z > 0 ? 1 : 0) + m.seed;
+      l.position.set(m.x * T, (m.y - m.z * 0.6) * T);
+      l.alpha = Math.min(1, (m.life - m.age) / 40);
+    }
+    pool.end();
+    glow.end();
+  }
+
+  /** Schwebeteilchen in Sichtweite halten (erscheinen im Bild, verschwinden nach ihrer Lebenszeit). */
+  private motes(list: Mote[], want: number, view: { x0: number; y0: number; x1: number; y1: number }, dt: number, world: World, steer: (m: Mote) => void, green = false): void {
+    if (list.length < want && Math.random() < 0.2 * dt) {
+      const x = view.x0 + Math.random() * (view.x1 - view.x0);
+      const y = view.y0 + Math.random() * (view.y1 - view.y0);
+      const tx = Math.floor(x);
+      const ty = Math.floor(y);
+      const ok = !world.map.isWater(tx, ty) && !world.map.floorAt(tx, ty) && (!green || world.map.trees.fertility(tx, ty) > 0.45);
+      if (ok) list.push({ x, y, vx: 0, vy: 0, age: 0, life: 400 + Math.random() * 600, seed: Math.floor(Math.random() * 1000), z: 0 });
+    }
+    for (let i = list.length - 1; i >= 0; i--) {
+      const m = list[i];
+      m.age += dt;
+      steer(m);
+      m.x += m.vx * dt;
+      m.y += m.vy * dt;
+      if (m.age > m.life || m.x < view.x0 - 4 || m.x > view.x1 + 4 || m.y < view.y0 - 4 || m.y > view.y1 + 4 || list.length > want + 4) list.splice(i, 1);
+    }
+  }
+
+  private randomTree(world: World, view: { x0: number; y0: number; x1: number; y1: number }): { x: number; y: number } | null {
+    const CS = MAPGEN.chunkSize;
+    const cx = Math.floor((view.x0 + Math.random() * (view.x1 - view.x0)) / CS);
+    const cy = Math.floor((view.y0 + Math.random() * (view.y1 - view.y0)) / CS);
+    const list = world.map.trees.treesIn(cx, cy).filter((t) => t.kind !== 1);
+    return list.length ? list[Math.floor(Math.random() * list.length)] : null;
+  }
+
+  private updateCrows(world: World, dt: number, view: { x0: number; y0: number; x1: number; y1: number }, pool: SpritePool, dark: number): void {
+    if (!this.crowsOk) return;
+    const T = this.tile;
+    // neue Schwärme am Tag: bei Kadavern oder auf offenem Land
+    if (dark < 0.4 && this.flocks.filter((f) => !f.flying).length < AMBIENT.crowFlocks && Math.random() < 0.01 * dt) {
+      const rem = world.enemies.remnants.filter((r) => r.kind !== 'building' && r.x > view.x0 && r.x < view.x1 && r.y > view.y0 && r.y < view.y1);
+      let x: number;
+      let y: number;
+      if (rem.length && Math.random() < 0.6) {
+        const r = rem[Math.floor(Math.random() * rem.length)];
+        x = r.x;
+        y = r.y;
+      } else {
+        x = view.x0 + Math.random() * (view.x1 - view.x0);
+        y = view.y0 + Math.random() * (view.y1 - view.y0);
+      }
+      const p = world.player;
+      if (!world.map.isWater(Math.floor(x), Math.floor(y)) && !world.entityAt(Math.floor(x), Math.floor(y)) && (!p || Math.hypot(p.x - x, p.y - y) > 9)) {
+        const n = 3 + Math.floor(Math.random() * 6);
+        const crows: Crow[] = [];
+        for (let i = 0; i < n; i++) crows.push({ x: x + (Math.random() - 0.5) * 2.5, y: y + (Math.random() - 0.5) * 2, alt: 0, vx: 0, vy: 0, dir: Math.floor(Math.random() * 4), next: Math.random() * 120, phase: Math.random() });
+        this.flocks.push({ crows, flying: false, age: 0 });
+      }
+    }
+    for (let i = this.flocks.length - 1; i >= 0; i--) {
+      const f = this.flocks[i];
+      f.age += dt;
+      const c0 = f.crows[0];
+      if (!f.flying) {
+        // Störung: Figur, Bewohner oder Zombie in der Nähe, Schuss oder Dunkelheit
+        const p = world.player;
+        let scare = dark > 0.6 || (p !== null && !p.dead && Math.hypot(p.x - c0.x, p.y - c0.y) < AMBIENT.crowScare) || (p !== null && world.tick - p.lastShot < 30 && Math.hypot(p.x - c0.x, p.y - c0.y) < 25);
+        if (!scare) for (const k of world.community.workers) if (Math.hypot(k.x - c0.x, k.y - c0.y) < AMBIENT.crowScare * 0.8) scare = true;
+        if (!scare && world.enemies.nearestTarget(c0.x, c0.y, 3)) scare = true;
+        if (scare) {
+          f.flying = true;
+          const from = p ?? { x: c0.x, y: c0.y + 1 };
+          const a = Math.atan2(c0.y - from.y, c0.x - from.x);
+          for (const c of f.crows) {
+            const aa = a + (Math.random() - 0.5) * 0.9;
+            const sp = 0.07 + Math.random() * 0.04;
+            c.vx = Math.cos(aa) * sp;
+            c.vy = Math.sin(aa) * sp;
+            c.dir = ((Math.round(((aa + Math.PI / 2) / (Math.PI * 2)) * 8) % 8) + 8) % 8;
+          }
+        } else {
+          // hüpfen und picken
+          for (const c of f.crows) {
+            c.next -= dt;
+            if (c.next <= 0) {
+              c.next = 40 + Math.random() * 160;
+              if (Math.random() < 0.5) c.dir = Math.floor(Math.random() * 4);
+              else {
+                c.x += (Math.random() - 0.5) * 0.4;
+                c.y += (Math.random() - 0.5) * 0.3;
+              }
+            }
+          }
+          if (f.age > 60 * 90 || c0.x < view.x0 - 20 || c0.x > view.x1 + 20 || c0.y < view.y0 - 20 || c0.y > view.y1 + 20) this.flocks.splice(i, 1);
+          continue;
+        }
+      }
+      let alive = false;
+      for (const c of f.crows) {
+        c.alt = Math.min(6, c.alt + 0.03 * dt);
+        c.x += c.vx * dt;
+        c.y += c.vy * dt;
+        c.phase += 0.09 * dt;
+        if (c.x > view.x0 - 6 && c.x < view.x1 + 6 && c.y > view.y0 - 10 && c.y < view.y1 + 6) alive = true;
+        // Schatten am Boden, Vogel in der Höhe
+        const sh = pool.get(Texture.WHITE);
+        sh.tint = 0x000000;
+        sh.alpha = 0.18 * Math.max(0, 1 - c.alt / 6);
+        sh.width = 12;
+        sh.height = 6;
+        sh.anchor.set(0.5);
+        sh.position.set((c.x + c.alt * 0.3) * T, (c.y + c.alt * 0.15) * T);
+        const key = `crow.fly.${c.dir}`;
+        const sp = pool.get(this.sprites.frame(key, Math.floor(c.phase * 4)));
+        sp.position.set(c.x * T, (c.y - c.alt * 0.6) * T);
+      }
+      if (!alive || f.age > 60 * 120) this.flocks.splice(i, 1);
+    }
+  }
+}

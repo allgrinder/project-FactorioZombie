@@ -61,6 +61,11 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Vielfalt (`lib/vielfalt.py`, `models/vielfalt.py`): Fahrzeugwracks (Lieferwagen, Polizei, Kranken-, Bus, Traktor),
   Hof-/Straßenkram als Requisiten mit Varianten, Dachaufbauten, Bodenflecken; Farbe je Haus/Dach/Zombie/Jahreszeit
   im Renderer (`houseOf`, `seasonTint`). Test „Vielfalt“ in `welt.test.ts`.
+- Dichte Natur (`models/wildwuchs.py`): 16 neue Baumarten (Artenflecken `TREE_GROUPS`, gepflanzte Gruppe in der Variante
+  100 + g·10 + v), Unterholz/Waldboden als Deko, Wind (`WIND`), Bodenfarbe je Jahreszeit, goldene Stunde, Vignette.
+- Wildtiere (`src/sim/wildlife.ts`, `src/data/wildlife.ts`, `lib/tiere.py`): Reh, Hase, Wildschwein; Jagd über
+  `World.prey`, Fleisch/Braten/Fell. Umgebungsleben `src/render/ambient.ts` (Krähen, Schmetterlinge, Glühwürmchen, Laub).
+  Test `wildtiere.test.ts`. Zombie-Kleidungen `models/zombievolk.py` (`zombieBase`), ausgebrannte Häuser (`HOUSES`).
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
   Feuerschale, Scheinwerfer, Wachturm, Vorratslager.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).

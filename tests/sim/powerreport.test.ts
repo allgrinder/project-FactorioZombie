@@ -12,6 +12,7 @@ function base(fuel: boolean): World {
     w.map.setResource(x, y, 0, 0);
     w.map.setWater(x, y, false);
   }
+  w.map.clearTrees(-20, -20, 30, 30);
   w.map.setWater(0, 0, true);
   for (const p of placed(STEAM_POWER, 0, 0)) w.place(p.name, p.x, p.y, p.dir);
   if (fuel) insertInto([...w.entities.values()].find((e) => e.kind === 'boiler')!, 'coal', 50, 'player');

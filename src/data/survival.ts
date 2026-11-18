@@ -65,6 +65,8 @@ export const CONSUMABLES: Readonly<Record<string, ConsumableDef>> = {
   'snack': { hunger: 14, thirst: -4, verb: 'gegessen' },
   'vegetables': { hunger: 18, thirst: 5, verb: 'gegessen' },
   'stew': { hunger: 60, thirst: 12, verb: 'gegessen' },
+  'raw-meat': { hunger: 8, thirst: -6, verb: 'roh hinuntergewürgt' },
+  'cooked-meat': { hunger: 42, thirst: -4, verb: 'gegessen' },
   'water-bottle': { thirst: 45, returns: 'empty-bottle', verb: 'getrunken' },
   'soda': { thirst: 28, hunger: 4, verb: 'getrunken' },
   'coffee': { thirst: 10, rest: 30, verb: 'getrunken' },

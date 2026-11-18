@@ -116,7 +116,13 @@ export class NightLayer {
    */
   update(world: World, cam: Camera, w: number, h: number, root: Container, ents: SpritePool, facing: { x: number; y: number }): void {
     const d = world.darkness;
-    if (d < 0.01) {
+    // Goldene Stunde: warmes Licht um die Dämmerung (abends orange, morgens rosig)
+    const t = world.daytime;
+    const ge = Math.max(0, 1 - Math.abs(t - (DAY.dusk + NIGHT.goldenShift)) / NIGHT.goldenWidth);
+    const gm = Math.max(0, 1 - Math.abs(t - (DAY.dawn - NIGHT.goldenShift)) / NIGHT.goldenWidth);
+    const golden = Math.max(ge, gm) * NIGHT.goldenStrength;
+    const gc = ge >= gm ? NIGHT.goldenEvening : NIGHT.goldenMorning;
+    if (d < 0.01 && golden < 0.01) {
       this.sprite.visible = false;
       return;
     }
@@ -220,9 +226,10 @@ export class NightLayer {
     const u = this.uniforms.uniforms as { uScreen: Float32Array; uAmbient: Float32Array; uCount: number };
     u.uScreen[0] = w;
     u.uScreen[1] = h;
-    u.uAmbient[0] = 1 - amb + amb * (((ac >> 16) & 255) / 255);
-    u.uAmbient[1] = 1 - amb + amb * (((ac >> 8) & 255) / 255);
-    u.uAmbient[2] = 1 - amb + amb * ((ac & 255) / 255);
+    const gold = (sh: number) => 1 - golden + golden * (((gc >> sh) & 255) / 255);
+    u.uAmbient[0] = (1 - amb + amb * (((ac >> 16) & 255) / 255)) * gold(16);
+    u.uAmbient[1] = (1 - amb + amb * (((ac >> 8) & 255) / 255)) * gold(8);
+    u.uAmbient[2] = (1 - amb + amb * ((ac & 255) / 255)) * gold(0);
     u.uCount = k;
     this.uniforms.update();
     this.sprite.visible = true;

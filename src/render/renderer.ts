@@ -3,7 +3,8 @@ import { roadPaths } from '../data/world';
 import { Application, Container, type Filter, Graphics, Sprite, Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
 import { type DrillDef, type InserterDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
-import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
+import { DECOR_MIN_ZOOM_SMALL, TREE_GROUPS, TREE_GROUP_IDS, TREE_PATCH } from '../data/decor';
+import { valueNoise as noise2 } from './biome';
 import { MAPGEN } from '../data/mapgen';
 import { RESOURCE_BY_INDEX, densityLevel } from '../data/resources';
 import { BeltSystem, Shape } from '../sim/belts';
@@ -16,7 +17,7 @@ import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
 import { BiomeField } from './biome';
 import { DecorField } from './decor';
-import { LOOK } from '../data/look';
+import { HOUSES, LOOK, SEASON_GROUND, VIGNETTE, WIND } from '../data/look';
 import { AdvancedBloomFilter } from 'pixi-filters';
 import type { GameEvent } from '../sim/events';
 import { PLAYER_COMBAT, UNITS, type UnitKind } from '../data/enemies';
@@ -66,6 +67,7 @@ import { EntityLife } from './life';
 import { HeatHaze } from './haze';
 import { HAZE } from '../data/fx';
 import { Effects } from './effects';
+import { AmbientLife } from './ambient';
 import { ParticlePool, SpritePool } from './pools';
 
 export const TILE = 64;
@@ -115,6 +117,11 @@ const SHAPE_KEY = ['s', 'l', 'r'];
 const ITEM_SCALE_BELT = 0.5;
 const ITEM_OUTLINE = { scale: 1.16, alpha: 0.6 };
 
+/** Pflanzen-Deko, die mit der Jahreszeit die Farbe wechselt. */
+/** Flecken, die auch auf Straße, Gehweg und Hausboden liegen. */
+const URBAN_DECALS = new Set(['blood', 'trash', 'burnt', 'tracks', 'puddle', 'weeds', 'leaves']);
+const LEAFY = new Set(['shrub', 'fern', 'bramble', 'thicket', 'tallgrass', 'wild', 'reed']);
+
 export class Camera {
   x = 0;
   y = 0;
@@ -158,6 +165,8 @@ export class GameRenderer {
   private readonly decals = new SpritePool();
   /** Bodenbeläge (Steinpflaster, Beton …) über Boden und Decals, unter Erz und Gebäuden. */
   private readonly floorPool = new SpritePool();
+  /** Flecken auf Belägen (Blut, Müll, Unkraut in Ritzen, Ruß in ausgebrannten Häusern). */
+  private readonly floorDecals = new SpritePool();
   private readonly roadPool = new SpritePool();
   /** Wetter: Partikel (Regen, Schnee), Nebel- und Blitz-Schleier (nur Darstellung). */
   private readonly weatherPool = new SpritePool();
@@ -175,6 +184,9 @@ export class GameRenderer {
   private readonly glow = new SpritePool();
   private readonly fxPool = new SpritePool();
   private readonly fxAddPool = new SpritePool();
+  private readonly ambientPool = new SpritePool();
+  private readonly ambientGlow = new SpritePool();
+  private ambient: AmbientLife | null = null;
   private effects: Effects | null = null;
   private readonly cloudPool = new SpritePool();
   private clouds: CloudShadows | null = null;
@@ -270,6 +282,13 @@ export class GameRenderer {
       preference: 'webgl',
     });
     parent.appendChild(app.canvas);
+    // Vignette: Bildränder leicht abgedunkelt (DOM-Ebene über der Welt, lässt Klicks durch)
+    if (lookEnabled()) {
+      const vg = document.createElement('div');
+      vg.className = 'vignette';
+      vg.style.cssText = `position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, rgba(0,0,0,0) ${VIGNETTE.inner}%, rgba(12,9,6,${VIGNETTE.alpha}) 100%)`;
+      parent.appendChild(vg);
+    }
     const r = new GameRenderer(app, sprites);
     r.init();
     return r;
@@ -304,6 +323,8 @@ export class GameRenderer {
     this.glow.container.blendMode = 'add';
     this.fxAddPool.container.blendMode = 'add';
     this.effects = new Effects(s, this.fxPool, this.fxAddPool, TILE);
+    this.ambient = new AmbientLife(s, TILE);
+    this.ambientGlow.container.blendMode = 'add';
     this.clouds = new CloudShadows(s, this.cloudPool, TILE);
     this.night = new NightLayer(s, this.app.renderer, TILE);
     this.ents.container.sortableChildren = true;
@@ -315,6 +336,7 @@ export class GameRenderer {
       this.decals.container,
       this.roadPool.container,
       this.floorPool.container,
+      this.floorDecals.container,
       this.snowCover,
       this.res.container,
     );
@@ -348,11 +370,13 @@ export class GameRenderer {
       this.shadows.container,
       this.ents.container,
       this.fxPool.container,
+      this.ambientPool.container,
       this.wires,
       // Nachtlicht multipliziert alles darunter; Leuchten und Funken bleiben darüber hell
       this.night!.sprite,
       this.glow.container,
       this.fxAddPool.container,
+      this.ambientGlow.container,
       this.cloudPool.container,
       this.weatherPool.container,
       this.ghostSprites.container,
@@ -411,6 +435,7 @@ export class GameRenderer {
     this.drawEntities(world, view, alpha, ui);
     this.drawWires(world, view, ui);
     this.effects?.update(world, alpha, view);
+    this.ambient?.update(world, alpha, view, this.ambientPool, this.ambientGlow);
     this.clouds?.update(world, alpha, view);
     if (this.night) {
       // Nachtlicht über Gebäuden und Rauch, unter Leuchten, Bauvorschau, Symbolen und Overlay
@@ -503,6 +528,7 @@ export class GameRenderer {
     g.begin();
     rp.begin();
     const CS = MAPGEN.chunkSize;
+    const sg = SEASON_GROUND[world.settings.plan ? world.weather.season(world.tick) : 'summer'];
     for (let cy = Math.floor(v.y0 / CS); cy <= Math.floor(v.y1 / CS); cy++) {
       for (let cx = Math.floor(v.x0 / CS); cx <= Math.floor(v.x1 / CS); cx++) {
         const chunk = world.map.getChunk(cx, cy);
@@ -516,7 +542,7 @@ export class GameRenderer {
             const px = tx * TILE + TILE / 2;
             const py = ty * TILE + TILE / 2;
             const gp = this.groundPeriod;
-            g.push(this.groundTex[(((tx % gp) + gp) % gp) + gp * (((ty % gp) + gp) % gp)], px, py, 1, 1, 0, this.biomeField(world).color(tx, ty));
+            g.push(this.groundTex[(((tx % gp) + gp) % gp) + gp * (((ty % gp) + gp) % gp)], px, py, 1, 1, 0, mulTint(this.biomeField(world).color(tx, ty), sg));
             const res = chunk.resource[i];
             if (res) {
               const def = RESOURCE_BY_INDEX[res]!;
@@ -772,19 +798,61 @@ export class GameRenderer {
   private drawDecals(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
     const p = this.decals;
     p.begin();
+    const q = this.floorDecals;
+    q.begin();
     const small = this.camera.zoom >= DECOR_MIN_ZOOM_SMALL;
     let n = 0;
     for (const d of this.visibleDecor(world, v, 6)) {
       if (d.kind.layer !== 'decal') continue;
       if (!small && d.kind.cell < 6) continue;
       if (!this.sprites.has(`${d.kind.sprite}.${d.variant}`)) continue;
+      const onFloor = world.map.floorAt(d.tx, d.ty) !== 0;
+      if (d.kind.floor !== undefined && !onFloor) continue;
+      if (onFloor && !URBAN_DECALS.has(d.kind.id)) continue;
       const name = `${d.kind.sprite}.${d.variant}`;
-      const sp = p.get(this.sprites.frame(name));
+      const sp = (onFloor ? q : p).get(this.sprites.frame(name));
       sp.position.set(d.x * TILE, d.y * TILE);
       const k = this.sprites.info(name)?.meta?.scale ?? 1;
       sp.scale.set(k * d.sx, k * d.sy);
       sp.rotation = d.rot;
       n++;
+    }
+    // Ausgebrannte Häuser: Ruß und Asche auf dem Boden
+    if (this.sprites.has('decal.burnt.0')) {
+      for (const h of world.sites.houses) {
+        if (h.x > v.x1 + 1 || h.x + h.w < v.x0 - 1 || h.y > v.y1 + 1 || h.y + h.h < v.y0 - 1) continue;
+        if (!GameRenderer.burnt(h.g !== undefined ? world.sites.houses[h.g] : h)) continue;
+        for (let j = 0; j < h.h; j += 2) for (let i = 0; i < h.w; i += 2) {
+          const hh = ((Math.imul(h.x + i, 73856093) ^ Math.imul(h.y + j, 19349663)) >>> 0);
+          const name = `decal.burnt.${hh % 3}`;
+          const sp = q.get(this.sprites.frame(name));
+          sp.position.set((h.x + i + 1) * TILE, (h.y + j + 1) * TILE);
+          sp.scale.set(2.2 * (this.sprites.info(name)?.meta?.scale ?? 1));
+          sp.rotation = (hh >> 8) % 7;
+          sp.alpha = 0.85;
+          n++;
+        }
+      }
+    }
+    // Waldboden: Laub- bzw. Nadelstreu unter jedem Baum (versetzt in den Kronenschatten)
+    if (small && this.sprites.has('decal.litter.0')) {
+      const CS = MAPGEN.chunkSize;
+      for (let cy = Math.floor((v.y0 - 3) / CS); cy <= Math.floor((v.y1 + 3) / CS); cy++)
+        for (let cx = Math.floor((v.x0 - 3) / CS); cx <= Math.floor((v.x1 + 3) / CS); cx++)
+          for (const t of world.map.trees.treesIn(cx, cy)) {
+            if (t.x < v.x0 - 3 || t.x > v.x1 + 3 || t.y < v.y0 - 3 || t.y > v.y1 + 3) continue;
+            if (world.map.floorAt(t.tx, t.ty)) continue;
+            const h = (Math.imul(t.tx, 73856093) ^ Math.imul(t.ty, 19349663)) >>> 0;
+            const name = `${t.kind === 1 ? 'decal.needles' : 'decal.litter'}.${h % 3}`;
+            if (!this.sprites.has(name)) continue;
+            const sp = p.get(this.sprites.frame(name));
+            sp.position.set((t.x + 0.25) * TILE, (t.y + 0.2) * TILE);
+            const k = (this.sprites.info(name)?.meta?.scale ?? 1) * (t.kind === 2 ? 1.6 : 2.4 + ((h >> 6) % 8) * 0.12);
+            sp.scale.set(k, k * (0.75 + ((h >> 10) % 5) * 0.06));
+            sp.rotation = ((h >> 13) % 628) / 100;
+            sp.alpha = 0.6;
+            n++;
+          }
     }
     // Einbindung: festgetretene Erde bzw. Kies unter größeren Gebäuden
     if (this.sprites.has('decal.dirt.0')) {
@@ -805,6 +873,7 @@ export class GameRenderer {
       }
     }
     p.end();
+    q.end();
     this.stats.decor = n;
   }
 
@@ -828,7 +897,10 @@ export class GameRenderer {
       const sp = this.ents.get(s.frame(name));
       sp.position.set(d.x * TILE, d.y * TILE);
       sp.zIndex = d.y * TILE;
-      if (d.kind.id === 'shrub') sp.tint = this.seasonTint(world, 0, Math.floor(d.x * 7 + d.y * 13));
+      if (LEAFY.has(d.kind.id)) {
+        sp.tint = this.seasonTint(world, d.kind.id === 'tallgrass' ? 3 : 0, Math.floor(d.x * 7 + d.y * 13));
+        sp.skew.x = this.windSway(world, d.x, d.y) * (d.kind.id === 'tallgrass' || d.kind.id === 'reed' ? 1.6 : 0.8);
+      }
     }
     // Bäume aus der Simulation (fällbar)
     const CS = MAPGEN.chunkSize;
@@ -837,7 +909,7 @@ export class GameRenderer {
       for (let cx = Math.floor((v.x0 - m) / CS); cx <= Math.floor((v.x1 + m) / CS); cx++) {
         for (const t of world.map.trees.treesIn(cx, cy)) {
           if (t.x < v.x0 - m || t.x > v.x1 + m || t.y < v.y0 - 2 || t.y > v.y1 + m) continue;
-          const name = this.treeSprite(t.kind, t.variant);
+          const name = this.treeSprite(world, t);
           if (!name) continue;
           if (s.has(`${name}.shadow`)) {
             const sh = this.shadows.get(s.frame(`${name}.shadow`));
@@ -849,10 +921,20 @@ export class GameRenderer {
           sp.zIndex = t.y * TILE;
           sp.tint = this.seasonTint(world, t.kind, t.tx * 31 + t.ty * 17 + t.variant);
           sp.scale.set(0.9 + ((t.tx * 13 + t.ty * 7) & 7) * 0.03);
+          sp.skew.x = this.windSway(world, t.x, t.y) * (t.kind === 2 ? 0.3 : 1);
         }
       }
     }
     this.drawCliffs(world, v);
+  }
+
+  /** Wind: Scherung der Pflanzen-Sprites (am Fuß verankert), Böen wandern als Welle über die Karte; Sturm stärker. */
+  private windSway(world: World, x: number, y: number): number {
+    const k = world.settings.plan ? world.weather.kind : 'clear';
+    const amp = k === 'storm' ? WIND.storm : k === 'rain' || k === 'snow' ? WIND.rain : WIND.calm;
+    const t = world.tick / 60;
+    const gust = 0.6 + 0.4 * Math.sin(t * WIND.gustSpeed - (x + y * 0.4) * WIND.gustScale);
+    return amp * gust * Math.sin(t * WIND.speed + x * 0.37 + y * 0.23);
   }
 
   /**
@@ -865,6 +947,12 @@ export class GameRenderer {
     const bright = 0.9 + (j % 13) * 0.009;
     const conifer = kind === 1;
     const dead = kind === 2;
+    if (kind === 3) {
+      // Gräser: Sommer grün, Herbst/Winter strohig
+      const base = season === 'autumn' ? 0xf0d8a8 : season === 'winter' ? 0xd8ccb8 : season === 'spring' ? 0xe8ffd8 : 0xffffff;
+      const g = Math.min(255, Math.round(255 * bright));
+      return mulTint(base, (g << 16) | (g << 8) | g);
+    }
     let base = 0xffffff;
     if (!dead) {
       if (season === 'spring') base = conifer ? 0xf0fff0 : 0xe8ffd8;
@@ -910,13 +998,30 @@ export class GameRenderer {
 
   private treeCounts: number[] | null = null;
   /** Sprite einer Baumart/Variante; fehlt die Art (z. B. abgestorbene Bäume), wird ein normaler Baum gezeigt. */
-  private treeSprite(kind: number, variant: number): string | null {
+  private treeSprite(world: World, t: { kind: number; variant: number; x: number; y: number; tx: number; ty: number }): string | null {
     const kinds = MAPGEN.trees.kinds;
     if (!this.treeCounts) this.treeCounts = kinds.map((k) => this.sprites.countPrefix(`${k.sprite}.`));
-    let k = kind;
+    let k = t.kind;
     if (!this.treeCounts[k]) k = 0;
     const n = this.treeCounts[k];
-    return n ? `${kinds[k].sprite}.${variant % n}` : null;
+    if (!n) return null;
+    if (k !== 0 || n <= 8) return `${kinds[k].sprite}.${t.variant % n}`;
+    // Laubbäume: Art aus der Gruppe (gepflanzt: in der Variante, wild: Artenflecken, Ufer, Jungwuchs)
+    let group: readonly number[];
+    let v = t.variant;
+    if (v >= 100) {
+      group = TREE_GROUPS[TREE_GROUP_IDS[Math.floor((v - 100) / 10)] ?? 'mixed'];
+      v = (v - 100) % 10;
+    } else {
+      const h = ((Math.imul(t.tx, 73856093) ^ Math.imul(t.ty, 19349663)) >>> 0) % 1000;
+      const nz = noise2(t.x / TREE_PATCH.scale, t.y / TREE_PATCH.scale, world.seed + 77);
+      if (h < TREE_PATCH.young * 1000) group = TREE_GROUPS.young;
+      else if (this.biomeField(world).fertility(t.tx, t.ty) > TREE_PATCH.water && h % 3 !== 0) group = TREE_GROUPS.water;
+      else group = nz < 0.3 ? TREE_GROUPS.birch : nz < 0.55 ? TREE_GROUPS.mixed : nz < 0.75 ? TREE_GROUPS.oak : TREE_GROUPS.chestnut;
+      v = v + (h >> 4);
+    }
+    const idx = group[v % group.length];
+    return `${kinds[0].sprite}.${idx < n ? idx : t.variant % 8}`;
   }
 
   // ------------------------------------------------------------------ Bänder
@@ -1078,6 +1183,7 @@ export class GameRenderer {
     this.drawRobots(world);
     this.drawVehicles(world);
     this.drawEnemies(world, v, alpha);
+    this.drawWildlife(world, v);
     this.drawGhost(ui, world);
     this.shadows.end();
     this.ents.end();
@@ -1326,7 +1432,7 @@ export class GameRenderer {
       const hs = this.houseOf(world, e.x, e.y);
       if (hs) {
         const pal = WALL_TINTS[e.def.house] ?? WALL_TINTS.concrete;
-        wsp.tint = pal[hs.hue % pal.length];
+        wsp.tint = hs.burnt ? HOUSES.charred[hs.hue % HOUSES.charred.length] : pal[hs.hue % pal.length];
       }
     }
     if (e.boardHp > 0 && s.has(`boards.${axis}.1`)) {
@@ -1337,9 +1443,14 @@ export class GameRenderer {
   }
 
   /** Haus zu einem Feld (Zwischenspeicher, wächst mit der Hausliste) und Farbwahl je Haus. */
-  private houseTiles = new Map<number, { hue: number }>();
+  private houseTiles = new Map<number, { hue: number; burnt: boolean }>();
   private houseCount = 0;
-  private houseOf(world: World, x: number, y: number): { hue: number } | undefined {
+  /** Ausgebrannt (nur Darstellung): verkohlte Wände, Dach mit Löchern, Brandflecken innen. Nie das eigene Haus. */
+  private static burnt(main: { x: number; y: number; own?: boolean }): boolean {
+    if (main.own) return false;
+    return ((((main.x * 2246822519) ^ (main.y * 3266489917)) >>> 0) % 1000) < HOUSES.burnt * 1000;
+  }
+  private houseOf(world: World, x: number, y: number): { hue: number; burnt: boolean } | undefined {
     const hs = world.sites.houses;
     if (hs.length < this.houseCount) {
       this.houseTiles.clear();
@@ -1349,7 +1460,8 @@ export class GameRenderer {
       const h = hs[i];
       const main = h.g !== undefined ? hs[h.g] : h;
       const hue = ((main.x * 73856093) ^ (main.y * 19349663)) >>> 0;
-      for (let j = h.y; j < h.y + h.h; j++) for (let k = h.x; k < h.x + h.w; k++) this.houseTiles.set((k + 32768) * 65536 + (j + 32768), { hue });
+      const burnt = GameRenderer.burnt(main);
+      for (let j = h.y; j < h.y + h.h; j++) for (let k = h.x; k < h.x + h.w; k++) this.houseTiles.set((k + 32768) * 65536 + (j + 32768), { hue, burnt });
     }
     this.houseCount = hs.length;
     return this.houseTiles.get((x + 32768) * 65536 + (y + 32768));
@@ -1383,6 +1495,7 @@ export class GameRenderer {
       this.roofAlpha.set(key, a);
       if (a <= 0.01) continue;
       const kind = h.roof;
+      const burnt = GameRenderer.burnt(h.g !== undefined ? hs[h.g] : h);
       const sx = (h.w + ROOF_OVERHANG * 2) / h.w;
       const sy = (h.h + ROOF_OVERHANG * 2) / h.h;
       const ccx = (h.x + h.w / 2) * TILE;
@@ -1405,6 +1518,8 @@ export class GameRenderer {
             name = `roof.${kind}.${i === mid ? 'rv' : i < mid ? 'w' : 'e'}.${vv}`;
           }
           if (!s.has(name)) continue;
+          // eingestürztes Dach: Löcher, wo die Balken verbrannt sind
+          if (burnt && ((Math.imul(h.x + i, 374761393) ^ Math.imul(h.y + j, 668265263)) >>> 0) % 100 < HOUSES.roofHoles * 100) continue;
           const sp = this.ents.get(s.frame(name));
           sp.position.set(ccx + (i + 0.5 - h.w / 2) * TILE * sx, ccy + (j + 0.5 - h.h / 2) * TILE * sy);
           sp.scale.set(sx * 1.02, sy * 1.02);
@@ -1413,11 +1528,12 @@ export class GameRenderer {
           const pal = ROOF_TINTS[kind] ?? ROOF_TINTS.flat;
           sp.tint = pal[(((main.x * 73856093) ^ (main.y * 19349663)) >>> 0) % pal.length];
           if (world.weather.winter) sp.tint = mulTint(sp.tint, 0xe2e7ee);
+          if (burnt) sp.tint = mulTint(sp.tint, 0x3a3430);
           sp.zIndex = (h.y + h.h) * TILE - 2;
         }
       }
       // Dachaufbauten je Haus (nicht über Anbauten): Schornstein am First, Antenne, Schüssel, Solar, Dachfenster
-      if (h.g === undefined && h.w * h.h >= 20) {
+      if (h.g === undefined && h.w * h.h >= 20 && !burnt) {
         const hh = ((h.x * 2654435761) ^ (h.y * 40503)) >>> 0;
         const props: [string, number, number][] = [];
         if (kind !== 'flat') {
@@ -1741,7 +1857,18 @@ export class GameRenderer {
         }
         continue;
       }
-      const key = `zombie.${r.name ?? 'walker'}.dead`;
+      if (r.kind === 'animal') {
+        const ak = `animal.${r.name}.dead`;
+        if (!s.has(ak)) continue;
+        const sp = this.ents.get(s.frame(ak));
+        sp.position.set(r.x * TILE, r.y * TILE);
+        sp.scale.set(1);
+        sp.alpha = Math.max(0, Math.min(1, 1.5 - age / 7200));
+        sp.zIndex = r.y * TILE - 64;
+        continue;
+      }
+      const vk = r.name && r.id !== undefined ? this.zombieBase(r.name, r.id) : `zombie.${r.name ?? 'walker'}`;
+      const key = s.has(`${vk}.dead`) ? `${vk}.dead` : `zombie.${r.name ?? 'walker'}.dead`;
       if (!s.has(key)) continue;
       const sp = this.ents.get(s.frame(key, Math.floor(Math.abs(r.x * 3 + r.y * 5))));
       sp.position.set(r.x * TILE, r.y * TILE);
@@ -1753,7 +1880,7 @@ export class GameRenderer {
     for (const u of en.units.values()) {
       if (u.x < v.x0 - 2 || u.x > v.x1 + 2 || u.y < v.y0 - 2 || u.y > v.y1 + 3) continue;
       const def = UNITS[u.kind];
-      const base = `zombie.${u.kind}`;
+      const base = this.zombieBase(u.kind, u.id);
       if (!s.has(`${base}.0`)) continue;
       const n = s.info(`${base}.0`)?.meta?.angles ?? 8;
       const k = ((Math.round(((u.angle + Math.PI / 2) / (Math.PI * 2)) * n) % n) + n) % n;
@@ -1775,6 +1902,39 @@ export class GameRenderer {
       const v8 = 215 + ((u.id * 37) % 41);
       sp.tint = mulTint(ZOMBIE_TINTS[(u.id * 5 + 3) % ZOMBIE_TINTS.length], (v8 << 16) | ((v8 - ((u.id * 13) % 20)) << 8) | (v8 - ((u.id * 7) % 26)));
       sp.zIndex = u.y * TILE;
+    }
+  }
+
+  private zombieVariants = new Map<string, number>();
+  /** Kleidung je Zombie: Grundmodell oder eine der Varianten zombie.<art>.v<n> (models/zombievolk.py). */
+  private zombieBase(kind: string, id: number): string {
+    let n = this.zombieVariants.get(kind);
+    if (n === undefined) {
+      n = 0;
+      for (let v = 1; v < 32; v++) if (this.sprites.has(`zombie.${kind}.v${v}.0`)) n = v;
+      this.zombieVariants.set(kind, n);
+    }
+    if (!n) return `zombie.${kind}`;
+    const pick = ((Math.imul(id, 2654435761) >>> 0) >> 7) % (n + 1);
+    if (pick === 0 || !this.sprites.has(`zombie.${kind}.v${pick}.0`)) return `zombie.${kind}`;
+    return `zombie.${kind}.v${pick}`;
+  }
+
+  /** Wildtiere: 8 Richtungen, Laufbilder aus der Laufphase, beim Grasen gesenkter Kopf. */
+  private drawWildlife(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const s = this.sprites;
+    this.ambient?.drawGround(this.ents);
+    for (const a of world.wildlife.animals) {
+      if (a.x < v.x0 - 2 || a.x > v.x1 + 2 || a.y < v.y0 - 2 || a.y > v.y1 + 3) continue;
+      const base = `animal.${a.kind}`;
+      if (!s.has(`${base}.0`)) continue;
+      const k = ((Math.round(((a.angle + Math.PI / 2) / (Math.PI * 2)) * 8) % 8) + 8) % 8;
+      const graze = a.mode === 'graze' && s.has(`${base}.graze.${k}`) && ((a.id * 7 + Math.floor(world.tick / 240)) % 3) !== 0;
+      const tex = graze ? s.frame(`${base}.graze.${k}`) : s.frame(`${base}.${k}`, a.mode === 'graze' ? 0 : Math.floor(a.phase * s.frames(`${base}.${k}`).length));
+      const sp = this.ents.get(tex);
+      sp.position.set(a.x * TILE, a.y * TILE);
+      sp.scale.set(0.92 + ((a.id * 7) % 9) * 0.02);
+      sp.zIndex = a.y * TILE;
     }
   }
 

@@ -52,18 +52,20 @@ export interface Unit {
 }
 
 /** Ziel: Zombie (unit) oder feindlicher Mensch (person, Plünderer in der Gemeinschaftsliste). */
-export type Target = { kind: 'unit' | 'person'; id: number; x: number; y: number };
+export type Target = { kind: 'unit' | 'person' | 'animal'; id: number; x: number; y: number };
 
 /** Kurz sichtbare Reste für die Darstellung (Kadaver, Wracks). */
 export interface Remnant {
   x: number;
   y: number;
-  kind: 'unit' | 'building';
+  kind: 'unit' | 'building' | 'animal';
   size: number;
   tick: number;
   /** Zombieart bzw. Gebäude: Name und Richtung (Wrack in dessen Form) */
   name?: string;
   dir?: number;
+  /** Zombie: ID (Darstellung wählt daraus die Kleidung). */
+  id?: number;
 }
 
 /** Letzte Horde (Anzeige). */
@@ -725,7 +727,7 @@ export class EnemySystem {
     if (u.hp > 0) return false;
     this.units.delete(u.id);
     this.kills++;
-    this.remnants.push({ x: u.x, y: u.y, kind: 'unit', size: def.scale, tick: w.tick, name: u.kind, dir: u.angle });
+    this.remnants.push({ x: u.x, y: u.y, kind: 'unit', size: def.scale, tick: w.tick, name: u.kind, dir: u.angle, id: u.id });
     w.events.push('death', u.x, u.y);
     w.stats.made(`kill.${u.kind}`, 1);
     return true;
@@ -736,6 +738,11 @@ export class EnemySystem {
     if (t.kind === 'person') {
       const k = w.community.get(t.id);
       if (k) w.community.hurt(w, k, dmg);
+      return;
+    }
+    if (t.kind === 'animal') {
+      const a = w.wildlife.get(t.id);
+      if (a) w.wildlife.hurt(w, a, dmg, by);
       return;
     }
     const u = this.units.get(t.id);

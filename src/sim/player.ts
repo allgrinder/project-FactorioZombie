@@ -596,7 +596,7 @@ export class Player {
   private shoot(world: World, wpn: 'submachine-gun' | 'pistol'): void {
     if (this.gunCd > 0) return;
     const W = WEAPONS[wpn];
-    const t = world.foe(this.x, this.y, W.range);
+    const t = world.foe(this.x, this.y, W.range) ?? world.prey(this.x, this.y, W.range);
     if (!t) return;
     if (this.rounds === 0) {
       const it = Object.keys(AMMO).reverse().find((a) => this.inventory.count(a) > 0)!;
@@ -621,7 +621,7 @@ export class Player {
     if (this.meleeCd > 0) return;
     const item = this.meleeWeapon;
     const M: MeleeDef = item ? MELEE[item] : FISTS;
-    const t = world.foe(this.x, this.y, M.reach + 0.35);
+    const t = world.foe(this.x, this.y, M.reach + 0.35) ?? world.prey(this.x, this.y, M.reach + 0.6);
     if (!t) return;
     this.meleeCd = Math.round(M.cooldown / this.condition);
     this.lastMelee = world.tick;

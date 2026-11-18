@@ -2,6 +2,7 @@ import { type EntityDef, entityDef } from '../data/entities';
 import { ASPHALT, CONCRETE, FIELD, PAVEMENT, PLANKS, ROAD_FLOOR, ROADLINE_E, ROADLINE_S, TILES } from '../data/floors';
 import { SITES } from '../data/loot';
 import { type PlaceDef, ROAD, type TownDef, WORLD, roadPaths } from '../data/world';
+import { TREE_GROUP_IDS, type TreeGroup } from '../data/decor';
 import { hash01 } from './rng';
 import { RAIDER } from '../data/strangers';
 import type { World } from './world';
@@ -113,18 +114,19 @@ export class SiteSystem {
   }
 
   /** Baum pflanzen (Allee, Hecke, Garten), wo Land frei ist: kein Belag, kein Gebäude in der Nähe. kind 0 Laub-, 1 Nadelbaum. */
-  private tree(w: World, x: number, y: number, kind = 0): void {
+  private tree(w: World, x: number, y: number, kind = 0, group?: TreeGroup): void {
     const tx = Math.floor(x);
     const ty = Math.floor(y);
     if (w.map.isBlocked(tx, ty) || w.map.floorAt(tx, ty) || w.map.resourceAt(tx, ty).amount > 0) return;
     for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) if (w.entityAt(tx + i, ty + j)) return;
     for (const hs of this.houses) if (tx >= hs.x - 1 && tx <= hs.x + hs.w && ty >= hs.y - 1 && ty <= hs.y + hs.h) return;
     if (Math.hypot(x, y) < SITES.startFree * 0.5) return;
-    w.map.trees.plant(x, y, kind, Math.floor(hash01(WORLD.seed, tx, ty, 77) * 8));
+    const v = Math.floor(hash01(WORLD.seed, tx, ty, 77) * 8);
+    w.map.trees.plant(x, y, kind, kind === 0 && group ? 100 + TREE_GROUP_IDS.indexOf(group) * 10 + v : v);
   }
 
   /** Baumreihe von (ax, ay) nach (bx, by): alle step Felder, mit Lücken (gap = Anteil fehlender Bäume) und leichtem Versatz. */
-  private treeRow(w: World, ax: number, ay: number, bx: number, by: number, step: number, gap: number, kind = 0, inside?: (x: number, y: number) => boolean): void {
+  private treeRow(w: World, ax: number, ay: number, bx: number, by: number, step: number, gap: number, kind = 0, inside?: (x: number, y: number) => boolean, group?: TreeGroup): void {
     const len = Math.hypot(bx - ax, by - ay);
     const n = Math.floor(len / step);
     for (let i = 0; i <= n; i++) {
@@ -136,7 +138,7 @@ export class SiteSystem {
       const jx = x + (hash01(WORLD.seed, Math.round(x), Math.round(y), 79) - 0.5) * 0.9;
       const jy = y + (hash01(WORLD.seed, Math.round(x), Math.round(y), 80) - 0.5) * 0.9;
       if (inside && !inside(Math.floor(jx), Math.floor(jy))) continue;
-      this.tree(w, jx, jy, h > 0.93 ? 1 - kind : kind);
+      this.tree(w, jx, jy, h > 0.93 ? 1 - kind : kind, h > 0.8 ? 'young' : group);
     }
   }
 
@@ -368,7 +370,7 @@ export class SiteSystem {
             if (h(140 + side * 40 + i + t * 7) > (t === 0 ? 0.65 : 0.3)) continue;
             const along2 = a + h(150 + side * 40 + i + t) * along;
             const deep = back + (side === 0 ? -1 : 1) * h(160 + side * 40 + i + t) * 2;
-            this.tree(w, horizontal ? cx + along2 : cx + deep, horizontal ? cy + deep : cy + along2, h(170 + i) < 0.2 ? 1 : 0);
+            this.tree(w, horizontal ? cx + along2 : cx + deep, horizontal ? cy + deep : cy + along2, h(170 + i) < 0.2 ? 1 : 0, 'town');
           }
         }
         a += along + 2 + Math.floor(h(60 + side * 40 + i) * 4);
@@ -511,7 +513,7 @@ export class SiteSystem {
         if (q % (allee ? 12 : 26) === 6) {
           for (const side of [-1, 1]) {
             if (hash01(WORLD.seed, ri, q * 2 + side, 871) < (allee ? 0.15 : 0.5)) continue;
-            this.tree(w, px + nx * side * 5 + (hash01(WORLD.seed, ri, q, 872) - 0.5) * 0.8, py + ny * side * 5 + (hash01(WORLD.seed, ri, q, 873) - 0.5) * 0.8);
+            this.tree(w, px + nx * side * 5 + (hash01(WORLD.seed, ri, q, 872) - 0.5) * 0.8, py + ny * side * 5 + (hash01(WORLD.seed, ri, q, 873) - 0.5) * 0.8, 0, 'avenue');
           }
         }
       }
@@ -547,9 +549,9 @@ export class SiteSystem {
       this.field(w, fx, fy, 12, 8, h);
       this.track(x, y, fx + 6, fy + 9, i + 5000);
       // Hofbäume: alte Linde/Eiche am Haus, Obstbäume dahinter
-      this.tree(w, x - 6 + h(20) * 2, y - 1 + h(21) * 2);
-      this.tree(w, x + 1 + h(22) * 2, y - 6 + h(23));
-      for (let i = 0; i < 4; i++) if (h(24 + i) < 0.6) this.tree(w, x - 2 + i * 3 + h(30 + i), y - 9 + h(34 + i) * 2);
+      this.tree(w, x - 6 + h(20) * 2, y - 1 + h(21) * 2, 0, 'oak');
+      this.tree(w, x + 1 + h(22) * 2, y - 6 + h(23), 0, 'chestnut');
+      for (let i = 0; i < 4; i++) if (h(24 + i) < 0.6) this.tree(w, x - 2 + i * 3 + h(30 + i), y - 9 + h(34 + i) * 2, 0, 'orchard');
       if (placed) this.sites.push({ x, y, r: 9, weight: 1.5, kind: 'farm' });
     });
     // Wildnis: vereinzelt ein Wrack oder ein verlassenes Lager, nicht bei Orten
@@ -623,7 +625,7 @@ export class SiteSystem {
       const px = t.x + (horizontal ? a - 6 : side < 0 ? -15 : 4);
       const py = t.y + (horizontal ? (side < 0 ? -13 : 4) : a - 6);
       for (let y = py; y < py + (horizontal ? 10 : 12); y++) for (let x = px; x < px + (horizontal ? 12 : 10); x++) this.paint(w, x, y, PAVEMENT);
-      this.tree(w, px + 5.5, py + 5.5);
+      this.tree(w, px + 5.5, py + 5.5, 0, 'oak');
       const cw = 9;
       const ch = 12;
       this.house(w, horizontal ? px + 13 : px, horizontal ? py + (side < 0 ? -3 : 1) : py + 13, horizontal ? cw : ch, horizontal ? ch : cw,
@@ -924,8 +926,11 @@ export class SiteSystem {
     this.track(p.x + 6, p.y, p.x + 25, p.y + 3, p.x * 7 + 2);
     this.field(w, p.x + 18, p.y - 10, 14, 12, (n) => h(150 + n));
     this.field(w, p.x - 8, p.y + (s < 0 ? 14 : -26), 18, 10, (n) => h(180 + n));
-    this.tree(w, p.x - 2, p.y + (s < 0 ? 6 : -6));
-    this.tree(w, p.x - 14.5, p.y - 1);
+    this.tree(w, p.x - 2, p.y + (s < 0 ? 6 : -6), 0, 'oak');
+    this.tree(w, p.x - 14.5, p.y - 1, 0, 'chestnut');
+    // Streuobstwiese hinter dem Gutshof
+    const oy = p.y + (s < 0 ? -22 : 16);
+    for (let j = 0; j < 3; j++) for (let i = 0; i < 5; i++) if (h(300 + j * 5 + i) < 0.8) this.tree(w, p.x + 22 + i * 4 + (j % 2) * 2 + h(320 + i) * 0.6, oy + j * 4 + h(330 + j) * 0.6, 0, 'orchard');
     w.community.addSurvivor(p.x - 7.5, p.y + (s < 0 ? 6.5 : -7.5), w.seed);
     this.sites.push({ x: p.x, y: p.y, r: 12, weight: 2.5, kind: 'farm' });
   }
