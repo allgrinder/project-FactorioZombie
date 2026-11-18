@@ -932,7 +932,20 @@ export class GameRenderer {
       let blocked = false;
       for (let oy = -r; oy <= r && !blocked; oy++) for (let ox = -r; ox <= r && !blocked; ox++) if (world.entityAt(d.tx + ox, d.ty + oy)) blocked = true;
       if (blocked) continue;
-      const name = `${d.kind.sprite}.${d.variant}`;
+      // Wildblumen und Pilze nicht im Winter, Farne im Winter nur vereinzelt
+      if (world.settings.plan && world.weather.season(world.tick) === 'winter' && (d.kind.id === 'wild' || d.kind.id === 'mushroom' || (d.kind.id === 'fern' && (Math.floor(d.x * 5 + d.y * 3) & 3) !== 0))) continue;
+      let name = `${d.kind.sprite}.${d.variant}`;
+      // Sträucher je Jahreszeit: Herbstlaub bzw. kahl im Winter
+      let swapped = false;
+      if (d.kind.id === 'shrub' || d.kind.id === 'thicket' || d.kind.id === 'bramble') {
+        const season = world.settings.plan ? world.weather.season(world.tick) : 'summer';
+        const hv = Math.floor(d.x * 7 + d.y * 13);
+        const pre = season === 'winter' ? 'flora.bareshrub' : season === 'autumn' && (hv & 3) !== 0 ? 'flora.autumnshrub' : '';
+        if (pre && s.has(`${pre}.0`)) {
+          name = `${pre}.${Math.abs(hv) % s.countPrefix(`${pre}.`)}`;
+          swapped = true;
+        }
+      }
       if (d.kind.shadow) {
         const sh = this.shadows.get(s.frame(`${name}.shadow`));
         sh.position.set(d.x * TILE, d.y * TILE);
@@ -942,7 +955,7 @@ export class GameRenderer {
       sp.position.set(d.x * TILE, d.y * TILE);
       sp.zIndex = d.y * TILE;
       if (LEAFY.has(d.kind.id)) {
-        sp.tint = this.seasonTint(world, d.kind.id === 'tallgrass' ? 3 : 0, Math.floor(d.x * 7 + d.y * 13));
+        sp.tint = this.seasonTint(world, swapped ? 2 : d.kind.id === 'tallgrass' ? 3 : 0, Math.floor(d.x * 7 + d.y * 13));
         sp.skew.x = this.windSway(world, d.x, d.y) * (d.kind.id === 'tallgrass' || d.kind.id === 'reed' ? 1.6 : 0.8);
       }
     }
@@ -1138,6 +1151,10 @@ export class GameRenderer {
     // Jahreszeit: Herbstlaub (die meisten Bäume) bzw. kahl im Winter
     const season = world.settings.plan ? world.weather.season(world.tick) : 'summer';
     const hs = ((Math.imul(t.tx, 2654435761) ^ Math.imul(t.ty, 40503)) >>> 0) % 100;
+    if (season === 'spring' && idx >= 18 && idx <= 21) {
+      const nb = this.sprites.countPrefix('flora.blossom.');
+      if (nb > 0) return `flora.blossom.${(idx + hs) % nb}`;
+    }
     if (season === 'autumn' && hs < 75) {
       if (this.autumnCount < 0) this.autumnCount = this.sprites.countPrefix('flora.autumn.');
       if (this.autumnCount > 0) return `flora.autumn.${(idx + hs) % this.autumnCount}`;
