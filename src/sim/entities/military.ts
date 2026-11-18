@@ -76,7 +76,7 @@ export class TurretEntity extends EntityBase {
     const base = this.def.range ?? TURRET.range;
     const dark = w.darkness;
     if (dark <= 0 || w.isLit(this.cx, this.cy)) return base;
-    return base * (1 - TURRET.nightPenalty * dark);
+    return base * (1 - TURRET.nightPenalty * dark) * w.weather.fx.range;
   }
 
   override acceptAmount(item: string, mode: InsertMode): number {

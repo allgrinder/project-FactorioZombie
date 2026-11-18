@@ -80,6 +80,7 @@ export interface SaveData {
   circuit?: ReturnType<CircuitSystem['serialize']>;
   noise?: ReturnType<NoiseSystem['serialize']>;
   scav?: ReturnType<import('./community').Community['serialize']>;
+  weather?: ReturnType<import('./weather').WeatherSystem['serialize']>;
   drops?: ReturnType<World['drops']['serialize']>;
   cars?: ReturnType<World['cars']['serialize']>;
   sites?: ReturnType<SiteSystem['serialize']>;
@@ -155,7 +156,8 @@ export function serializeWorld(w: World): SaveData {
     rockets: w.rocketsLaunched,
     ...(w.characters > 1 ? { chars: w.characters } : {}),
     noise: w.noise.serialize(),
-    ...(w.community.workers.length ? { scav: w.community.serialize() } : {}),
+    weather: w.weather.serialize(),
+    scav: w.community.serialize(),
     drops: w.drops.serialize(),
     ...(w.cars.cars.length ? { cars: w.cars.serialize() } : {}),
     sites: w.sites.serialize(),
@@ -222,6 +224,7 @@ export function deserializeWorld(d: SaveData): World {
   w.characters = d.chars ?? 1;
   w.noise.load(d.noise);
   w.community.load(d.scav);
+  w.weather.load(d.weather);
   w.drops.load(d.drops);
   w.cars.load(d.cars);
   w.sites.load(d.sites);

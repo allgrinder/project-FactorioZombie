@@ -4,6 +4,7 @@ import { FLOOR_BY_ID, FLOOR_BY_ITEM } from '../data/floors';
 import { CapsuleSystem } from './capsules';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import { EnemySystem, type Target } from './enemies';
+import { WeatherSystem } from './weather';
 import { BARRICADE } from '../data/enemies';
 import { NoiseSystem } from './noise';
 import { SiteSystem } from './sites';
@@ -75,6 +76,7 @@ export class World {
   readonly trains = new TrainSystem();
   /** Lärm lockt Zombies an (Maschinen, Schüsse, Lockvögel). */
   readonly noise = new NoiseSystem();
+  readonly weather = new WeatherSystem();
   /** Fundorte der alten Welt (Dörfer, Wracks). */
   readonly sites = new SiteSystem();
   /** Sammeltrupps der Sammelstellen. */
@@ -413,6 +415,7 @@ export class World {
       this.sites.ensureArea(this, p.x - r, p.y - r, p.x + r, p.y + r);
     }
     this.enemies.update(this);
+    this.weather.update(this);
     this.community.update(this);
     this.drops.update(this);
     this.capsules.update(this);

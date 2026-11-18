@@ -185,6 +185,16 @@ wie Asphalt); gezeichnet wird die Straße aus gedrehten Querschnitts-Stücken mi
 Wracks alle 60, Masten alle 14 Felder, Alleen entlang der Kurve. Wohnhäuser haben zu 55 % einen Anbau nach hinten
 (L-Form, eigener Raum mit Durchgang); Höfe haben begehbare Bauernhäuser und Feldwege zur Straße und zum Acker.
 
+## Wetter, Jahreszeiten, Funk (Block E, `src/sim/weather.ts`, Werte `src/data/weather.ts`)
+
+Jahreszeiten zu je 7 Tagen (Frühling, Sommer, Herbst, Winter). Das Wetter wechselt alle 4–14 Spielstunden nach
+Gewichten der Jahreszeit: klar, Regen (Lärm × 0,7, Sicht der Zombies × 0,85, Regentonnen füllen sich schneller),
+Nebel (Sicht × 0,55, Reichweite von Türmen und Wachen × 0,6), Gewitter (Lärm × 0,5, Blitze), Schnee. Im Winter wachsen
+keine Beete, die Figur wird 35 % schneller hungrig, Boden und Dächer sind verschneit. Funksprüche ab Tag 2 alle 1,25
+Tage: Notruf (ein Überlebender wartet 70–200 Felder entfernt, blau blinkend auf der Karte), angekündigter Abwurf,
+Händler unterwegs, Hordenwarnung (nächste Horde × 1,5), Plünderer gesichtet (Überfall heute Nacht). Nur in der festen
+Welt; Tests und Sandkasten haben immer klares Wetter.
+
 ## Neue Aufgaben
 
 - **Plündern:** durchsucht Fundorte mit Beute im Umkreis von 90 Feldern ums Feuer (Suchzeit × 1,5), nimmt bis 16

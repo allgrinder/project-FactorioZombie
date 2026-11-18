@@ -32,7 +32,11 @@ export class NoiseSystem {
   baseLevel = 0;
 
   /** Geräusch melden; mehrere im selben Block verschmelzen zum lautesten. */
+  /** Faktor auf die Lärmweite (Wetter: Regen und Sturm übertönen). */
+  damp = 1;
+
   emit(x: number, y: number, r: number): void {
+    r *= this.damp;
     if (r <= 0) return;
     const B = NOISE.block;
     const bx = Math.floor(x / B);

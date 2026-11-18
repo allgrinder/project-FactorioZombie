@@ -102,11 +102,13 @@ export class ProducerEntity extends EntityBase {
       this.status = Status.NoInput;
       return;
     }
-    if (this.def.daylight && w.darkness > 0.5) {
+    if (this.def.daylight && (w.darkness > 0.5 || w.weather.winter)) {
       this.status = Status.Idle;
       return;
     }
     this.status = Status.Working;
+    // Regen füllt Regentonnen schneller
+    if (!this.def.daylight) this.progress += w.weather.fx.rain;
     if (++this.progress < this.totalTicks) return;
     this.progress = 0;
     if (this.input) {

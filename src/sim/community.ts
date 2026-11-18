@@ -891,7 +891,7 @@ export class Community {
     } else {
       // Ziel: nächster Zombie; nachts ohne Licht kürzer (wie Türme)
       const dark = w.isLit(k.x, k.y) ? 0 : w.darkness;
-      const range = GUARD.range * (1 - TURRET.nightPenalty * dark) * (post.tower && far < 0.6 ? GUARD.towerBonus : 1);
+      const range = GUARD.range * (1 - TURRET.nightPenalty * dark) * (post.tower && far < 0.6 ? GUARD.towerBonus : 1) * w.weather.fx.range;
       const u = w.foe(k.x, k.y, range);
       if (u) {
         k.angle = Math.atan2(u.y - k.y, u.x - k.x);

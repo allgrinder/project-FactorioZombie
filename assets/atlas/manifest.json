@@ -2780,6 +2780,15 @@
     "water.foam.14.2.7"
    ]
   },
+  "wetter": {
+   "hash": "b3bc04973b556bb4",
+   "sprites": [
+    "fx.rain",
+    "fx.snow.0",
+    "fx.snow.1",
+    "fx.snow.2"
+   ]
+  },
   "worker": {
    "hash": "f81774a69fab2c52",
    "sprites": [
@@ -5425,6 +5434,54 @@
    ],
    "w": 64,
    "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.rain": {
+   "group": "decals",
+   "frames": [
+    "fx.rain#0"
+   ],
+   "w": 8,
+   "h": 24,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.snow.0": {
+   "group": "decals",
+   "frames": [
+    "fx.snow.0#0"
+   ],
+   "w": 8,
+   "h": 8,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.snow.1": {
+   "group": "decals",
+   "frames": [
+    "fx.snow.1#0"
+   ],
+   "w": 8,
+   "h": 8,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "fx.snow.2": {
+   "group": "decals",
+   "frames": [
+    "fx.snow.2#0"
+   ],
+   "w": 8,
+   "h": 8,
    "anchor": [
     0.5,
     0.5

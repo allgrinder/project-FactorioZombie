@@ -197,7 +197,7 @@ export class EnemySystem {
     const f = this.gen(w).hordeFactor;
     if (f <= 0 || day < HORDE.firstDay) return 0;
     const big = day % HORDE.bigEvery === 0 ? HORDE.bigFactor : 1;
-    return Math.min(HORDE.maxSize, Math.round((HORDE.base + HORDE.perDay * (day - HORDE.firstDay)) * f * big));
+    return Math.min(HORDE.maxSize, Math.round((HORDE.base + HORDE.perDay * (day - HORDE.firstDay)) * f * big * w.weather.hordeBoost));
   }
 
   /** Mittelpunkt des Lagers: das Lagerfeuer, sonst Schwerpunkt der eigenen Gebäude um die Figur, sonst die Figur. */
@@ -277,10 +277,11 @@ export class EnemySystem {
     // Horde bei Einbruch der Dämmerung
     if (p && !p.dead && w.tick % DAY.ticks === Math.round(DAY.dusk * DAY.ticks)) {
       const size = this.hordeSize(w, dayNumber(w.tick));
+      w.weather.hordeBoost = 1;
       if (size > 0) this.spawnHorde(w, size);
     }
     if (this.units.size > 0) {
-      const sight = ZOMBIE.sightDay + (ZOMBIE.sightNight - ZOMBIE.sightDay) * w.darkness;
+      const sight = (ZOMBIE.sightDay + (ZOMBIE.sightNight - ZOMBIE.sightDay) * w.darkness) * w.weather.fx.sight;
       for (const u of this.units.values()) this.stepUnit(w, u, sight);
     }
     // Kadaver nach 2 min, Wracks nach 15 min entfernen (oder sobald dort neu gebaut wird)

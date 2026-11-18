@@ -6,6 +6,7 @@ import { ITEMS, ITEM_IDS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
 import { AMMO, FISTS, HAZARD, MELEE, type MeleeDef, NOISE, PLAYER_COMBAT, REPAIR, type UnitDef, WEAPONS, ZOMBIE } from '../data/enemies';
 import { CONSUMABLES, SURVIVAL, perTick } from '../data/survival';
+import { WINTER } from '../data/weather';
 import { CROWBAR_FACTOR } from '../data/scavenge';
 import { CAR } from '../data/vehicles';
 import { DAY } from '../data/time';
@@ -344,7 +345,7 @@ export class Player {
       return;
     }
     const work = this.sleeping ? 0.5 : this.walking || this.mineTarget ? S.workFactor : 1;
-    this.hunger = Math.max(0, this.hunger - perTick(S.hungerDays) * work);
+    this.hunger = Math.max(0, this.hunger - perTick(S.hungerDays) * work * (world.weather.winter ? WINTER.hunger : 1));
     this.thirst = Math.max(0, this.thirst - perTick(S.thirstDays) * work);
     if (this.sleeping) {
       this.fatigue = Math.max(0, this.fatigue - (this.inBed ? S.sleepRestBed : S.sleepRestGround));

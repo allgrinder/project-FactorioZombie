@@ -30,6 +30,12 @@ export class DropSystem {
     this.drop(w);
   }
 
+  /** Angekündigter Abwurf (Funkspruch): kommt in Kürze. */
+  announce(w: World): void {
+    this.next = Math.min(this.next < 0 ? Infinity : this.next, w.tick + 600);
+    w.player?.note('Funkspruch: „Wir werfen gleich Vorräte ab – haltet die Augen offen!“');
+  }
+
   /** Abwurf in zufälliger Richtung um die Basis; liefert die Lage oder null. */
   drop(w: World): [number, number] | null {
     const b = w.base;

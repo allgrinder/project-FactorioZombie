@@ -1,6 +1,6 @@
 import { FLOOR_BY_ID } from '../data/floors';
 import { roadPaths } from '../data/world';
-import { Application, Container, type Filter, Graphics, Texture } from 'pixi.js';
+import { Application, Container, type Filter, Graphics, Sprite, Texture } from 'pixi.js';
 import { BELT } from '../data/belt';
 import { type DrillDef, type InserterDef, type PoleDef, entityDef, sizeOf } from '../data/entities';
 import { DECOR_MIN_ZOOM_SMALL } from '../data/decor';
@@ -134,6 +134,12 @@ export class GameRenderer {
   /** Bodenbeläge (Steinpflaster, Beton …) über Boden und Decals, unter Erz und Gebäuden. */
   private readonly floorPool = new SpritePool();
   private readonly roadPool = new SpritePool();
+  /** Wetter: Partikel (Regen, Schnee), Nebel- und Blitz-Schleier (nur Darstellung). */
+  private readonly weatherPool = new SpritePool();
+  /** Schneedecke im Winter (in der Bodengruppe, unter Gebäuden). */
+  private readonly snowCover = new Sprite(Texture.WHITE);
+  private readonly weatherDrops: { x: number; y: number; s: number }[] = [];
+  private flash = 0;
   private readonly groundItems = new SpritePool();
   private decor: DecorField | null = null;
   private decorMap: unknown = null;
@@ -284,6 +290,7 @@ export class GameRenderer {
       this.decals.container,
       this.roadPool.container,
       this.floorPool.container,
+      this.snowCover,
       this.res.container,
     );
     if (lookEnabled()) {
@@ -322,6 +329,7 @@ export class GameRenderer {
       this.glow.container,
       this.fxAddPool.container,
       this.cloudPool.container,
+      this.weatherPool.container,
       this.ghostSprites.container,
       this.altBg,
       this.icons.container,
@@ -395,7 +403,71 @@ export class GameRenderer {
         this.root.filters = this.hazeOn ? [this.haze.filter, ...this.rootFilters] : this.rootFilters;
       }
     }
+    this.drawWeather(world, view);
     this.drawOverlay(world, ui);
+  }
+
+  /**
+   * Wetter: Regen- bzw. Schneepartikel über dem sichtbaren Ausschnitt, Nebelschleier, Blitze im Gewitter; im Winter
+   * ein kühler, heller Boden (Schnee).
+   */
+  private drawWeather(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const p = this.weatherPool;
+    p.begin();
+    const wk = world.weather.kind;
+    const winter = world.weather.winter;
+    this.snowCover.visible = winter;
+    if (winter) {
+      this.snowCover.tint = 0xeef2f6;
+      this.snowCover.alpha = world.weather.kind === 'snow' ? 0.55 : 0.4;
+      this.snowCover.position.set((v.x0 - 1) * TILE, (v.y0 - 1) * TILE);
+      this.snowCover.width = (v.x1 - v.x0 + 2) * TILE;
+      this.snowCover.height = (v.y1 - v.y0 + 2) * TILE;
+    }
+    const s = this.sprites;
+    const w = v.x1 - v.x0;
+    const h = v.y1 - v.y0;
+    const rain = wk === 'rain' || wk === 'storm';
+    const snow = wk === 'snow';
+    const want = rain ? (wk === 'storm' ? 420 : 260) : snow ? 220 : 0;
+    const drops = this.weatherDrops;
+    while (drops.length < want) drops.push({ x: v.x0 + Math.random() * w, y: v.y0 + Math.random() * h, s: 0.6 + Math.random() * 0.8 });
+    drops.length = want;
+    if (want && (rain ? s.has('fx.rain') : s.has('fx.snow.0'))) {
+      for (const d of drops) {
+        if (rain) {
+          d.x -= 0.05 * d.s;
+          d.y += 0.55 * d.s;
+        } else {
+          d.x += Math.sin((d.y + d.s * 10) * 0.7) * 0.02;
+          d.y += 0.05 * d.s;
+        }
+        if (d.y > v.y1 + 1) d.y -= h + 2;
+        if (d.x < v.x0 - 1) d.x += w + 2;
+        if (d.x > v.x1 + 1) d.x -= w + 2;
+        if (d.y < v.y0 - 1) d.y += h + 2;
+        const sp = p.get(s.frame(rain ? 'fx.rain' : `fx.snow.${Math.floor(d.s * 10) % 3}`));
+        sp.position.set(d.x * TILE, d.y * TILE);
+        sp.rotation = rain ? 0.09 : 0;
+        sp.alpha = rain ? 0.45 : 0.9;
+        sp.scale.set(rain ? d.s : 0.8 + d.s * 0.4);
+      }
+    }
+    // Nebel, Regenschleier, Blitz
+    const veil = wk === 'fog' ? 0.38 : wk === 'storm' ? 0.16 : wk === 'rain' ? 0.1 : wk === 'snow' ? 0.08 : 0;
+    if (wk === 'storm' && Math.random() < 0.004) this.flash = 0.55;
+    this.flash *= 0.9;
+    for (const [a, tint] of [[veil, wk === 'fog' ? 0xc8ccd0 : 0x6a7280], [this.flash, 0xffffff]] as const) {
+      if (a < 0.01) continue;
+      const sp = p.get(Texture.WHITE);
+      sp.anchor.set(0);
+      sp.tint = tint;
+      sp.alpha = a;
+      sp.position.set((v.x0 - 1) * TILE, (v.y0 - 1) * TILE);
+      sp.width = (w + 2) * TILE;
+      sp.height = (h + 2) * TILE;
+    }
+    p.end();
   }
 
   // ------------------------------------------------------------------ Boden
@@ -1304,6 +1376,7 @@ export class GameRenderer {
           sp.position.set(ccx + (i + 0.5 - h.w / 2) * TILE * sx, ccy + (j + 0.5 - h.h / 2) * TILE * sy);
           sp.scale.set(sx * 1.02, sy * 1.02);
           sp.alpha = a;
+          if (world.weather.winter) sp.tint = 0xe2e7ee;
           sp.zIndex = (h.y + h.h) * TILE - 2;
         }
       }

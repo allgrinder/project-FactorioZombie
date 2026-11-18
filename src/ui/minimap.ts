@@ -218,6 +218,16 @@ export class Minimap {
       }
       ctx.textAlign = 'start';
     }
+    // Notrufe (Funk): blau blinkend
+    if (Math.floor(performance.now() / 400) % 2 === 0) {
+      ctx.strokeStyle = '#8ab8ff';
+      ctx.lineWidth = 2;
+      for (const b of world.weather.beacons) {
+        ctx.beginPath();
+        ctx.arc(toX(b.x), toY(b.y), 6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
     // begehbare Häuser (Dachfarbe)
     for (const h of world.sites.houses) {
       if (h.x + h.w < x0 || h.y + h.h < y0 || h.x > x1 || h.y > y1 || !charted(h.x, h.y)) continue;
