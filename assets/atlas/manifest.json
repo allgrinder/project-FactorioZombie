@@ -1348,6 +1348,37 @@
     "flora.bare.7.shadow"
    ]
   },
+  "jahreszeit2": {
+   "hash": "56119de4741da907",
+   "sprites": [
+    "flora.blossom.0",
+    "flora.blossom.0.shadow",
+    "flora.blossom.1",
+    "flora.blossom.1.shadow",
+    "flora.blossom.2",
+    "flora.blossom.2.shadow",
+    "flora.blossom.3",
+    "flora.blossom.3.shadow",
+    "flora.blossom.4",
+    "flora.blossom.4.shadow",
+    "flora.autumnshrub.0",
+    "flora.autumnshrub.0.shadow",
+    "flora.bareshrub.0",
+    "flora.bareshrub.0.shadow",
+    "flora.autumnshrub.1",
+    "flora.autumnshrub.1.shadow",
+    "flora.bareshrub.1",
+    "flora.bareshrub.1.shadow",
+    "flora.autumnshrub.2",
+    "flora.autumnshrub.2.shadow",
+    "flora.bareshrub.2",
+    "flora.bareshrub.2.shadow",
+    "flora.autumnshrub.3",
+    "flora.autumnshrub.3.shadow",
+    "flora.bareshrub.3",
+    "flora.bareshrub.3.shadow"
+   ]
+  },
   "kapseln": {
    "hash": "6ca16d88b2248582",
    "sprites": [
@@ -3382,6 +3413,10 @@
   {
    "group": "flora",
    "file": "atlas-flora-7.json"
+  },
+  {
+   "group": "flora",
+   "file": "atlas-flora-8.json"
   },
   {
    "group": "items",
@@ -20972,6 +21007,102 @@
     "scale": 2
    }
   },
+  "flora.autumnshrub.0": {
+   "group": "flora",
+   "frames": [
+    "flora.autumnshrub.0#0"
+   ],
+   "w": 192,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.5848076211353315
+   ]
+  },
+  "flora.autumnshrub.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.autumnshrub.0.shadow#0"
+   ],
+   "w": 448,
+   "h": 448,
+   "anchor": [
+    0.21428571428571427,
+    0.21428571428571427
+   ]
+  },
+  "flora.autumnshrub.1": {
+   "group": "flora",
+   "frames": [
+    "flora.autumnshrub.1#0"
+   ],
+   "w": 224,
+   "h": 288,
+   "anchor": [
+    0.4571428571428572,
+    0.5677112307509448
+   ]
+  },
+  "flora.autumnshrub.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.autumnshrub.1.shadow#0"
+   ],
+   "w": 448,
+   "h": 480,
+   "anchor": [
+    0.2285714285714286,
+    0.21333333333333335
+   ]
+  },
+  "flora.autumnshrub.2": {
+   "group": "flora",
+   "frames": [
+    "flora.autumnshrub.2#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.43333333333333335,
+    0.597606774342517
+   ]
+  },
+  "flora.autumnshrub.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.autumnshrub.2.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.23636363636363636,
+    0.23636363636363636
+   ]
+  },
+  "flora.autumnshrub.3": {
+   "group": "flora",
+   "frames": [
+    "flora.autumnshrub.3#0"
+   ],
+   "w": 192,
+   "h": 224,
+   "anchor": [
+    0.4666666666666666,
+    0.5573015285561468
+   ]
+  },
+  "flora.autumnshrub.3.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.autumnshrub.3.shadow#0"
+   ],
+   "w": 384,
+   "h": 384,
+   "anchor": [
+    0.2333333333333333,
+    0.2333333333333333
+   ]
+  },
   "flora.bare.0": {
    "group": "flora",
    "frames": [
@@ -21183,6 +21314,237 @@
    "anchor": [
     0.18888888888888888,
     0.17
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "flora.bareshrub.0": {
+   "group": "flora",
+   "frames": [
+    "flora.bareshrub.0#0"
+   ],
+   "w": 192,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.5848076211353315
+   ]
+  },
+  "flora.bareshrub.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.bareshrub.0.shadow#0"
+   ],
+   "w": 448,
+   "h": 448,
+   "anchor": [
+    0.21428571428571427,
+    0.21428571428571427
+   ]
+  },
+  "flora.bareshrub.1": {
+   "group": "flora",
+   "frames": [
+    "flora.bareshrub.1#0"
+   ],
+   "w": 224,
+   "h": 288,
+   "anchor": [
+    0.4571428571428572,
+    0.5677112307509448
+   ]
+  },
+  "flora.bareshrub.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.bareshrub.1.shadow#0"
+   ],
+   "w": 448,
+   "h": 480,
+   "anchor": [
+    0.2285714285714286,
+    0.21333333333333335
+   ]
+  },
+  "flora.bareshrub.2": {
+   "group": "flora",
+   "frames": [
+    "flora.bareshrub.2#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.43333333333333335,
+    0.597606774342517
+   ]
+  },
+  "flora.bareshrub.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.bareshrub.2.shadow#0"
+   ],
+   "w": 352,
+   "h": 352,
+   "anchor": [
+    0.23636363636363636,
+    0.23636363636363636
+   ]
+  },
+  "flora.bareshrub.3": {
+   "group": "flora",
+   "frames": [
+    "flora.bareshrub.3#0"
+   ],
+   "w": 192,
+   "h": 224,
+   "anchor": [
+    0.4666666666666666,
+    0.5573015285561468
+   ]
+  },
+  "flora.bareshrub.3.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.bareshrub.3.shadow#0"
+   ],
+   "w": 384,
+   "h": 384,
+   "anchor": [
+    0.2333333333333333,
+    0.2333333333333333
+   ]
+  },
+  "flora.blossom.0": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.0#0"
+   ],
+   "w": 320,
+   "h": 480,
+   "anchor": [
+    0.48,
+    0.6320454912579138
+   ]
+  },
+  "flora.blossom.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.0.shadow#0"
+   ],
+   "w": 368,
+   "h": 416,
+   "anchor": [
+    0.20869565217391303,
+    0.1846153846153846
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "flora.blossom.1": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.1#0"
+   ],
+   "w": 288,
+   "h": 416,
+   "anchor": [
+    0.48888888888888893,
+    0.6629847810397697
+   ]
+  },
+  "flora.blossom.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.1.shadow#0"
+   ],
+   "w": 336,
+   "h": 368,
+   "anchor": [
+    0.20952380952380953,
+    0.19130434782608696
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "flora.blossom.2": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.2#0"
+   ],
+   "w": 288,
+   "h": 480,
+   "anchor": [
+    0.4666666666666667,
+    0.669025527149864
+   ]
+  },
+  "flora.blossom.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.2.shadow#0"
+   ],
+   "w": 368,
+   "h": 416,
+   "anchor": [
+    0.1826086956521739,
+    0.16153846153846155
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "flora.blossom.3": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.3#0"
+   ],
+   "w": 320,
+   "h": 512,
+   "anchor": [
+    0.5,
+    0.691645188432738
+   ]
+  },
+  "flora.blossom.3.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.3.shadow#0"
+   ],
+   "w": 416,
+   "h": 464,
+   "anchor": [
+    0.19230769230769232,
+    0.1724137931034483
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "flora.blossom.4": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.4#0"
+   ],
+   "w": 352,
+   "h": 512,
+   "anchor": [
+    0.4727272727272727,
+    0.6608439182435161
+   ]
+  },
+  "flora.blossom.4.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.blossom.4.shadow#0"
+   ],
+   "w": 416,
+   "h": 432,
+   "anchor": [
+    0.2,
+    0.1925925925925926
    ],
    "meta": {
     "scale": 2

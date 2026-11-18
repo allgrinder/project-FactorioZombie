@@ -973,6 +973,8 @@ export class GameRenderer {
             const sh = this.shadows.get(s.frame(`${name}.shadow`));
             sh.position.set(t.x * TILE, t.y * TILE);
             sh.scale.set(s.info(`${name}.shadow`)?.meta?.scale ?? 1);
+            // kahle Bäume werfen nur lichte Schatten
+            if (name.startsWith('flora.bare') || t.kind === 2) sh.alpha = 0.45;
           }
           const sp = this.ents.get(s.frame(name));
           sp.position.set(t.x * TILE, t.y * TILE);
