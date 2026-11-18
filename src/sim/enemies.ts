@@ -298,7 +298,7 @@ export class EnemySystem {
     const p = p0 && !p0.dead && !p0.god ? p0 : null;
     const pd = p ? Math.hypot(p.x - u.x, p.y - u.y) : Infinity;
     // weit entfernte, ruhende Zombies schlafen (außer Sammler sind in der Nähe)
-    if (u.mode === 'idle' && pd > ZOMBIE.sleepDistance && !w.scavengers.nearest(u.x, u.y, ZOMBIE.sightDay * 2)) return;
+    if (u.mode === 'idle' && pd > ZOMBIE.sleepDistance && !w.community.nearest(u.x, u.y, ZOMBIE.sightDay * 2)) return;
     if (u.cd > 0) u.cd--;
     if (u.stun > 0) {
       u.stun--;
@@ -310,7 +310,7 @@ export class EnemySystem {
         if (u.mode !== 'chase') this.startChase(w, u);
         u.prey = 0;
       } else if (u.mode !== 'chase') {
-        const k = w.scavengers.nearest(u.x, u.y, sight);
+        const k = w.community.nearest(u.x, u.y, sight);
         if (k) {
           this.startChase(w, u);
           u.prey = k.id;
@@ -378,8 +378,8 @@ export class EnemySystem {
 
   /** Verfolgung eines Sammlers: direkt hinterher, Hindernisse einreißen; ist er daheim oder fort, nachsehen. */
   private stepChaseWorker(w: World, u: Unit, def: (typeof UNITS)[UnitKind], sight: number): void {
-    const k = w.scavengers.get(u.prey);
-    if (!k || k.state === 'home') {
+    const k = w.community.get(u.prey);
+    if (!k || k.state === 'wait') {
       u.prey = 0;
       u.mode = 'investigate';
       u.target = null;
@@ -401,7 +401,7 @@ export class EnemySystem {
       u.phase = 0;
       u.angle = Math.atan2(k.y - u.y, k.x - u.x);
       if (u.cd === 0) {
-        w.scavengers.hurt(w, k, def.damage);
+        w.community.hurt(w, k, def.damage);
         u.cd = def.cooldown;
       }
       return;

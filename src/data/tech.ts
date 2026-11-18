@@ -88,7 +88,7 @@ const RAW_TECHS: readonly TechDef[] = [
   },
   // Verteidigung
   { id: 'stone-wall', name: 'Befestigung', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['stone-wall', 'gate', 'barbed-wire', 'iron-stick'] },
-  { id: 'scavengers', name: 'Sammeltrupps', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['scavenger-camp', 'scavenger-kit'] },
+  { id: 'scavengers', name: 'Vorratslager', count: 10, time: 10, packs: RED, prerequisites: ['automation-science-pack'], unlocks: ['scavenger-camp'] },
   { id: 'watchtower', name: 'Wachturm', count: 20, time: 10, packs: RED, prerequisites: ['military', 'stone-wall'], unlocks: ['watchtower'] },
   { id: 'floodlight', name: 'Scheinwerfer', count: 30, time: 15, packs: RED_GREEN, prerequisites: ['lamp', 'logistic-science-pack'], unlocks: ['floodlight'] },
   { id: 'traps', name: 'Fallen und Köder', count: 20, time: 10, packs: RED, prerequisites: ['stone-wall'], unlocks: ['spike-trap', 'noise-lure'] },

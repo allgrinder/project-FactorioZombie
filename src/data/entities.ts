@@ -305,7 +305,7 @@ export interface FireDef extends EntityBase {
   readonly base?: boolean;
 }
 
-/** Sammelstelle: schickt Sammler zu Schrotthaufen im Umkreis (src/sim/scavengers.ts). */
+/** Vorratslager der Gemeinschaft: Sammler liefern hier ab, Bewohner essen daraus (src/sim/community.ts). */
 export interface CampDef extends EntityBase {
   readonly kind: 'camp';
   /** Lagerplätze für die Ausbeute. */
@@ -785,7 +785,7 @@ const list: EntityDef[] = [
     item: 'watchtower', mineTime: 0.6, solid: true, rotatable: false, ammoFill: 10, range: 24, cooldown: 45, damageFactor: 2.6, noise: 28,
   },
   {
-    kind: 'camp', id: 'scavenger-camp', name: 'Sammelstelle', width: 3, height: 3, health: 400,
+    kind: 'camp', id: 'scavenger-camp', name: 'Vorratslager', width: 3, height: 3, health: 400,
     item: 'scavenger-camp', mineTime: 0.6, solid: true, rotatable: false, slots: 24, workers: 3, radius: 80,
   },
   // Requisiten der alten Welt (Abbau liefert item × itemCount)

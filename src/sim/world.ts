@@ -6,7 +6,7 @@ import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import { EnemySystem } from './enemies';
 import { NoiseSystem } from './noise';
 import { SiteSystem } from './sites';
-import { ScavengerSystem } from './scavengers';
+import { Community } from './community';
 import { DropSystem } from './drops';
 import { CarSystem } from './cars';
 import { ChartSystem } from './chart';
@@ -77,7 +77,7 @@ export class World {
   /** Fundorte der alten Welt (Dörfer, Wracks). */
   readonly sites = new SiteSystem();
   /** Sammeltrupps der Sammelstellen. */
-  readonly scavengers = new ScavengerSystem();
+  readonly community = new Community();
   /** Versorgungsabwürfe. */
   readonly drops = new DropSystem();
   /** Fahrzeuge (Pritschenwagen). */
@@ -409,7 +409,7 @@ export class World {
       this.sites.ensureArea(this, p.x - r, p.y - r, p.x + r, p.y + r);
     }
     this.enemies.update(this);
-    this.scavengers.update(this);
+    this.community.update(this);
     this.drops.update(this);
     this.capsules.update(this);
     this.player?.update(this);

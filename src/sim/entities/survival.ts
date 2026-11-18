@@ -288,36 +288,30 @@ export class FireEntity extends EntityBase {
 export const isScavengerFood = (item: string): boolean => (CONSUMABLES[item]?.hunger ?? 0) > 0;
 
 /**
- * Sammelstelle: Je Sammler-Ausrüstung im Ausrüstungsfach zieht ein Sammler los (src/sim/scavengers.ts). Jeder Gang
- * kostet ein Stück Verpflegung (ohne Bedürfnisse frei). Die Ausbeute landet im Lager; Greifarme entnehmen sie.
+ * Vorratslager der Gemeinschaft (src/sim/community.ts): Sammler und Gärtner liefern hier ab, die Bewohner essen
+ * morgens aus dem Fach „Verpflegung“, Wachen nehmen Magazine, Sanitäter Verbände aus der Ausbeute. Greifarme legen
+ * Essen hinein und entnehmen die Ausbeute.
  */
 export class CampEntity extends EntityBase {
   readonly kind = 'camp' as const;
   declare readonly def: CampDef;
-  readonly kits: Inventory;
   readonly food: Inventory;
   readonly store: Inventory;
   constructor(id: number, name: string, x: number, y: number, dir: Dir) {
     super(id, name, x, y, dir);
-    this.kits = new Inventory(1, (it) => it === 'scavenger-kit');
-    this.food = new Inventory(2, isScavengerFood);
+    this.food = new Inventory(4, isScavengerFood);
     this.store = new Inventory(this.def.slots);
   }
-  /** Sammler, die diese Stelle stellen kann. */
-  get crew(): number {
-    return Math.min(this.def.workers, this.kits.count('scavenger-kit'));
-  }
   override update(w: World): void {
-    const out = w.scavengers.workersOf(this.id).length;
-    this.status = this.crew === 0 ? Status.NoInput : out > 0 ? Status.Working : Status.Idle;
+    const n = w.community.residents.length;
+    this.status = n === 0 ? Status.Idle : this.food.isEmpty() && w.settings.needs ? Status.NoInput : Status.Working;
   }
   override acceptAmount(item: string, mode: InsertMode): number {
-    if (item === 'scavenger-kit') return mode === 'inserter' ? 0 : Math.min(this.kits.space(item), this.def.workers - this.kits.count(item));
     if (isScavengerFood(item)) return this.food.space(item);
-    return 0;
+    return mode === 'inserter' ? 0 : this.store.space(item);
   }
   protected override doInsert(item: string, n: number): number {
-    return item === 'scavenger-kit' ? this.kits.add(item, n) : this.food.add(item, n);
+    return isScavengerFood(item) ? this.food.add(item, n) : this.store.add(item, n);
   }
   override take(_w: World, accept: (item: string) => boolean): string | null {
     for (let i = this.store.slots.length - 1; i >= 0; i--) {
@@ -331,19 +325,15 @@ export class CampEntity extends EntityBase {
     return null;
   }
   override contents(): Stack[] {
-    return invContents(this.kits, this.food, this.store);
+    return invContents(this.food, this.store);
   }
   override guiSlots(): GuiSlots[] {
-    return [{ label: 'Sammler-Ausrüstung', inv: this.kits }, { label: 'Verpflegung', inv: this.food }, { label: 'Ausbeute', inv: this.store }];
-  }
-  override onRemoved(w: World): void {
-    w.scavengers.recall(w, this.id);
+    return [{ label: 'Verpflegung (morgens isst jeder Bewohner eins)', inv: this.food }, { label: 'Vorrat', inv: this.store }];
   }
   override save() {
-    return { k: this.kits.serialize(), f: this.food.serialize(), s: this.store.serialize() };
+    return { f: this.food.serialize(), s: this.store.serialize() };
   }
   override load(d: Record<string, unknown>): void {
-    this.kits.load(d.k as InvData);
     this.food.load(d.f as InvData);
     this.store.load(d.s as InvData);
   }

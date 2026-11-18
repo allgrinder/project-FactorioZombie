@@ -20,7 +20,10 @@ import { AdvancedBloomFilter } from 'pixi-filters';
 import type { GameEvent } from '../sim/events';
 import { PLAYER_COMBAT, UNITS, type UnitKind } from '../data/enemies';
 import { DROPS } from '../data/loot';
-import { SCAVENGER, SURVIVOR } from '../data/scavenge';
+import { COMMUNITY, type Job, JOBS, SURVIVOR } from '../data/scavenge';
+
+/** Kleidung je Aufgabe (Tönung der Arbeiterfigur). */
+const JOB_TINT: Record<Job, number> = { scavenge: 0xffffff, guard: 0x9fb0c8, farm: 0xd8e8a8, repair: 0xf0d098, medic: 0xf4eeee, rest: 0xc8c0b8 };
 
 /** Ersatzfarben der Zombies, solange die Sprites fehlen (Kreise in drawCombat). */
 const ZOMBIE_COLOR: Record<UnitKind, number> = { walker: 0x6f7f4a, runner: 0x9a6a3a, brute: 0x4a5a3a, screamer: 0x8a4a6a };
@@ -1514,30 +1517,34 @@ export class GameRenderer {
     }
   }
 
-  /** Sammler: Figur in Arbeitskleidung (getönt), mit Last über dem Kopf; daheim unsichtbar. */
+  /** Bewohner und Überlebende: Figur in Arbeitskleidung, Farbe je Aufgabe, Aufgabensymbol bzw. Last über dem Kopf. */
   private drawWorkers(world: World, v: ReturnType<GameRenderer['viewRect']>, alpha: number): void {
     const s = this.sprites;
     if (!s.has('player.walk.0')) return;
     const t = world.tick + alpha;
-    for (const k of world.scavengers.workers) {
-      if (k.state === 'home' || k.x < v.x0 - 2 || k.x > v.x1 + 2 || k.y < v.y0 - 2 || k.y > v.y1 + 3) continue;
+    for (const k of world.community.workers) {
+      if (k.x < v.x0 - 2 || k.x > v.x1 + 2 || k.y < v.y0 - 2 || k.y > v.y1 + 3) continue;
       const dir = (Math.round((k.angle + Math.PI / 2) / (Math.PI / 4)) + 8) % 8;
       const base = s.has('worker.walk.0') ? 'worker' : 'player';
-      const tex = k.state === 'gather' ? s.frame(`${base}.mine.${dir}`, Math.floor(t / 7.5)) : s.frame(`${base}.walk.${dir}`, Math.floor(k.phase * 6));
+      const busy = k.state === 'gather' || (k.state === 'work' && k.job !== 'medic') || (k.job === 'guard' && t - k.shot < 14);
+      const tex = busy ? s.frame(`${base}.mine.${dir}`, Math.floor(t / 7.5)) : s.frame(`${base}.walk.${dir}`, Math.floor(k.phase * 6));
       const sp = this.ents.get(tex);
       sp.position.set(k.x * TILE, k.y * TILE);
       sp.scale.set(0.92);
       if (base === 'player') sp.tint = 0xb8c8a0;
       // Überlebende: andere Kleidung (getönt), wartend mit Winken
-      if (k.camp === 0) {
+      if (!k.resident) {
         sp.tint = 0xa8bce0;
         if (k.state === 'wait') sp.rotation = Math.sin(t / 15 + k.id) * 0.05;
-      }
+      } else sp.tint = JOB_TINT[k.job];
       sp.zIndex = k.y * TILE;
-      if (k.cargo.length) {
-        const it = this.ents.get(s.frame(`item.${k.cargo[k.cargo.length - 1]}`));
+      // Last bzw. Aufgabensymbol (klein) über dem Kopf
+      const icon = k.cargo.length ? k.cargo[k.cargo.length - 1] : k.resident ? JOBS[k.job].icon : null;
+      if (icon && s.has(`item.${icon}`)) {
+        const it = this.ents.get(s.frame(`item.${icon}`));
         it.position.set(k.x * TILE, (k.y - 0.95) * TILE);
-        it.scale.set(0.32);
+        it.scale.set(k.cargo.length ? 0.32 : 0.22);
+        it.alpha = k.cargo.length ? 1 : 0.85;
         it.zIndex = k.y * TILE + 1;
       }
     }
@@ -1820,9 +1827,9 @@ export class GameRenderer {
         shot(e.cx + Math.cos(e.angle) * 1.1, e.cy - 0.35 + Math.sin(e.angle) * 1.1, e.shotX, e.shotY);
       }
     }
-    for (const k of world.scavengers.workers) {
-      const max = k.camp === 0 ? SURVIVOR.health : SCAVENGER.health;
-      if (k.state !== 'home' && k.hp < max) bar(k.x - 0.3, k.y + 0.3, 0.6, k.hp / max);
+    for (const k of world.community.workers) {
+      const max = k.resident ? COMMUNITY.health : SURVIVOR.health;
+      if (k.hp < max) bar(k.x - 0.3, k.y + 0.3, 0.6, k.hp / max);
     }
     for (const u of world.enemies.units.values()) {
       if (u.x < v.x0 || u.x > v.x1 || u.y < v.y0 || u.y > v.y1) continue;

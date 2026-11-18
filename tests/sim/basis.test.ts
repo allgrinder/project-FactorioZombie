@@ -1,10 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { DROPS } from '../../src/data/loot';
 import { LEGACY_MAP_SETTINGS } from '../../src/data/mapgen';
-import { SCAVENGER } from '../../src/data/scavenge';
 import { DAY } from '../../src/data/time';
 import { TURRET, UNITS } from '../../src/data/enemies';
-import type { CampEntity, FireEntity, PileEntity, TurretEntity } from '../../src/sim/machines';
+import type { FireEntity, TurretEntity } from '../../src/sim/machines';
 import { Player } from '../../src/sim/player';
 import { deserializeWorld, serializeWorld } from '../../src/sim/serialize';
 import { Status } from '../../src/sim/entity';
@@ -19,105 +18,6 @@ function arena(settings = {}): World {
   w.map.clearTrees(-70, -70, 70, 70);
   return w;
 }
-
-function camp(w: World, x = 0, y = 0, kits = 1, food = 10): CampEntity {
-  const c = w.place('scavenger-camp', x, y, 0) as CampEntity;
-  c.insert('scavenger-kit', kits, 'player');
-  c.insert('canned-food', food, 'player');
-  return c;
-}
-
-describe('Sammeltrupps', () => {
-  it('Sammler holt Schrott vom nächsten Haufen und bringt ihn heim; jeder Gang kostet Verpflegung', () => {
-    const w = arena();
-    const c = camp(w);
-    const pile = w.place('scrap-pile', 20, 1, 0) as PileEntity;
-    const amount = pile.amount;
-    w.run(60);
-    expect(w.scavengers.workersOf(c.id).length).toBe(1);
-    w.run(60 * 70);
-    const got = c.store.contents().reduce((a, s) => a + s.count, 0);
-    expect(got).toBeGreaterThanOrEqual(SCAVENGER.capacity);
-    expect(pile.amount).toBe(amount - got - w.scavengers.workers[0].cargo.length);
-    expect(c.food.count('canned-food')).toBeLessThan(10);
-    // Greifarme entnehmen die Ausbeute
-    expect(c.take(w, () => true)).toBeTruthy();
-  });
-
-  it('ohne Verpflegung (mit Bedürfnissen) bleibt er daheim; ohne Haufen im Umkreis auch', () => {
-    const w = arena();
-    const c = camp(w, 0, 0, 1, 0);
-    w.place('scrap-pile', 20, 1, 0);
-    w.run(60 * 20);
-    expect(w.scavengers.workers[0].state).toBe('home');
-    const w2 = arena();
-    const c2 = camp(w2);
-    w2.place('scrap-pile', 200, 1, 0);
-    w2.run(60 * 20);
-    expect(w2.scavengers.workersOf(c2.id)[0].state).toBe('home');
-    void c;
-  });
-
-  it('läuft um Mauern herum und durch das Tor', () => {
-    const w = arena();
-    const c = camp(w);
-    // Mauerring um die Sammelstelle, Tor im Osten
-    for (let i = -3; i <= 5; i++) {
-      w.place('stone-wall', i, -3, 0);
-      w.place('stone-wall', i, 5, 0);
-      w.place('stone-wall', -3, i, 0);
-      w.place(i === 1 ? 'gate' : 'stone-wall', 5, i, 0);
-    }
-    const pile = w.place('scrap-pile', -20, 1, 0) as PileEntity;
-    const before = pile.amount;
-    w.run(60 * 90);
-    expect(pile.amount).toBeLessThan(before);
-    expect(c.store.contents().length).toBeGreaterThan(0);
-  });
-
-  it('Zombies jagen Sammler; der Sammler flieht, stirbt er, liegt die Last am Boden und die Ausrüstung ist weg', () => {
-    const w = arena();
-    camp(w);
-    w.place('scrap-pile', 30, 1, 0);
-    w.run(60 * 9);
-    const k = w.scavengers.workers[0];
-    expect(k.state === 'out' || k.state === 'gather').toBe(true);
-    for (let i = 0; i < 4; i++) w.enemies.spawnAt(k.x + 5 + i * 0.4, k.y + 1 + (i % 2), 'runner');
-    let fled = false;
-    let hunted = false;
-    for (let t = 0; t < 60 * 30; t++) {
-      w.step();
-      fled ||= k.flee;
-      hunted ||= [...w.enemies.units.values()].some((u) => u.prey === k.id);
-    }
-    expect(fled).toBe(true);
-    expect(hunted).toBe(true);
-    // Sammler totschlagen: Last fällt zu Boden, Ausrüstung weg
-    const w2 = arena();
-    const c2 = camp(w2);
-    w2.place('scrap-pile', 30, 1, 0);
-    w2.run(60 * 20);
-    const k2 = w2.scavengers.workers[0];
-    k2.cargo.push('iron-ore', 'iron-ore');
-    w2.scavengers.hurt(w2, k2, 999);
-    expect(w2.scavengers.workers.includes(k2)).toBe(false);
-    expect(c2.kits.count('scavenger-kit')).toBe(0);
-    expect(w2.ground.size).toBeGreaterThan(0);
-  });
-
-  it('Speichern und Laden mitten im Gang läuft gleich weiter', () => {
-    const w = arena();
-    camp(w, 0, 0, 2);
-    w.place('scrap-pile', 18, 4, 0);
-    w.place('parts-pile', -16, -6, 0);
-    w.enemies.spawnAt(40, 40, 'walker');
-    w.run(60 * 12 + 7);
-    const b = deserializeWorld(JSON.parse(JSON.stringify(serializeWorld(w))));
-    w.run(900);
-    b.run(900);
-    expect(JSON.stringify(serializeWorld(b))).toBe(JSON.stringify(serializeWorld(w)));
-  });
-});
 
 describe('Basis', () => {
   it('Lagerfeuer brennt nachts mit Holz, leuchtet, ist die Mitte der Basis und Ziel der Horden', () => {
@@ -215,27 +115,28 @@ describe('Versorgungsabwürfe', () => {
 });
 
 describe('Überlebende', () => {
-  it('wartet sicher, folgt der Figur, wird am Lagerfeuer Sammler der Sammelstelle', () => {
+  it('wartet sicher, folgt der Figur, wird am Lagerfeuer Bewohner mit der Aufgabe seines früheren Berufs', () => {
     const w = arena({ enemies: 'aus' });
     const p = new Player(0.5, 0.5);
     w.player = p;
     const fire = w.place('campfire', -2, -6, 0)!;
-    const c = w.place('scavenger-camp', 4, -8, 0) as CampEntity;
-    const s = w.scavengers.addSurvivor(30.5, 0.5);
+    const s = w.community.addSurvivor(30.5, 0.5, 7);
     w.run(30);
     expect(s.state).toBe('wait');
-    expect(w.scavengers.nearest(s.x, s.y, 5)).toBeNull(); // wartend: Zombies sehen ihn nicht
+    expect(w.community.nearest(s.x, s.y, 5)).toBeNull(); // wartend: Zombies sehen ihn nicht
     p.px = Math.round(29 * 256);
     w.run(2);
     expect(s.state).toBe('follow');
     // Figur geht heim, der Überlebende folgt
-    for (let i = 0; i < 60 * 20 && w.scavengers.survivors.length; i++) {
+    for (let i = 0; i < 60 * 20 && w.community.survivors.length; i++) {
       p.moveX = p.x > fire.cx + 2 ? -1 : 0;
       p.moveY = p.y > fire.cy + 3 ? -1 : 0;
       w.step();
     }
-    expect(w.scavengers.survivors.length).toBe(0);
-    expect(c.kits.count('scavenger-kit')).toBe(1);
+    expect(w.community.survivors.length).toBe(0);
+    expect(s.resident).toBe(true);
+    expect(s.job).toBe(s.skill);
+    expect(w.community.residents).toContain(s);
     expect(w.stats.totalMade.get('rescue.survivor') ?? 0).toBe(0); // Sekundenstatistik
     w.run(61);
     expect(w.stats.totalMade.get('rescue.survivor')).toBe(1);
@@ -250,6 +151,6 @@ describe('Überlebende', () => {
     w.player.px = t.x * 256;
     w.player.py = t.y * 256;
     w.step();
-    expect(w.scavengers.survivors.filter((k) => Math.hypot(k.x - t.x, k.y - t.y) < 60).length).toBe(2);
+    expect(w.community.survivors.filter((k) => Math.hypot(k.x - t.x, k.y - t.y) < 60).length).toBe(2);
   });
 });

@@ -20,6 +20,7 @@ import type { Tree } from '../sim/trees';
 import type { World } from '../sim/world';
 import { Hud } from '../ui/hud';
 import { WORLD } from '../data/world';
+import { JOBS } from '../data/scavenge';
 import { Input } from './input';
 import type { Scene } from './scenes';
 
@@ -380,6 +381,7 @@ export class Game {
       case 'f3': this.hud.toggleDebug(); break;
       case 'p': this.hud.toggleStats(); break;
       case 'j': this.hud.toggleHandbook(); break;
+      case 'k': this.hud.toggleCommunity(); break;
       case 'o': this.hud.togglePower(); break;
       case '+': case '=': this.floorBrush = Math.min(FLOOR.brushMax, this.floorBrush + 1); break;
       case '-': this.floorBrush = Math.max(FLOOR.brushMin, this.floorBrush - 1); break;
@@ -748,6 +750,8 @@ export class Game {
       else if (target && target.name === 'pickup-wreck' && p) {
         const err = this.world.cars.repair(this.world, target, p);
         if (err) p.note(err);
+      } else if (!target && this.world.community.at(at.x, at.y, 0.8)?.resident) {
+        this.hud.toggleCommunity(true);
       } else if (!target && p && this.world.cars.near(at.x, at.y, 1.6)) {
         this.hud.openCar(this.world.cars.near(at.x, at.y, 1.6)!.id);
       } else if (target && target.kind === 'loot' && !target.searched) {
@@ -1026,7 +1030,7 @@ export class Game {
       return `Defekter Pritschenwagen – Klick: reparieren${miss.length ? ` (fehlt: ${miss.map((x) => `${x.amount}× ${ITEMS[x.item]?.name ?? x.item}`).join(', ')})` : ' (alles dabei!)'}`;
     }
     if (e?.kind === 'pile') return `${e.def.name} – noch ${e.amount} Stück · Rechtsklick halten: ausschlachten${this.world.player?.inventory.count('crowbar') ? ' (Brecheisen: schneller)' : ''}`;
-    if (e?.kind === 'camp') return `Sammelstelle – ${this.world.scavengers.workersOf(e.id).length} Sammler · Umkreis ${e.def.radius} Felder · Klick: öffnen`;
+    if (e?.kind === 'camp') return `Vorratslager – ${this.world.community.residents.length} Bewohner · Sammler suchen im Umkreis von ${e.def.radius} Feldern · Klick: öffnen`;
     if (e?.kind === 'fire') return `${e.def.name}${e.def.base ? ' (Mitte der Basis)' : ''} – ${e.lit ? 'brennt' : 'aus'} · brennt nachts mit Holz oder Kohle`;
     if (e?.kind === 'loot') {
       return `${e.def.name} – ${e.searched ? (e.inventory.isEmpty() ? 'leer' : 'durchsucht (Klick: öffnen)') : 'Klick: durchsuchen'} · Rechtsklick halten: ausschlachten`;
@@ -1034,9 +1038,9 @@ export class Game {
     if (e) return entityDef(e.name).name + this.fluidHover(e);
     const car = this.world.cars.near(m.x, m.y, 1.4);
     if (car) return `Pritschenwagen – ${this.world.cars.driving === car.id ? `${Math.round(car.speed * 60 * 3.6)} km/h` : 'Klick: Tank und Ladefläche · V: einsteigen'} · Zustand ${Math.round((car.hp / 600) * 100)} %`;
-    const wk = this.world.scavengers.nearest(m.x, m.y, 0.7);
-    if (wk && wk.camp === 0) return `Überlebender – ${wk.state === 'wait' ? 'wartet auf Hilfe (hingehen)' : 'folgt dir zum Lagerfeuer'} · Leben ${Math.ceil(wk.hp)}`;
-    if (wk) return `Sammler – ${wk.state === 'gather' ? 'sammelt' : wk.flee ? 'auf der Flucht' : wk.state === 'back' ? 'auf dem Heimweg' : 'unterwegs'} · ${wk.cargo.length} Stück · Leben ${Math.ceil(wk.hp)}`;
+    const wk = this.world.community.at(m.x, m.y, 0.8);
+    if (wk && !wk.resident) return `${wk.name} (früher: ${JOBS[wk.skill].past}) – ${this.world.community.doing(wk)}${wk.state === 'wait' ? ' (hingehen)' : ''} · Leben ${Math.ceil(wk.hp)}`;
+    if (wk) return `${wk.name} – ${JOBS[wk.job].name}${wk.skill === wk.job ? ' (gelernt)' : ''}: ${this.world.community.doing(wk)}${wk.hunger ? ' · hungrig' : ''} · Leben ${Math.ceil(wk.hp)} · K: Gemeinschaft`;
     const z = this.world.enemies.nearestTarget(m.x, m.y, 0.6, this.world.tick);
     if (z) {
       const u = this.world.enemies.units.get(z.id)!;

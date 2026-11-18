@@ -1,6 +1,6 @@
 /**
  * Plündern statt Bergbau (Wunsch 17.11.2026: „Minen klappen so nicht“): Material liegt als Schrotthaufen in Höfen,
- * Orten und auf Schrottplätzen. Man schlachtet sie von Hand aus oder schickt Sammeltrupps (src/sim/scavengers.ts).
+ * Orten und auf Schrottplätzen. Man schlachtet sie von Hand aus oder lässt Bewohner sammeln (src/sim/community.ts).
  * Alle Werte sind eigene Festlegungen (docs/KONZEPT.md).
  */
 
@@ -51,12 +51,11 @@ export const PILES: Readonly<Record<string, PileSpec>> = {
 /** Brecheisen: so viel schneller ausschlachten (Haufen, Wracks, Ruinen). */
 export const CROWBAR_FACTOR = 2;
 
-/** Sammler (src/sim/scavengers.ts): Tempo (Felder je Tick; Figur 0,15), Last je Gang, Leben, Pausen, Flucht. */
+/** Sammler (Aufgabe „Sammeln“, src/sim/community.ts): Tempo (Felder je Tick; Figur 0,15), Last je Gang, Pausen, Flucht. */
 export const SCAVENGER = {
   speed: 0.1,
   fleeSpeed: 0.135,
   capacity: 20,
-  health: 60,
   /** Faktor auf die Sekunden je Stück (Sammler sind langsamer als die Figur mit Brecheisen). */
   workFactor: 1.4,
   /** Pause zwischen zwei Gängen (Ticks) und Wartezeit, wenn nichts zu tun ist. */
@@ -66,15 +65,14 @@ export const SCAVENGER = {
   fleeDistance: 8,
   /** Haufen meiden, an denen so nah ein Zombie steht. */
   avoidDistance: 12,
-  /** Heilung je Sekunde in der Sammelstelle. */
-  healPerSecond: 1,
+  /** Suchumkreis ohne Vorratslager (vom Lagerfeuer aus); mit Lager gilt dessen Umkreis. */
+  radius: 60,
 } as const;
 
 /**
  * Überlebende (eigene Idee): warten in Orten. Kommt die Figur näher als joinDistance, folgt der Überlebende ihr
  * (Tempo followSpeed, Abstand keep). Bleibt er mehr als lostDistance zurück, wartet er wieder. Erreicht er das
- * Lagerfeuer (homeDistance), wird er Sammler: eine Sammler-Ausrüstung in die nächste Sammelstelle mit freiem Platz,
- * sonst in das Inventar der Figur.
+ * Lagerfeuer (homeDistance), wird er Bewohner der Gemeinschaft.
  */
 export const SURVIVOR = {
   joinDistance: 2.5,
@@ -84,3 +82,58 @@ export const SURVIVOR = {
   homeDistance: 6,
   health: 50,
 } as const;
+
+/** Aufgaben der Bewohner (Wunsch 18.11.2026: „jeder Bewohner hat eine Aufgabe“). */
+export type Job = 'scavenge' | 'guard' | 'farm' | 'repair' | 'medic' | 'rest';
+
+export const JOBS: Record<Job, { name: string; past: string; icon: string; hint: string }> = {
+  scavenge: { name: 'Sammeln', past: 'Schrotthandel', icon: 'iron-ore', hint: 'schlachtet Schrotthaufen im Umkreis aus und bringt die Ausbeute ins Vorratslager' },
+  guard: { name: 'Wache', past: 'Polizei', icon: 'pistol', hint: 'steht Posten am Lagerfeuer und schießt auf Zombies (Magazine aus dem Vorrat, sonst Nahkampf)' },
+  farm: { name: 'Gärtnern', past: 'Landwirtschaft', icon: 'vegetables', hint: 'pflegt und erntet Gemüsebeete (wachsen doppelt so schnell); ohne Beete sammelt er Wildkräuter' },
+  repair: { name: 'Ausbessern', past: 'Autowerkstatt', icon: 'repair-pack', hint: 'bessert beschädigte Mauern, Tore und Türme im Lager aus' },
+  medic: { name: 'Sanitäter', past: 'Krankenpflege', icon: 'bandage', hint: 'heilt dich und die Bewohner am Lager, verbindet Wunden (Verbände, Antibiotika aus dem Vorrat)' },
+  rest: { name: 'Ruhen', past: '', icon: 'bed', hint: 'bleibt am Lagerfeuer und erholt sich' },
+};
+export const JOB_ORDER: Job[] = ['scavenge', 'guard', 'farm', 'repair', 'medic', 'rest'];
+/** Fähigkeiten (frühere Berufe) neuer Überlebender, gewichtet. */
+export const SKILLS: Job[] = ['scavenge', 'scavenge', 'guard', 'guard', 'farm', 'repair', 'medic'];
+
+export const NAMES = [
+  'Anna', 'Ben', 'Carla', 'Dieter', 'Emil', 'Frieda', 'Greta', 'Hannes', 'Ilse', 'Jonas', 'Karl', 'Lena', 'Mats', 'Nora',
+  'Otto', 'Paula', 'Rudi', 'Sophie', 'Theo', 'Uschi', 'Vera', 'Willi', 'Yusuf', 'Zoe', 'Aylin', 'Bernd', 'Elif', 'Fritz',
+  'Hanna', 'Ivan', 'Jule', 'Kemal', 'Lotte', 'Milan', 'Nele', 'Ole',
+];
+
+/**
+ * Gemeinschaft: Bewohner leben am Lagerfeuer (Kreis um das Feuer), essen einmal am Tag aus dem Vorrat (Vorratslager,
+ * Kisten im Lager). Hungrige arbeiten langsamer; nach leaveDays Tagen ohne Essen gehen sie. Passt die Aufgabe zur
+ * Fähigkeit (früherer Beruf), arbeiten sie um skillBonus besser.
+ */
+export const COMMUNITY = {
+  health: 60,
+  speed: 0.1,
+  /** Umkreis des Lagers (Felder um das Lagerfeuer): Vorrat in Kisten, Ausbessern, Beete, Sanitäter. */
+  baseRadius: 22,
+  healPerSecond: 0.5,
+  skillBonus: 1.5,
+  hungryFactor: 0.6,
+  leaveDays: 3,
+} as const;
+
+export const GUARD = {
+  range: 13,
+  cooldown: 40,
+  damage: 9,
+  /** Schuss je Magazin. */
+  rounds: 10,
+  noise: 16,
+  melee: 6,
+  meleeCooldown: 60,
+  /** Postenring um das Lagerfeuer. */
+  postRadius: 5,
+} as const;
+
+export const MEDIC = { reach: 2.5, hpPerSecond: 2, residentHpPerSecond: 1 } as const;
+export const REPAIR = { hpPerSecond: 8 } as const;
+/** Gärtner: Wachstum je Tick zusätzlich, Ernte ab so vielen Stück heimbringen, Wildkräuter alle forageSeconds. */
+export const FARM = { boost: 1, carry: 3, forageSeconds: 150 } as const;

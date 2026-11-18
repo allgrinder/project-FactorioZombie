@@ -61,6 +61,11 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
     p.px = p.prevPx = Math.round(x * 256);
     p.py = p.prevPy = Math.round(y * 256);
   }, [coal[0] + coal[2] + 0.7, coal[1] + 0.5]);
+  // erst messen, wenn die Kamera der Figur gefolgt ist (der erste Bildaufbau kann im Software-Rendering dauern)
+  await page.waitForFunction(() => {
+    const ls = (window as Any).letzteschicht;
+    return Math.hypot(ls.renderer.camera.x - ls.world.player.x, ls.renderer.camera.y - ls.world.player.y) < 0.5;
+  }, null, { timeout: 15_000 });
   await page.waitForTimeout(300);
   let [sx, sy] = await toScreen(page, coal[0] + 1, coal[1] + 1);
   await page.mouse.move(sx, sy);

@@ -491,3 +491,14 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .goal-hint { color: var(--dim); margin-left: 12px; font-size: 11px; }
 .car-win { min-width: 280px; max-width: 470px; }
 .window-row:has(.window.car-win:not(.hidden)) .craft-col { display: none; }
+.community { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(980px, 96vw); max-height: 86vh; overflow-y: auto; z-index: 40; }
+.comm-sum { display: flex; gap: 18px; margin: 4px 0 8px; flex-wrap: wrap; }
+.comm-row { display: flex; gap: 10px; align-items: center; padding: 6px 0; border-top: 1px solid rgba(255,255,255,0.08); flex-wrap: wrap; }
+.comm-who { width: 210px; flex: none; }
+.comm-hp { height: 4px; background: rgba(0,0,0,0.45); margin: 3px 0; width: 160px; }
+.comm-hp > div { height: 100%; background: #5fd35f; }
+.comm-doing { font-size: 12px; }
+.comm-jobs { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.comm-job { display: flex; align-items: center; gap: 4px; padding: 3px 6px; font-size: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: inherit; cursor: pointer; border-radius: 3px; }
+.comm-job img, .comm-job canvas, .comm-job .icon { width: 20px; height: 20px; }
+.comm-job.active { background: rgba(230,170,80,0.28); border-color: #e0a850; }

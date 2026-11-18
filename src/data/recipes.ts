@@ -578,7 +578,6 @@ const SURVIVAL: RecipeDef[] = [
   craft('floodlight', 2, [I('iron-plate', 5), I('copper-cable', 6), I('electronic-circuit', 2)]),
   craft('watchtower', 4, [I('wood', 30), I('iron-plate', 10), I('stone-brick', 10)]),
   craft('scavenger-camp', 3, [I('wood', 20), I('iron-plate', 10), I('iron-gear-wheel', 5)]),
-  craft('scavenger-kit', 2, [I('crowbar', 1), I('cloth', 4), I('iron-plate', 2)]),
   craft('backpack', 3, [I('cloth', 10), I('iron-stick', 2)]),
   craft('radio-tower', 20, [I('steel-plate', 50), I('electronic-circuit', 50), I('copper-cable', 100), I('radio-parts', 5)]),
 ];

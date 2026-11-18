@@ -2,7 +2,6 @@ import { EquipmentGrid } from './armor';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import type { EnemySystem } from './enemies';
 import type { NoiseSystem } from './noise';
-import type { ScavengerSystem } from './scavengers';
 import type { SiteSystem } from './sites';
 import type { GhostSystem } from './blueprint';
 import type { ResearchData } from './research';
@@ -79,7 +78,7 @@ export interface SaveData {
   chars?: number;
   circuit?: ReturnType<CircuitSystem['serialize']>;
   noise?: ReturnType<NoiseSystem['serialize']>;
-  scav?: ReturnType<ScavengerSystem['serialize']>;
+  scav?: ReturnType<import('./community').Community['serialize']>;
   drops?: ReturnType<World['drops']['serialize']>;
   cars?: ReturnType<World['cars']['serialize']>;
   sites?: ReturnType<SiteSystem['serialize']>;
@@ -154,7 +153,7 @@ export function serializeWorld(w: World): SaveData {
     rockets: w.rocketsLaunched,
     ...(w.characters > 1 ? { chars: w.characters } : {}),
     noise: w.noise.serialize(),
-    ...(w.scavengers.workers.length ? { scav: w.scavengers.serialize() } : {}),
+    ...(w.community.workers.length ? { scav: w.community.serialize() } : {}),
     drops: w.drops.serialize(),
     ...(w.cars.cars.length ? { cars: w.cars.serialize() } : {}),
     sites: w.sites.serialize(),
@@ -219,7 +218,7 @@ export function deserializeWorld(d: SaveData): World {
   w.rocketsLaunched = d.rockets ?? 0;
   w.characters = d.chars ?? 1;
   w.noise.load(d.noise);
-  w.scavengers.load(d.scav);
+  w.community.load(d.scav);
   w.drops.load(d.drops);
   w.cars.load(d.cars);
   w.sites.load(d.sites);

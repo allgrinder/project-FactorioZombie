@@ -5,6 +5,7 @@ import { SURVIVAL, isConsumable } from '../data/survival';
 import { PLAYER } from '../data/player';
 import { DAY, dayNumber } from '../data/time';
 import { CAR } from '../data/vehicles';
+import { CommunityView } from './community';
 import { compassName } from '../sim/enemies';
 import { GOALS, goalStatus } from '../sim/goals';
 import { WORLD } from '../data/world';
@@ -104,7 +105,7 @@ const KAMPF = new Set([
 ]);
 const UEBERLEBEN = new Set([
   'bandage', 'first-aid-kit', 'antibiotics', 'empty-bottle', 'stew', 'bed', 'garden', 'rain-barrel', 'radio-tower', 'campfire', 'brazier', 'floodlight',
-  'scavenger-camp', 'scavenger-kit', 'backpack',
+  'scavenger-camp', 'backpack',
 ]);
 function recipeGroup(item: string): CraftGroup {
   if (KAMPF.has(item)) return 'Kampf';
@@ -133,6 +134,8 @@ export class Hud {
   private readonly techWin: HTMLDivElement;
   private readonly statsWin: HTMLDivElement;
   private readonly bookWin: HTMLDivElement;
+  private readonly commWin: HTMLDivElement;
+  private comm: CommunityView | null = null;
   private readonly powerWin: HTMLDivElement;
   private readonly powerBadge: HTMLDivElement;
   private readonly gridView: StatsView;
@@ -176,6 +179,7 @@ export class Hud {
     this.techWin = el('div', 'window tech hidden', this.layer);
     this.statsWin = el('div', 'window stats hidden', this.layer);
     this.bookWin = el('div', 'window handbook hidden', this.layer);
+    this.commWin = el('div', 'window community hidden', this.layer);
     this.powerWin = el('div', 'window stats power-win hidden', this.layer);
     this.powerBadge = el('div', 'hud-power hidden', this.layer);
     this.powerBadge.title = 'Strom-Übersicht (O)';
@@ -293,6 +297,7 @@ export class Hud {
     if (this.frame % 60 === 0 && !this.powerWin.classList.contains('hidden')) this.buildPower();
     if (this.frame % 15 === 0 && this.openTrainId) this.buildTrain();
     if (this.frame % 10 === 0 && this.openCarId !== null) this.buildCar();
+    if (this.frame % 20 === 0 && this.comm && !this.commWin.classList.contains('hidden')) this.comm.render(this.game.world);
     if (this.frame % 10 === 0) {
       if (!this.invWin.classList.contains('hidden')) this.updateInventory();
       if (this.openEntityId !== null) {
@@ -1182,7 +1187,7 @@ export class Hud {
       any = true;
     }
     this.openCarId = null;
-    for (const w of [this.help, this.invWin, this.entWin, this.carWin, this.menu, this.techWin, this.statsWin, this.bookWin, this.powerWin, this.bpWin, this.trainWin]) {
+    for (const w of [this.help, this.invWin, this.entWin, this.carWin, this.commWin, this.menu, this.techWin, this.statsWin, this.bookWin, this.powerWin, this.bpWin, this.trainWin]) {
       if (!w.classList.contains('hidden')) {
         w.classList.add('hidden');
         any = true;
@@ -1668,6 +1673,18 @@ export class Hud {
   private book: HandbookView | null = null;
 
   /** Handbuch (J): Rezepte, Verwendung, Verhältnis-Rechner, Faustregeln. Mit `item` direkt auf dieser Seite. */
+  /** Fenster „Gemeinschaft“ (Taste K, Klick auf einen Bewohner). */
+  toggleCommunity(show?: boolean): void {
+    const on = show ?? this.commWin.classList.contains('hidden');
+    this.commWin.classList.toggle('hidden', !on);
+    if (!on) return;
+    if (!this.comm) {
+      this.comm = new CommunityView((n, cls) => this.icon(n, cls), () => this.toggleCommunity(false));
+      this.commWin.appendChild(this.comm.root);
+    }
+    this.comm.render(this.game.world, true);
+  }
+
   toggleHandbook(item?: string): void {
     const show = item !== undefined || this.bookWin.classList.contains('hidden');
     this.bookWin.classList.toggle('hidden', !show);
@@ -2051,7 +2068,7 @@ export class Hud {
         <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen · <b>Leertaste</b> halten: angreifen (Nahkampf leise, Schusswaffe laut) · <b>X</b> Waffe wechseln · <b>N</b> schlafen/aufstehen</p>
         <p><b>Lärm</b> lockt Zombies an: Schüsse, Bohrer, Dampfmaschinen, Montagemaschinen. Solarstrom ist leise. Jede Nacht ab Tag 2 zieht eine <b>Horde</b> zum Lager – jede 7. Nacht eine große.</p>
         <p><b>Kein Bergbau:</b> Material liegt als <b>Schrotthaufen</b> (Schrott, Schutt, Kohle, Holz, Autoteile, Elektroschrott) in Höfen, Orten und auf eingezäunten <b>Schrottplätzen</b> – <b>Rechtsklick halten</b> schlachtet aus, mit Brecheisen doppelt so schnell. Der Rucksack bringt 20 Plätze.</p>
-        <p><b>Sammeltrupps:</b> Eine <b>Sammelstelle</b> schickt je Sammler-Ausrüstung einen Sammler zu den Haufen im Umkreis (80 Felder); jeder Gang kostet Verpflegung. Zombies jagen Sammler – beschütze sie und die Sammelstelle.</p>
+        <p><b>Gemeinschaft (K):</b> In Orten warten <b>Überlebende</b> (blau auf der Karte). Geh hin, sie folgen dir; am Lagerfeuer werden sie Bewohner. Jeder hat eine <b>Aufgabe</b>: Sammeln (schlachtet Haufen im Umkreis aus), Wache (schießt mit Magazinen aus dem Vorrat), Gärtnern (Beete, Wildkräuter), Ausbessern (Mauern, Türme), Sanitäter (heilt dich am Lager). ★ = früherer Beruf, arbeitet besser. Morgens isst jeder ein Essen aus dem <b>Vorratslager</b> bzw. aus Kisten am Feuer. Zombies jagen Bewohner – das Lager will bewacht sein.</p>
         <p><b>Basis:</b> Das <b>Lagerfeuer</b> ist die Mitte deiner Basis: Neustartpunkt, Ziel der Horden, Schlaf wie im Bett. Nachts sehen Türme ohne Licht schlechter – Feuerschalen und Scheinwerfer helfen. Der <b>Wachturm</b> schießt weiter und stärker als der MG-Turm.</p>
         <p><b>Pritschenwagen:</b> Das Wrack am Startplatz mit 20 Eisenplatten, 8 Zahnrädern und 10 Kabeln reparieren (Linksklick). Benzinkanister in den Tank (Klick auf den Wagen), <b>V</b> ein-/aussteigen, <b>W/S</b> Gas/Bremse, <b>A/D</b> lenken. Schnell auf Straßen, überfährt Zombies – aber laut.</p>
         <p><b>Versorgungsabwürfe</b> landen ab Tag 2 am Fallschirm – laut, mit Munition und Medizin.</p>
@@ -2059,7 +2076,7 @@ export class Hud {
         <p><b>Essen, Trinken, Verbinden:</b> Rechtsklick im Inventar – oder Gegenstand in die Hand nehmen (Schnellleiste) und ins Freie klicken. Leere Flaschen am Wasser füllen (Flasche in die Hand, aufs Wasser klicken) oder in die Regentonne legen.</p>
         <p><b>Bisse</b> können infizieren – nur Antibiotika heilen. <b>Blutungen</b> stoppt ein Verband.</p>
         <p><b>Linksklick</b> bauen (Bänder durch Ziehen) · <b>R</b> drehen · <b>Q</b> Gebäude/Item aufnehmen bzw. Hand leeren · <b>Rechtsklick halten</b> abbauen, Bäume fällen, Gebäude aufnehmen</p>
-        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung · <b>M</b> Karte · <b>P</b> Produktion · <b>J</b> Handbuch · <b>O</b> Strom-Übersicht · <b>Alt</b> Detailansicht</p>
+        <p><b>E</b> Inventar & Handwerk · <b>T</b> Forschung · <b>M</b> Karte · <b>P</b> Produktion · <b>J</b> Handbuch · <b>K</b> Gemeinschaft · <b>O</b> Strom-Übersicht · <b>Alt</b> Detailansicht</p>
         <p><b>1–0</b> Schnellleiste – belegen: Gegenstand in die Hand nehmen und auf einen leeren Platz klicken (Rechtsklick: neu belegen bzw. leeren)</p>
         <p><b>Z</b> Item aus der Hand ablegen · <b>F</b> halten: Items vom Boden und von Bändern aufheben · <b>Granate/Lockvogel</b> in der Hand: Klick wirft · <b>Reparaturset</b> in der Hand: Linksklick halten repariert</p>
         <p>Inventar bei offenem Gebäude: <b>Umschalt+Klick</b> Stapel hinein · <b>Rechtsklick</b> halben Stapel hinein · <b>Strg+Klick</b> alle dieser Sorte</p>

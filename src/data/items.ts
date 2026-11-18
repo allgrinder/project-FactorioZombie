@@ -196,7 +196,7 @@ const list: ItemDef[] = [
   { id: 'brazier', name: 'Feuerschale', stackSize: 20, placeResult: 'brazier', order: 169.5 },
   { id: 'floodlight', name: 'Scheinwerfer', stackSize: 20, placeResult: 'floodlight', order: 50.5 },
   { id: 'watchtower', name: 'Wachturm', stackSize: 10, placeResult: 'watchtower', order: 134.2 },
-  { id: 'scavenger-camp', name: 'Sammelstelle', stackSize: 5, placeResult: 'scavenger-camp', order: 32 },
+  { id: 'scavenger-camp', name: 'Vorratslager', stackSize: 5, placeResult: 'scavenger-camp', order: 32 },
   { id: 'scavenger-kit', name: 'Sammler-Ausrüstung', stackSize: 10, order: 32.1 },
   { id: 'backpack', name: 'Rucksack', stackSize: 1, order: 140.5 },
   { id: 'fuel-can', name: 'Benzinkanister', stackSize: 10, fuelValue: 25 * MJ, order: 11.5 },

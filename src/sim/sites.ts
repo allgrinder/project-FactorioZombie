@@ -128,6 +128,8 @@ export class SiteSystem {
       const x = Math.round(Math.cos(a) * d);
       const y = Math.round(Math.sin(a) * d);
       if (!this.put(w, 'ruin-shed', x, y)) continue;
+      // der erste Überlebende wartet gleich am Schuppen
+      w.community.addSurvivor(x + 1.5, y + 4.5, w.seed);
       // defekter Pritschenwagen (zu reparieren): ein paar Ausweichstellen, falls etwas im Weg steht
       for (const [dx, dy] of [[5, 2], [5, 5], [-6, 1], [1, 6], [6, -3], [-3, -6]]) {
         if (!this.put(w, 'pickup-wreck', x + dx, y + dy, true)) continue;
@@ -400,7 +402,7 @@ export class SiteSystem {
     // Überlebende: in Dörfern einer, in Städten zwei (vor einem Haus an der Hauptstraße)
     for (let i = 0; i < t.size - 1; i++) {
       const a = Math.round((i === 0 ? -0.25 : 0.3) * len);
-      w.scavengers.addSurvivor(t.x + (horizontal ? a : -1.5) + 0.5, t.y + (horizontal ? -1.5 : a) + 0.5);
+      w.community.addSurvivor(t.x + (horizontal ? a : -1.5) + 0.5, t.y + (horizontal ? -1.5 : a) + 0.5, w.seed);
     }
     // Ortsschilder an beiden Enden, Laternen auf dem Gehweg
     for (const s of [-1, 1]) {
@@ -494,7 +496,7 @@ export class SiteSystem {
     this.put(w, 'car-wreck', x + 5, y - 7, true);
     this.put(w, 'ruin-shed', x - 9, y - 6, true);
     this.sites.push({ x, y, r: 10, weight: 7, kind: 'outpost' });
-    w.scavengers.addSurvivor(x + 0.5, y + 3.5);
+    w.community.addSurvivor(x + 0.5, y + 3.5, w.seed);
   }
 
   // ------------------------------------------------------------ Speichern
