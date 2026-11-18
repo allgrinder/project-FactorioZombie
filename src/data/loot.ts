@@ -106,6 +106,8 @@ export const DROPS = { firstDay: 2, interval: 26_000, minDist: 60, maxDist: 150,
  */
 export const SITES = {
   cell: 72,
+  /** Anteil der Wohnhäuser, deren Fenster schon verbrettert sind (frühere Überlebende). */
+  fortified: 0.15,
   chance: 0.62,
   /** Keine Fundorte näher am Start (außer dem Startfundort). */
   startFree: 40,

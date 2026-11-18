@@ -5,6 +5,7 @@ import { type PlaceDef, ROAD, type TownDef, WORLD, roadPaths } from '../data/wor
 import { TREE_GROUP_IDS, type TreeGroup } from '../data/decor';
 import { hash01 } from './rng';
 import { RAIDER } from '../data/strangers';
+import { BARRICADE } from '../data/enemies';
 import type { World } from './world';
 
 export type SiteKind = 'starter' | 'village' | 'farm' | 'garage' | 'camp' | 'wreck' | 'town' | 'outpost' | 'junkyard';
@@ -1273,6 +1274,7 @@ export class SiteSystem {
     H = BH;
     // Bauteile setzen
     const nearDoor = (i: number, j: number) => [[0, 1], [1, 0], [0, -1], [-1, 0], [0, 0]].some(([a, b]) => doors.has(idx(i + a, j + b)) || wall[idx(Math.min(W - 1, Math.max(0, i + a)), Math.min(H - 1, Math.max(0, j + b)))] === 2);
+    const fortified = kind === 'home' && h(600) < SITES.fortified;
     const winChance = kind === 'church' ? 0.95 : kind === 'barn' ? 0.15 : kind === 'cells' ? 0 : kind === 'works' ? 0.35 : 0.8;
     for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
       const tx = x + i;
@@ -1289,7 +1291,9 @@ export class SiteSystem {
       const win = edge(i, j) && !corner(i, j) && !junction(i, j) && !nearDoor(i, j) && (shop || along % 2 === 1) && h(400 + k) < winChance;
       if (win) {
         const e = w.create(w.nextId++, `hwin-${mat}`, tx, ty, horiz ? 0 : 1);
-        if (e.kind === 'wall' && h(500 + k) < 0.3) e.broken = true;
+        // Spuren früherer Überlebender: manche Wohnhäuser sind verrammelt (Bretter vor den Fenstern, Türen frei)
+        if (e.kind === 'wall' && fortified && h(520 + k) < 0.85) e.boardHp = BARRICADE.boardHp * (1 + Math.floor(h(540 + k) * BARRICADE.maxBoards));
+        else if (e.kind === 'wall' && h(500 + k) < 0.3) e.broken = true;
       } else w.create(w.nextId++, `hwall-${mat}`, tx, ty, 0);
     }
     // Räume einordnen: kleinster (≤ 6 Felder) Bad, einer Küche, größter Wohnzimmer, Rest Schlafzimmer

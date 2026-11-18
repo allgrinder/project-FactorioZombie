@@ -272,6 +272,7 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
 - Naturgeräusche (ZzFX): Vögel am Tag, Grillen in Sommernächten, Krähen, Regen, Donner bei Sturm, Zombie-Stöhnen.
 - Ruderboote an Seeufern (`rowboat`, Tabelle `boat`, 45 % der Zellen mit Ufer), verlassene Zeltplätze in der Wildnis
   (Kuppelzelte um eine kalte Feuerstelle, Tabelle `camping`, `lib/ufer.py`).
+- 15 % der Wohnhäuser sind schon verrammelt (Bretter vor den Fenstern, `SITES.fortified`), Türen bleiben frei.
 - Gemalte Hilferufe (`models/schrift.py`, „SOS“, „HILFE“, „INFIZIERT“, „LEBEN HIER“, „NICHT BETRETEN“) auf 8 % der Dächer.
 - Übersichtskarte zeigt Bäume und damit Wälder; Läden haben öfter Spitzdächer, Flachdächer mehr Farbtöne.
 
