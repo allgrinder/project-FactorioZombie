@@ -21,6 +21,7 @@ import type { World } from '../sim/world';
 import { Hud } from '../ui/hud';
 import { WORLD } from '../data/world';
 import { JOBS } from '../data/scavenge';
+import { BARRICADE } from '../data/enemies';
 import { Input } from './input';
 import type { Scene } from './scenes';
 
@@ -714,6 +715,12 @@ export class Game {
       else if (p && target) p.note('Nicht beschädigt');
       return;
     }
+    // Holz in der Hand: Fenster oder Tür eines Hauses verbarrikadieren
+    if (item === 'wood' && p && target && target.kind === 'wall' && (target.def.window || target.def.gate)) {
+      const err = this.world.barricade(target, p);
+      if (err) p.note(err);
+      return;
+    }
     if (item === 'landfill') {
       this.placeLandfill(tx, ty);
       this.dragLast = { x: tx, y: ty };
@@ -1028,6 +1035,12 @@ export class Game {
       const p = this.world.player;
       const miss = p ? this.world.cars.missing(p) : [];
       return `Defekter Pritschenwagen – Klick: reparieren${miss.length ? ` (fehlt: ${miss.map((x) => `${x.amount}× ${ITEMS[x.item]?.name ?? x.item}`).join(', ')})` : ' (alles dabei!)'}`;
+    }
+    if (e?.kind === 'wall' && e.def.house) {
+      const what = e.def.gate ? 'Haustür' : e.def.window ? (e.broken ? 'Zerbrochenes Fenster' : 'Fenster') : e.def.name;
+      const b = e.boards ? ` · ${e.boards}/${BARRICADE.maxBoards} Bretter` : '';
+      const tip = e.def.gate || e.def.window ? ` · Holz in der Hand + Klick: verbarrikadieren (${BARRICADE.wood} Holz je Brett)` : ' · Rechtsklick halten: abreißen';
+      return `${what} – ${Math.ceil(e.hp)}/${e.def.health}${b}${tip}`;
     }
     if (e?.kind === 'pile') return `${e.def.name} – noch ${e.amount} Stück · Rechtsklick halten: ausschlachten${this.world.player?.inventory.count('crowbar') ? ' (Brecheisen: schneller)' : ''}`;
     if (e?.kind === 'camp') return `Vorratslager – ${this.world.community.residents.length} Bewohner · Sammler suchen im Umkreis von ${e.def.radius} Feldern · Klick: öffnen`;

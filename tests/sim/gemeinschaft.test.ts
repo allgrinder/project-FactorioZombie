@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LEGACY_MAP_SETTINGS } from '../../src/data/mapgen';
 import { COMMUNITY, type Job, SCAVENGER } from '../../src/data/scavenge';
 import { DAY } from '../../src/data/time';
+import { UNITS } from '../../src/data/enemies';
 import type { CampEntity, PileEntity, ProducerEntity } from '../../src/sim/machines';
 import { Player } from '../../src/sim/player';
 import { deserializeWorld, serializeWorld } from '../../src/sim/serialize';
@@ -186,5 +187,45 @@ describe('Gemeinschaft: Versorgung', () => {
     w.run(900);
     b.run(900);
     expect(JSON.stringify(serializeWorld(b))).toBe(JSON.stringify(serializeWorld(w)));
+  });
+});
+
+describe('Gemeinschaft: neue Aufgaben', () => {
+  it('Plünderer durchsucht Fundorte im Umkreis und bringt die Beute ins Vorratslager', () => {
+    const w = arena({ enemies: 'aus' });
+    const { camp } = base(w, 'loot');
+    const crate = w.place('supply-crate', 24, 2, 0)!;
+    if (crate.kind === 'loot') {
+      for (const st of crate.inventory.contents()) crate.inventory.remove(st.item, st.count);
+      crate.inventory.add('canned-food', 3);
+      crate.inventory.add('bandage', 2);
+    }
+    w.run(60 * 60);
+    expect(crate.kind === 'loot' && crate.searched).toBe(true);
+    expect(camp!.food.count('canned-food') + camp!.store.count('canned-food')).toBeGreaterThanOrEqual(3);
+    expect(camp!.store.count('bandage')).toBeGreaterThanOrEqual(2);
+  });
+
+  it('Gärtner legt mit Holz aus dem Vorrat neue Beete an', () => {
+    const w = arena({ enemies: 'aus' });
+    const { camp } = base(w, 'farm', true, 0);
+    camp!.insert('wood', 30, 'player');
+    w.run(60 * 100);
+    const beds = [...w.entities.values()].filter((e) => e.name === 'garden').length;
+    expect(beds).toBeGreaterThanOrEqual(2);
+    expect(camp!.store.count('wood')).toBeLessThan(30);
+  });
+
+  it('Wache besetzt den Wachturm und schießt von dort weiter', () => {
+    const w = arena();
+    const { camp, k } = base(w, 'guard');
+    camp!.insert('firearm-magazine', 5, 'player');
+    const tower = w.place('watchtower', 8, 8, 0)!;
+    w.run(60 * 6);
+    expect(Math.hypot(k.x - tower.cx, k.y - tower.cy)).toBeLessThan(2.5);
+    // Zombie knapp außerhalb der normalen, aber innerhalb der Turm-Reichweite
+    const u = w.enemies.spawnAt(k.x + 16, k.y, 'walker');
+    w.run(30);
+    expect(w.enemies.units.get(u.id)?.hp ?? 0).toBeLessThan(UNITS.walker.health);
   });
 });

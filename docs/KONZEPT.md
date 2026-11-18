@@ -119,6 +119,35 @@ Essen aus dem Vorrat (Vorratslager, Kisten im Lager); wer leer ausgeht, ist hung
 Gemeinschaft nach drei Tagen ohne Essen. Bewohner haben 60 LP, heilen am Feuer 0,5 LP/s und werden von Zombies
 gejagt – auch am Lager. Die Sammelstelle heißt jetzt **Vorratslager** (Verpflegung 4 Plätze, Vorrat 24).
 
+## Begehbare Häuser (Wunsch 18.11.2026, `SiteSystem.house`, Modelle `lib/haus.py`)
+
+Häuser bestehen aus echten Bauteilen: Wände (Ziegel 650 LP, Putz 500, Bretter 280, Beton 1100; Abriss liefert Stein
+bzw. Holz), Fenster (60 LP, manche zerbrochen) und Haustüren (220 LP; Figur und Bewohner gehen durch, Zombies nicht).
+Innen Räume mit Durchgängen (Wohnhaus bis zu zwei Teilungen), Dielen bzw. Fliesen und Möbel an der Nordwand: Küche,
+Herd, Kühlschrank, Kleiderschrank, Regal, Bad, Schreibtisch (alle durchsuchbar mit eigener Beute), Bett (Schlafen),
+Sofa, Tisch. Läden haben Regalreihen, Werkstätten Werkbänke und Spinde, Scheunen Heu und Holz. Das Dach (Ziegel,
+Schiefer, Wellblech, Flachdach mit Attika) blendet aus, sobald die Figur drinnen ist. Zombies suchen sich ihren Weg
+über Fenster und Türen (Mauerwerk meiden sie). **Verbarrikadieren:** Holz in der Hand, Klick auf Fenster oder Tür –
+je Brett 2 Holz, 90 LP, höchstens 3 Bretter; Schaden trifft erst die Bretter. In 22 % der Häuser wartet ein Zombie.
+
+## Organische Orte und Sonderorte
+
+Querstraßen an unregelmäßigen Stellen und zu beiden Seiten nach Los, unterschiedlich lang, oft mit Stichweg; Vorgärten
+unterschiedlicher Tiefe, Gartenzäune, verwilderte Gemüsebeete, Dorfplatz mit Baum und Kirche (ab Dorfgröße); 15 % der
+Wohnhäuser, 20 % der Läden und 35 % der Werkstätten sind ausgebrannte Ruinen. Sonderorte (`WORLD.places`, Zufahrt
+von der Landstraße): **JVA Aschland** (Betonmauer mit Tor, Stacheldraht, vier Wachtürme, Zellentrakt mit Pritschen,
+Verwaltung mit Spinden, Kantine; zwei Überlebende), **Kraftwerk** (Kühltürme, Turbinenhalle, Schornstein, Trafohof
+mit durchsuchbaren Trafos, Kohlenhalde), **Gewerbegebiet Eisenrode** (Lagerhallen, Container mit Beute, acht
+Schrotthaufen), **Gut Lindenhof** und **Hof Birkenrain** (Bauernhaus, begehbare Scheune, Silos, Felder, Beete).
+
+## Neue Aufgaben
+
+- **Plündern:** durchsucht Fundorte mit Beute im Umkreis von 90 Feldern ums Feuer (Suchzeit × 1,5), nimmt bis 16
+  Stück, zieht zum nächsten Fundort in 14 Feldern weiter, solange Platz ist, meidet Zombies (12 Felder).
+- **Gärtnern:** legt mit 8 Holz aus dem Vorrat neue Beete an (bis 3 je Gärtner, Bauzeit 30 s), Ernte geht vor.
+- **Wache:** besetzt zuerst Wach- und MG-Türme im Lager (daneben, Reichweite × 1,4), dann Posten innen an der
+  Mauer in seiner Richtung, sonst den Ring ums Feuer.
+
 ## Natürliche Welt
 
 Bäume (`MAPGEN.trees`) stehen gehäuft in Wäldern (Rauschen Maßstab 60, Schwelle 0,5), dazu pflanzt der Weltaufbau

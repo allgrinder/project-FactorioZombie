@@ -4,6 +4,7 @@ import { FLOOR_BY_ID, FLOOR_BY_ITEM } from '../data/floors';
 import { CapsuleSystem } from './capsules';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import { EnemySystem } from './enemies';
+import { BARRICADE } from '../data/enemies';
 import { NoiseSystem } from './noise';
 import { SiteSystem } from './sites';
 import { Community } from './community';
@@ -423,8 +424,30 @@ export class World {
     }
   }
 
+  /** Fenster oder Tür mit einem Brett verbarrikadieren (BARRICADE). Liefert eine Meldung, wenn es nicht geht. */
+  barricade(e: Entity, p: Player): string | null {
+    if (e.kind !== 'wall' || !(e.def.window || e.def.gate)) return 'Nur Fenster und Türen';
+    if (Math.hypot(p.x - e.cx, p.y - e.cy) > 3) return 'Zu weit weg';
+    if (e.boards >= BARRICADE.maxBoards) return 'Schon fest vernagelt';
+    if (!p.god && p.inventory.count('wood') < BARRICADE.wood) return `Dafür brauchst du ${BARRICADE.wood} Holz`;
+    if (!p.god) p.inventory.remove('wood', BARRICADE.wood);
+    e.boardHp = (e.boards + 1) * BARRICADE.boardHp;
+    this.events.push('build', e.cx, e.cy, { id: e.id, w: 1, h: 1 });
+    this.noise.emit(e.cx, e.cy, 8);
+    return null;
+  }
+
   /** Schaden an einem Gebäude; bei 0 Lebenspunkten wird es zerstört (Inhalt geht verloren, wie im Original). */
   damageEntity(e: Entity, dmg: number, quiet = false): void {
+    // Bretter vor Fenster und Tür fangen den Schaden zuerst ab
+    if (e.kind === 'wall' && e.boardHp > 0) {
+      const take = Math.min(e.boardHp, dmg);
+      e.boardHp -= take;
+      dmg -= take;
+      if (!quiet) this.events.push('hit', e.cx, e.cy);
+      if (dmg <= 0) return;
+    }
+    if (e.kind === 'wall' && e.def.window) e.broken = true;
     e.hp -= dmg;
     if (!quiet) this.events.push('hit', e.cx, e.cy);
     if (e.hp > 0) return;

@@ -1,4 +1,4 @@
-import { AMMO, NOISE, TURRET } from '../../data/enemies';
+import { AMMO, BARRICADE, NOISE, TURRET } from '../../data/enemies';
 import type { TurretDef, WallDef } from '../../data/entities';
 import { Status } from '../entity';
 import type { Dir } from '../geom';
@@ -106,8 +106,26 @@ export class TurretEntity extends EntityBase {
   }
 }
 
-/** Steinmauer, Holzbarrikade, Tor: Hindernis mit Lebenspunkten (das Tor lässt nur die Figur durch). */
+/**
+ * Steinmauer, Holzbarrikade, Tor und Bauteile begehbarer Häuser: Hindernis mit Lebenspunkten (Tor und Haustür lassen
+ * nur Figur und Bewohner durch). Fenster und Türen lassen sich mit Brettern verbarrikadieren: Schaden trifft erst die
+ * Bretter (BARRICADE.boardHp je Brett).
+ */
 export class WallEntity extends EntityBase {
   readonly kind = 'wall' as const;
   declare readonly def: WallDef;
+  /** Lebenspunkte der Bretter (0: keine). */
+  boardHp = 0;
+  /** Fenster mit zerbrochener Scheibe (nur Darstellung). */
+  broken = false;
+  get boards(): number {
+    return Math.ceil(this.boardHp / BARRICADE.boardHp);
+  }
+  override save() {
+    return this.boardHp > 0 || this.broken ? { bhp: this.boardHp, brk: this.broken ? 1 : 0 } : {};
+  }
+  override load(d: Record<string, unknown>): void {
+    this.boardHp = (d.bhp as number) ?? 0;
+    this.broken = !!d.brk;
+  }
 }

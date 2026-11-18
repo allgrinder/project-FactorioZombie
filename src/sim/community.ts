@@ -1,7 +1,7 @@
 import { CONSUMABLES } from '../data/survival';
 import { PLAYER_COMBAT, TURRET } from '../data/enemies';
 import { ITEMS } from '../data/items';
-import { COMMUNITY, FARM, GUARD, type Job, JOBS, MEDIC, NAMES, PILES, REPAIR, SCAVENGER, SKILLS, SURVIVOR } from '../data/scavenge';
+import { COMMUNITY, FARM, GUARD, type Job, JOBS, LOOTER, MEDIC, NAMES, PILES, REPAIR, SCAVENGER, SKILLS, SURVIVOR } from '../data/scavenge';
 import { DAY, secondsToTicks } from '../data/time';
 import { Status } from './entity';
 import { FlowField } from './flowfield';
@@ -59,7 +59,7 @@ export class Community {
   readonly workers: Worker[] = [];
   private nextId = 1;
   /** Wegfelder je Ziel (nicht gespeichert, nur Rechenaufwand). */
-  private readonly fields = new Map<string, { f: FlowField; ver: number }>();
+  private readonly fields = new Map<string, { f: FlowField; ver: number; gx?: number; gy?: number }>();
   /** Lagerfeuer in diesem Tick (zwischengespeichert). */
   private home: Entity | null = null;
 
@@ -111,11 +111,11 @@ export class Community {
     if (!k.resident) return k.state === 'wait' ? 'wartet auf Hilfe' : 'folgt dir zum Lagerfeuer';
     if (k.flee) return 'auf der Flucht';
     switch (k.state) {
-      case 'out': return 'auf dem Weg zu einem Schrotthaufen';
-      case 'gather': return `schlachtet aus (${k.cargo.length} Stück)`;
+      case 'out': return k.job === 'loot' ? 'auf dem Weg zum Plündern' : 'auf dem Weg zu einem Schrotthaufen';
+      case 'gather': return k.job === 'loot' ? `durchsucht (${k.cargo.length} Stück dabei)` : `schlachtet aus (${k.cargo.length} Stück)`;
       case 'back': return k.cargo.length ? `bringt ${k.cargo.length} Stück ins Lager` : 'auf dem Heimweg';
       case 'post': return k.rounds > 0 ? `steht Wache (${k.rounds} Schuss im Magazin)` : 'steht Wache';
-      case 'work': return k.job === 'farm' ? 'pflegt ein Beet' : k.job === 'repair' ? 'bessert aus' : 'versorgt dich';
+      case 'work': return k.job === 'farm' ? (k.pile === -1 ? 'legt ein Beet an' : 'pflegt ein Beet') : k.job === 'repair' ? 'bessert aus' : 'versorgt dich';
       default: return k.job === 'rest' ? 'ruht am Feuer' : 'am Lagerfeuer';
     }
   }
@@ -296,7 +296,29 @@ export class Community {
       k.phase = 0;
       return;
     }
-    this.stepToward(w, k, p.x, p.y, SURVIVOR.followSpeed);
+    this.walkPoint(w, k, p.x, p.y, SURVIVOR.followSpeed);
+  }
+
+  /** Zu einem Punkt gehen: über ein Wegfeld (Türen, um Wände herum), sonst geradewegs. */
+  private walkPoint(w: World, k: Worker, x: number, y: number, speed: number): void {
+    const gx = Math.floor(x);
+    const gy = Math.floor(y);
+    const key = `p${k.id}`;
+    let c = this.fields.get(key);
+    const tx = Math.floor(k.x);
+    const ty = Math.floor(k.y);
+    if (!c || c.ver !== w.structureVersion || c.gx !== gx || c.gy !== gy || c.f.at(tx, ty) === Infinity) {
+      const pad = 12;
+      const x0 = Math.min(tx, gx) - pad;
+      const y0 = Math.min(ty, gy) - pad;
+      const f = FlowField.build(w, [[gx, gy]], x0, y0, Math.max(tx, gx) + pad - x0, Math.max(ty, gy) + pad - y0, null, true);
+      c = { f, ver: w.structureVersion, gx, gy };
+      this.fields.set(key, c);
+    }
+    if (c.f.at(tx, ty) === Infinity) return this.stepToward(w, k, x, y, speed);
+    const nx = c.f.next(k.x, k.y);
+    const [px, py] = nx ?? [x, y];
+    this.stepToward(w, k, px, py, speed);
   }
 
   /** Gerettet: wird Bewohner mit der Aufgabe, die zu seinem früheren Beruf passt. */
@@ -318,6 +340,7 @@ export class Community {
     if (k.state === 'back') return this.stepBack(w, k);
     switch (k.job) {
       case 'scavenge': return this.stepScavenge(w, k);
+      case 'loot': return this.stepLoot(w, k);
       case 'guard': return this.stepGuard(w, k);
       case 'farm': return this.stepFarm(w, k);
       case 'repair': return this.stepRepair(w, k);
@@ -454,21 +477,132 @@ export class Community {
     k.wait = w.tick + this.ticksPerItem(pile, k);
   }
 
+  // ------------------------------------------------------------ Plündern
+
+  private stepLoot(w: World, k: Worker): void {
+    if (k.state === 'out') return this.stepLootOut(w, k);
+    if (k.state === 'gather') return this.stepLootSearch(w, k);
+    this.stepIdle(w, k);
+    if (w.tick < k.wait || k.hp < COMMUNITY.health * 0.6 || !this.home) return;
+    const t = this.chooseLoot(w, k, this.home.cx, this.home.cy, LOOTER.radius);
+    if (!t) {
+      k.wait = w.tick + SCAVENGER.idleWait * 2;
+      return;
+    }
+    k.pile = t.id;
+    k.state = 'out';
+    k.flee = false;
+  }
+
+  /** Nächster Fundort mit Beute (noch nicht durchsucht oder nicht leer), kein Zombie in der Nähe, nicht schon belegt. */
+  private chooseLoot(w: World, k: Worker, x: number, y: number, r: number): Entity | null {
+    let best: Entity | null = null;
+    let bd = r;
+    for (const e of w.entities.values()) {
+      if (e.kind !== 'loot' || e.name === 'pickup-wreck' || (e.searched && e.inventory.isEmpty())) continue;
+      const d = Math.hypot(e.cx - x, e.cy - y);
+      if (d >= bd) continue;
+      if (this.workers.some((o) => o !== k && o.job === 'loot' && o.pile === e.id)) continue;
+      if (w.enemies.nearestTarget(e.cx, e.cy, LOOTER.avoid, w.tick)) continue;
+      bd = d;
+      best = e;
+    }
+    return best;
+  }
+
+  private stepLootOut(w: World, k: Worker): void {
+    const e = k.pile !== null ? w.entities.get(k.pile) : undefined;
+    if (!e || e.kind !== 'loot' || this.danger(w, k)) {
+      k.flee = !!e;
+      k.state = 'back';
+      return;
+    }
+    if (rectDist(k.x, k.y, e) <= 1.0) {
+      k.state = 'gather';
+      k.wait = w.tick + (e.searched ? 30 : Math.round((e.searchTicks * LOOTER.searchFactor) / this.bonus(k)));
+      return;
+    }
+    if (!this.walk(w, k, e, SCAVENGER.speed * (k.hunger > 0 ? COMMUNITY.hungryFactor : 1))) {
+      k.pile = null;
+      k.state = 'back';
+    }
+  }
+
+  private stepLootSearch(w: World, k: Worker): void {
+    const e = k.pile !== null ? w.entities.get(k.pile) : undefined;
+    if (!e || e.kind !== 'loot' || this.danger(w, k)) {
+      k.flee = !!e;
+      k.state = 'back';
+      return;
+    }
+    k.angle = Math.atan2(e.cy - k.y, e.cx - k.x);
+    k.phase += 0.02;
+    if (w.tick < k.wait) return;
+    if (!e.searched) {
+      e.searched = true;
+      w.stats.made(`search.${e.name}`, 1);
+      w.events.push('search', e.cx, e.cy);
+    }
+    for (const st of e.inventory.contents()) {
+      const n = Math.min(st.count, LOOTER.capacity - k.cargo.length);
+      for (let i = 0; i < n; i++) k.cargo.push(st.item);
+      if (n) e.inventory.remove(st.item, n);
+      if (k.cargo.length >= LOOTER.capacity) break;
+    }
+    // weiter zum nächsten Fundort in der Nähe, solange Platz ist
+    const next = k.cargo.length < LOOTER.capacity * 0.75 ? this.chooseLoot(w, k, k.x, k.y, 14) : null;
+    if (next) {
+      k.pile = next.id;
+      k.state = 'out';
+      return;
+    }
+    k.pile = null;
+    k.state = 'back';
+  }
+
   // ------------------------------------------------------------ Wache
 
-  /** Posten auf dem Ring um das Feuer (Wachen gleichmäßig verteilt). */
-  private post(k: Worker): [number, number] | null {
+  /**
+   * Posten: zuerst Wach- und MG-Türme im Lager (neben dem Turm, zum Feuer hin – von dort weiter), dann an der
+   * Mauer (ein Feld innen vor der ersten Mauer in Blickrichtung), sonst auf dem Ring um das Feuer.
+   */
+  private post(w: World, k: Worker): { x: number; y: number; tower: boolean } | null {
     const b = this.home;
     if (!b) return null;
     const guards = this.workers.filter((x) => x.resident && x.job === 'guard');
     const i = guards.indexOf(k);
-    const a = (i / Math.max(1, guards.length)) * Math.PI * 2 + 0.4;
-    return [b.cx + Math.cos(a) * GUARD.postRadius, b.cy + Math.sin(a) * GUARD.postRadius];
+    if (w.tick % 120 === 0 || !this.towers || this.towersTick !== Math.floor(w.tick / 120)) {
+      this.towersTick = Math.floor(w.tick / 120);
+      this.towers = [];
+      for (const e of w.entities.values()) if (e.kind === 'turret' && Math.hypot(e.cx - b.cx, e.cy - b.cy) <= COMMUNITY.baseRadius) this.towers.push(e);
+      this.towers.sort((p, q) => p.id - q.id);
+    }
+    if (i < this.towers.length) {
+      const t = this.towers[i];
+      const a = Math.atan2(b.cy - t.cy, b.cx - t.cx);
+      return { x: t.cx + Math.cos(a) * (t.w / 2 + 0.6), y: t.cy + Math.sin(a) * (t.h / 2 + 0.6), tower: true };
+    }
+    const j = i - this.towers.length;
+    const n = Math.max(1, guards.length - this.towers.length);
+    const a = (j / n) * Math.PI * 2 + 0.4;
+    // Mauer in dieser Richtung?
+    for (let r = 2; r <= COMMUNITY.baseRadius; r += 0.5) {
+      const x = b.cx + Math.cos(a) * r;
+      const y = b.cy + Math.sin(a) * r;
+      const e = w.entityAt(Math.floor(x), Math.floor(y));
+      if (e && e.kind === 'wall') return { x: b.cx + Math.cos(a) * (r - 1.2), y: b.cy + Math.sin(a) * (r - 1.2), tower: false };
+      if (e && e.def.solid && e.kind !== 'fire') break;
+    }
+    return { x: b.cx + Math.cos(a) * GUARD.postRadius, y: b.cy + Math.sin(a) * GUARD.postRadius, tower: false };
   }
 
+  private towers: Entity[] | null = null;
+  private towersTick = -1;
+
   private stepGuard(w: World, k: Worker): void {
-    const p = this.post(k);
-    if (!p) return;
+    const post = this.post(w, k);
+    if (!post) return;
+    const p: [number, number] = [post.x, post.y];
     const far = Math.hypot(p[0] - k.x, p[1] - k.y);
     if (far > 12) {
       k.state = 'back';
@@ -480,7 +614,7 @@ export class Community {
     } else {
       // Ziel: nächster Zombie; nachts ohne Licht kürzer (wie Türme)
       const dark = w.isLit(k.x, k.y) ? 0 : w.darkness;
-      const range = GUARD.range * (1 - TURRET.nightPenalty * dark);
+      const range = GUARD.range * (1 - TURRET.nightPenalty * dark) * (post.tower && far < 0.6 ? GUARD.towerBonus : 1);
       const u = w.enemies.nearestTarget(k.x, k.y, range, w.tick);
       if (u && u.kind === 'unit') {
         k.angle = Math.atan2(u.y - k.y, u.x - k.x);
@@ -525,13 +659,20 @@ export class Community {
     if (k.state !== 'work') {
       this.stepIdle(w, k);
       if (w.tick < k.wait) return;
+      // Ernte zuerst, dann neue Beete anlegen (Holz aus dem Vorrat), sonst pflegen
       const bed = this.chooseBed(w, k);
+      if (bed && bed.out.count(bed.def.product) > 0) {
+        k.pile = bed.id;
+        k.state = 'work';
+        return;
+      }
+      if (this.plantBed(w, k)) return;
       if (bed) {
         k.pile = bed.id;
         k.state = 'work';
         return;
       }
-      // keine Beete: Wildkräuter am Lager sammeln
+      // sonst Wildkräuter am Lager sammeln
       k.wait = w.tick + Math.round(secondsToTicks(FARM.forageSeconds) / this.bonus(k));
       if (w.tick > 0) this.stash(w, 'vegetables', k.x, k.y);
       return;
@@ -563,6 +704,36 @@ export class Community {
         if (other && other.id !== bed.id && other.out.count(other.def.product) > 0) k.pile = other.id;
       }
     }
+  }
+
+  /** Neues Gemüsebeet im Lager anlegen (FARM.bedWood Holz aus dem Vorrat, Bauzeit FARM.buildSeconds). */
+  private plantBed(w: World, k: Worker): boolean {
+    const b = this.home!;
+    const farmers = this.workers.filter((x) => x.resident && x.job === 'farm').length;
+    let beds = 0;
+    for (const e of w.entities.values()) if (e.kind === 'producer' && e.def.product === 'vegetables' && Math.hypot(e.cx - b.cx, e.cy - b.cy) <= COMMUNITY.baseRadius) beds++;
+    if (beds >= farmers * FARM.bedsPerFarmer || this.supply(w, (it) => it === 'wood') < FARM.bedWood) return false;
+    // Platz: Ring 6–12 Felder um das Feuer, erste freie 2×2-Fläche
+    for (let r = 6; r <= 12; r += 2) {
+      for (let s = 0; s < 12; s++) {
+        const a = (s / 12) * Math.PI * 2 + k.id;
+        const x = Math.floor(b.cx + Math.cos(a) * r) - 1;
+        const y = Math.floor(b.cy + Math.sin(a) * r) - 1;
+        if (!w.canPlace('garden', x, y, 0).ok) continue;
+        let clear = true;
+        for (let j = -1; j <= 2 && clear; j++) for (let i = -1; i <= 2; i++) if (w.entityAt(x + i, y + j)) clear = false;
+        if (!clear) continue;
+        for (let n = 0; n < FARM.bedWood; n++) this.takeSupply(w, (it) => it === 'wood');
+        w.stats.used('wood', FARM.bedWood);
+        const e = w.create(w.nextId++, 'garden', x, y, 0);
+        w.events.push('build', e.cx, e.cy, { id: e.id, w: 2, h: 2 });
+        k.state = 'home';
+        k.wait = w.tick + Math.round(secondsToTicks(FARM.buildSeconds) / this.bonus(k));
+        w.player?.note(`${k.name} hat ein neues Gemüsebeet angelegt`);
+        return true;
+      }
+    }
+    return false;
   }
 
   private chooseBed(w: World, k: Worker): ProducerEntity | null {

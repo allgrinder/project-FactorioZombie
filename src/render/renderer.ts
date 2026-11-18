@@ -22,8 +22,12 @@ import { PLAYER_COMBAT, UNITS, type UnitKind } from '../data/enemies';
 import { DROPS } from '../data/loot';
 import { COMMUNITY, type Job, JOBS, SURVIVOR } from '../data/scavenge';
 
+/** Dach über begehbaren Häusern: Anhebung um die Wandhöhe (0,8 × tan 30°) und Überstand (Felder). */
+const ROOF_LIFT = 0.46;
+const ROOF_OVERHANG = 0.18;
+
 /** Kleidung je Aufgabe (Tönung der Arbeiterfigur). */
-const JOB_TINT: Record<Job, number> = { scavenge: 0xffffff, guard: 0x9fb0c8, farm: 0xd8e8a8, repair: 0xf0d098, medic: 0xf4eeee, rest: 0xc8c0b8 };
+const JOB_TINT: Record<Job, number> = { scavenge: 0xffffff, loot: 0xc8b8a0, guard: 0x9fb0c8, farm: 0xd8e8a8, repair: 0xf0d098, medic: 0xf4eeee, rest: 0xc8c0b8 };
 
 /** Ersatzfarben der Zombies, solange die Sprites fehlen (Kreise in drawCombat). */
 const ZOMBIE_COLOR: Record<UnitKind, number> = { walker: 0x6f7f4a, runner: 0x9a6a3a, brute: 0x4a5a3a, screamer: 0x8a4a6a };
@@ -903,6 +907,7 @@ export class GameRenderer {
       sp.zIndex = py * TILE;
     }
     this.drawWorkers(world, v, alpha);
+    this.drawRoofs(world, v);
     this.drawRobots(world);
     this.drawVehicles(world);
     this.drawEnemies(world, v, alpha);
@@ -1140,6 +1145,10 @@ export class GameRenderer {
         break;
       }
       case 'wall': {
+        if (e.def.house) {
+          this.drawHousePart(world, e, cx, cy, z);
+          break;
+        }
         // Tor: offen, solange die Figur in der Nähe steht
         const p = world.player;
         if (e.def.gate && s.has('gate.open') && p && !p.dead && Math.hypot(p.x - e.cx, p.y - e.cy) < 2.2) this.drawNamed('gate.open', cx, cy, z, 'gate.shadow');
@@ -1154,6 +1163,95 @@ export class GameRenderer {
       }
       default:
         this.drawGeneric(e, cx, cy, z);
+    }
+  }
+
+  /**
+   * Bauteil eines begehbaren Hauses: Wandstück je nach Nachbarn (Maske N=1, O=2, S=4, W=8), Fenster (heil bzw.
+   * zerbrochen), Tür (offen, wenn Figur oder Bewohner davor stehen), dazu Bretter.
+   */
+  private drawHousePart(world: World, e: Entity & { kind: 'wall' }, cx: number, cy: number, z: number): void {
+    const s = this.sprites;
+    const axis = e.dir === 0 ? 'h' : 'v';
+    let base: string;
+    let shadow: string;
+    if (e.def.gate) {
+      const p = world.player;
+      const near = (p && !p.dead && Math.hypot(p.x - e.cx, p.y - e.cy) < 1.4) || !!world.community.at(e.cx, e.cy + 0.4, 1.2);
+      base = near && e.boardHp <= 0 ? `hdoor.${axis}.open` : `hdoor.${axis}`;
+      shadow = `hdoor.${axis}.shadow`;
+    } else if (e.def.window) {
+      base = `hwin.${e.def.house}.${axis}${e.broken ? '.broken' : ''}`;
+      shadow = `hwin.${axis}.shadow`;
+    } else {
+      const wallAt = (x: number, y: number) => {
+        const o = world.entityAt(x, y);
+        return !!o && o.kind === 'wall' && !!o.def.house;
+      };
+      const m = (wallAt(e.x, e.y - 1) ? 1 : 0) | (wallAt(e.x + 1, e.y) ? 2 : 0) | (wallAt(e.x, e.y + 1) ? 4 : 0) | (wallAt(e.x - 1, e.y) ? 8 : 0);
+      base = `hwall.${e.def.house}.${m}`;
+      shadow = `hwall.${m}.shadow`;
+    }
+    if (!s.has(base)) {
+      this.drawGeneric(e, cx, cy, z);
+      return;
+    }
+    this.drawNamed(base, cx, cy, z, shadow);
+    if (e.boardHp > 0 && s.has(`boards.${axis}.1`)) {
+      const sp = this.ents.get(s.frame(`boards.${axis}.${Math.min(3, e.boards)}`));
+      sp.position.set(cx, cy);
+      sp.zIndex = z + 1;
+    }
+  }
+
+  /** Dachdeckung je Haus (1 = sichtbar); blendet aus, solange die Figur drinnen ist. */
+  private readonly roofAlpha = new Map<string, number>();
+
+  /** Dächer begehbarer Häuser: Kacheln über dem Grundriss, um die Wandhöhe angehoben, mit Überstand. */
+  private drawRoofs(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
+    const s = this.sprites;
+    const p = world.player;
+    const px = p && !p.dead ? p.x : -1e9;
+    const py = p && !p.dead ? p.y : -1e9;
+    const lift = ROOF_LIFT * TILE;
+    for (const h of world.sites.houses) {
+      if (h.x > v.x1 + 1 || h.x + h.w < v.x0 - 1 || h.y > v.y1 + 2 || h.y + h.h < v.y0 - 1) continue;
+      const key = `${h.x},${h.y}`;
+      const inside = px >= h.x && px < h.x + h.w && py >= h.y - 0.2 && py < h.y + h.h;
+      const a0 = this.roofAlpha.get(key) ?? 1;
+      const a = Math.max(0, Math.min(1, a0 + (inside ? -0.12 : 0.08)));
+      this.roofAlpha.set(key, a);
+      if (a <= 0.01) continue;
+      const kind = h.roof;
+      const sx = (h.w + ROOF_OVERHANG * 2) / h.w;
+      const sy = (h.h + ROOF_OVERHANG * 2) / h.h;
+      const ccx = (h.x + h.w / 2) * TILE;
+      const ccy = (h.y + h.h / 2) * TILE - lift;
+      for (let j = 0; j < h.h; j++) {
+        for (let i = 0; i < h.w; i++) {
+          const vv = (h.x + i * 7 + (h.y + j) * 13) & 1;
+          let name: string;
+          if (kind === 'flat') {
+            const ns = j === 0 ? 'n' : j === h.h - 1 ? 's' : '';
+            const ew = i === 0 ? 'w' : i === h.w - 1 ? 'e' : '';
+            // Lüfter/Klimageräte nur vereinzelt
+            name = ns || ew ? `roof.flat.${ns}${ew}.0` : `roof.flat.c.${(h.x * 31 + i * 7 + (h.y + j) * 13) % 9 === 0 ? 1 : 0}`;
+          }
+          else if (h.ridge === 0) {
+            const mid = (h.h - 1) / 2;
+            name = `roof.${kind}.${j === mid ? 'r' : j < mid ? 'n' : 's'}.${vv}`;
+          } else {
+            const mid = (h.w - 1) / 2;
+            name = `roof.${kind}.${i === mid ? 'rv' : i < mid ? 'w' : 'e'}.${vv}`;
+          }
+          if (!s.has(name)) continue;
+          const sp = this.ents.get(s.frame(name));
+          sp.position.set(ccx + (i + 0.5 - h.w / 2) * TILE * sx, ccy + (j + 0.5 - h.h / 2) * TILE * sy);
+          sp.scale.set(sx * 1.02, sy * 1.02);
+          sp.alpha = a;
+          sp.zIndex = (h.y + h.h) * TILE - 2;
+        }
+      }
     }
   }
 

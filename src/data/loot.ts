@@ -63,6 +63,21 @@ export const LOOT_TABLES: Readonly<Record<string, readonly LootRow[]>> = {
     R('antibiotics', 1, 1, 0.4), R('canned-food', 3, 6, 0.9), R('water-bottle', 2, 4, 0.8), R('radio-parts', 1, 2, 0.5),
     R('backpack', 1, 1, 0.2), R('fuel-can', 1, 2, 0.4), R('submachine-gun', 1, 1, 0.15), R('noise-lure', 1, 2, 0.3),
   ],
+  // Möbel begehbarer Häuser
+  kitchen: [R('canned-food', 1, 3, 0.65), R('snack', 1, 2, 0.4), R('coffee', 1, 2, 0.3), R('knife', 1, 1, 0.25), R('empty-bottle', 1, 2, 0.4), R('water-bottle', 1, 1, 0.3)],
+  fridge: [R('soda', 1, 3, 0.5), R('water-bottle', 1, 2, 0.45), R('vegetables', 1, 2, 0.3), R('stew', 1, 1, 0.1)],
+  stove: [R('iron-plate', 1, 2, 0.3), R('stew', 1, 1, 0.08)],
+  wardrobe: [R('cloth', 2, 6, 0.85), R('backpack', 1, 1, 0.08, true), R('bandage', 1, 1, 0.15)],
+  shelf: [R('cloth', 1, 2, 0.3), R('empty-bottle', 1, 2, 0.3), R('copper-cable', 1, 4, 0.3), R('noise-lure', 1, 1, 0.08)],
+  bathroom: [R('bandage', 1, 3, 0.6), R('first-aid-kit', 1, 1, 0.15), R('antibiotics', 1, 1, 0.12, true), R('empty-bottle', 1, 1, 0.3)],
+  desk: [R('radio-parts', 1, 1, 0.12, true), R('copper-cable', 1, 4, 0.5), R('electronic-circuit', 1, 2, 0.25), R('pistol', 1, 1, 0.05, true), R('firearm-magazine', 1, 2, 0.12)],
+  locker: [R('firearm-magazine', 1, 4, 0.5), R('pistol', 1, 1, 0.15), R('bandage', 1, 2, 0.4), R('baseball-bat', 1, 1, 0.2), R('canned-food', 1, 2, 0.3)],
+  workbench: [R('crowbar', 1, 1, 0.2), R('repair-pack', 1, 2, 0.4), R('iron-gear-wheel', 2, 6, 0.6), R('pipe', 1, 4, 0.4), R('iron-stick', 2, 6, 0.5), R('axe', 1, 1, 0.12)],
+  transformer: [R('copper-cable', 4, 12, 0.9), R('electronic-circuit', 1, 3, 0.4), R('iron-plate', 2, 4, 0.5)],
+  container: [
+    R('cloth', 4, 12, 0.4), R('canned-food', 2, 8, 0.35), R('water-bottle', 2, 6, 0.3), R('iron-plate', 4, 12, 0.4), R('copper-cable', 4, 12, 0.3),
+    R('iron-gear-wheel', 2, 8, 0.3), R('pipe', 2, 8, 0.25), R('fuel-can', 1, 2, 0.15), R('repair-pack', 1, 3, 0.2), R('electronic-circuit', 1, 4, 0.2),
+  ],
   trash: [
     R('iron-ore', 2, 8, 0.8), R('empty-bottle', 1, 4, 0.6), R('cloth', 1, 4, 0.5), R('wood', 1, 5, 0.4), R('snack', 1, 1, 0.15), R('iron-stick', 1, 4, 0.3),
   ],

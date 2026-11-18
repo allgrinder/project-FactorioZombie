@@ -43,6 +43,10 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Gemeinschaft (`src/sim/community.ts`, Werte `COMMUNITY/GUARD/MEDIC/REPAIR/FARM` in `src/data/scavenge.ts`, Fenster
   `src/ui/community.ts`, Taste K): Überlebende → Bewohner mit Beruf und Aufgabe (Sammeln, Wache, Gärtnern, Ausbessern,
   Sanitäter, Ruhen); Zombies jagen sie über `Unit.prey`; Vorratslager (`kind: 'camp'`), Essen morgens. Test `gemeinschaft.test.ts`.
+- Begehbare Häuser (`SiteSystem.house`, `houses` im Spielstand): Wände/Fenster/Türen als `kind: 'wall'` mit `def.house`,
+  Bretter (`WallEntity.boardHp`, `World.barricade`), Möbel als Beute, Dächer im Renderer (`drawRoofs`, blenden aus),
+  Modelle `lib/haus.py`. Sonderorte `WORLD.places` (Gefängnis, Kraftwerk, Gewerbegebiet, Gutshöfe; Modelle
+  `lib/grossbau.py`). Tests `haus.test.ts`, Sonderorte in `welt.test.ts`. Aufgaben Plündern/Beete anlegen/Turmwache.
 - Natürliche Welt: gepflanzte Bäume (`TreeField.plant`, Spielstand `planted`): Alleen, Feldhecken, Hof- und Gartenbäume.
 - Basis: Lagerfeuer (`kind: 'fire'`, `World.base`: Neustart, Hordenziel), Licht (`World.isLit`, Türme nachts kürzer),
   Wachturm (TurretDef-Werte), Versorgungsabwürfe (`src/sim/drops.ts`), Ziele (`src/sim/goals.ts`), Requisiten (`kind: 'prop'`).

@@ -84,19 +84,20 @@ export const SURVIVOR = {
 } as const;
 
 /** Aufgaben der Bewohner (Wunsch 18.11.2026: „jeder Bewohner hat eine Aufgabe“). */
-export type Job = 'scavenge' | 'guard' | 'farm' | 'repair' | 'medic' | 'rest';
+export type Job = 'scavenge' | 'loot' | 'guard' | 'farm' | 'repair' | 'medic' | 'rest';
 
 export const JOBS: Record<Job, { name: string; past: string; icon: string; hint: string }> = {
   scavenge: { name: 'Sammeln', past: 'Schrotthandel', icon: 'iron-ore', hint: 'schlachtet Schrotthaufen im Umkreis aus und bringt die Ausbeute ins Vorratslager' },
-  guard: { name: 'Wache', past: 'Polizei', icon: 'pistol', hint: 'steht Posten am Lagerfeuer und schießt auf Zombies (Magazine aus dem Vorrat, sonst Nahkampf)' },
-  farm: { name: 'Gärtnern', past: 'Landwirtschaft', icon: 'vegetables', hint: 'pflegt und erntet Gemüsebeete (wachsen doppelt so schnell); ohne Beete sammelt er Wildkräuter' },
+  loot: { name: 'Plündern', past: 'Umzugsfirma', icon: 'crowbar', hint: 'durchsucht Häuser, Läden und Wracks im Umkreis und bringt die Beute ins Vorratslager' },
+  guard: { name: 'Wache', past: 'Polizei', icon: 'pistol', hint: 'besetzt Wachtürme und MG-Türme, sonst Posten an der Mauer bzw. am Feuer; schießt mit Magazinen aus dem Vorrat (vom Turm weiter)' },
+  farm: { name: 'Gärtnern', past: 'Landwirtschaft', icon: 'vegetables', hint: 'pflegt und erntet Gemüsebeete (wachsen doppelt so schnell), legt mit Holz aus dem Vorrat neue an; sonst Wildkräuter' },
   repair: { name: 'Ausbessern', past: 'Autowerkstatt', icon: 'repair-pack', hint: 'bessert beschädigte Mauern, Tore und Türme im Lager aus' },
   medic: { name: 'Sanitäter', past: 'Krankenpflege', icon: 'bandage', hint: 'heilt dich und die Bewohner am Lager, verbindet Wunden (Verbände, Antibiotika aus dem Vorrat)' },
   rest: { name: 'Ruhen', past: '', icon: 'bed', hint: 'bleibt am Lagerfeuer und erholt sich' },
 };
-export const JOB_ORDER: Job[] = ['scavenge', 'guard', 'farm', 'repair', 'medic', 'rest'];
+export const JOB_ORDER: Job[] = ['scavenge', 'loot', 'guard', 'farm', 'repair', 'medic', 'rest'];
 /** Fähigkeiten (frühere Berufe) neuer Überlebender, gewichtet. */
-export const SKILLS: Job[] = ['scavenge', 'scavenge', 'guard', 'guard', 'farm', 'repair', 'medic'];
+export const SKILLS: Job[] = ['scavenge', 'loot', 'guard', 'guard', 'farm', 'repair', 'medic'];
 
 export const NAMES = [
   'Anna', 'Ben', 'Carla', 'Dieter', 'Emil', 'Frieda', 'Greta', 'Hannes', 'Ilse', 'Jonas', 'Karl', 'Lena', 'Mats', 'Nora',
@@ -131,9 +132,13 @@ export const GUARD = {
   meleeCooldown: 60,
   /** Postenring um das Lagerfeuer. */
   postRadius: 5,
+  /** Reichweite auf bzw. neben einem Turm (erhöht). */
+  towerBonus: 1.4,
 } as const;
 
 export const MEDIC = { reach: 2.5, hpPerSecond: 2, residentHpPerSecond: 1 } as const;
 export const REPAIR = { hpPerSecond: 8 } as const;
 /** Gärtner: Wachstum je Tick zusätzlich, Ernte ab so vielen Stück heimbringen, Wildkräuter alle forageSeconds. */
-export const FARM = { boost: 1, carry: 3, forageSeconds: 150 } as const;
+export const FARM = { boost: 1, carry: 3, forageSeconds: 150, bedsPerFarmer: 3, bedWood: 8, buildSeconds: 30 } as const;
+/** Plündern: Umkreis um das Lagerfeuer, Last je Gang, Faktor auf die Suchzeit, Zombies so nah meiden. */
+export const LOOTER = { radius: 90, capacity: 16, searchFactor: 1.5, avoid: 12 } as const;

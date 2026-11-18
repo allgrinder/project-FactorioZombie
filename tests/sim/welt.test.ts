@@ -26,9 +26,16 @@ describe('Feste Welt', () => {
       for (const b of WORLD.towns) if (a !== b) expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeGreaterThan(150);
     }
     const ends = [...WORLD.towns.map((t) => [t.x, t.y]), ...WORLD.outposts.map((o) => [o.x, o.y]), [8, -6]];
+    // Zufahrten zweigen von einer Landstraße ab und enden an einem Sonderort
+    const segs = roadSegments();
+    const onRoad = (x: number, y: number) => segs.some(([ax, ay, bx, by]) => x >= Math.min(ax, bx) && x <= Math.max(ax, bx) + 1 && y >= Math.min(ay, by) && y <= Math.max(ay, by) + 1);
+    const nearPlace = (x: number, y: number) => WORLD.places.some((pl) => Math.hypot(pl.x - x, pl.y - y) < 30);
     for (const road of WORLD.roads) {
-      for (const p of [road[0], road[road.length - 1]]) expect(ends.some(([x, y]) => x === p[0] && y === p[1])).toBe(true);
+      for (const p of [road[0], road[road.length - 1]]) {
+        expect(ends.some(([x, y]) => x === p[0] && y === p[1]) || onRoad(p[0], p[1]) || nearPlace(p[0], p[1]), `${p}`).toBe(true);
+      }
     }
+    for (const pl of WORLD.places) expect(WORLD.roads.some((r) => nearPlace(r[r.length - 1][0], r[r.length - 1][1]) && Math.hypot(r[r.length - 1][0] - pl.x, r[r.length - 1][1] - pl.y) < 30), pl.name).toBe(true);
   });
 
   it('ist immer gleich: gleiche Gebäude an gleicher Stelle', () => {
@@ -48,8 +55,11 @@ describe('Feste Welt', () => {
     visit(w, t.x, t.y);
     const near = [...w.entities.values()].filter((e) => e.kind === 'loot' && Math.hypot(e.cx - t.x, e.cy - t.y) < 90);
     const count = (n: string) => near.filter((e) => e.name === n).length;
-    expect(count('ruin-store')).toBeGreaterThanOrEqual(3);
-    expect(count('ruin-house')).toBeGreaterThanOrEqual(10);
+    // begehbare Häuser (Wohnhäuser, Läden mit Regalen) und ein paar ausgebrannte Ruinen
+    const houses = w.sites.houses.filter((h) => Math.hypot(h.x - t.x, h.y - t.y) < 90);
+    expect(houses.length).toBeGreaterThanOrEqual(12);
+    expect(count('store-shelf')).toBeGreaterThanOrEqual(6);
+    expect(count('kitchen')).toBeGreaterThanOrEqual(6);
     expect(count('car-wreck')).toBeGreaterThanOrEqual(4);
     // Kreisstadt: Polizeiwache und Arztpraxis am Ortsrand
     expect(count('police-station')).toBe(1);
@@ -136,5 +146,32 @@ describe('Natürliche Welt', () => {
     const [qx, qy] = planted[5];
     expect(b.map.trees.treeAt(Math.floor(qx), Math.floor(qy))).toBeTruthy();
     expect(JSON.stringify(serializeWorld(b))).toBe(JSON.stringify(serializeWorld(w)));
+  });
+});
+
+describe('Sonderorte', () => {
+  it('Gefängnis, Kraftwerk, Gewerbegebiet und Gutshöfe entstehen mit ihren Bauten', () => {
+    const w = new World(WORLD.seed, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
+    w.player = new Player(0.5, 0.5);
+    const count = (name: string, x: number, y: number, r = 40) => [...w.entities.values()].filter((e) => e.name === name && Math.hypot(e.cx - x, e.cy - y) < r).length;
+    for (const pl of WORLD.places) {
+      w.player.px = pl.x * 256;
+      w.player.py = (pl.y + 40) * 256;
+      w.run(61);
+    }
+    const at = (id: string) => WORLD.places.find((p) => p.id === id)!;
+    const jva = at('jva');
+    expect(count('hwall-concrete', jva.x, jva.y)).toBeGreaterThan(100);
+    expect(count('prison-tower', jva.x, jva.y)).toBe(4);
+    expect(count('bunk', jva.x, jva.y)).toBeGreaterThanOrEqual(10);
+    const kw = at('kraftwerk');
+    expect(count('cooling-tower', kw.x, kw.y)).toBe(2);
+    expect(count('transformer', kw.x, kw.y)).toBe(4);
+    const gw = at('gewerbe');
+    expect(count('container', gw.x, gw.y)).toBeGreaterThanOrEqual(4);
+    expect([...w.entities.values()].filter((e) => e.kind === 'pile' && Math.hypot(e.cx - gw.x, e.cy - gw.y) < 30).length).toBeGreaterThanOrEqual(6);
+    const lh = at('lindenhof');
+    expect(count('silo', lh.x, lh.y)).toBe(2);
+    expect(w.sites.houses.filter((h) => Math.hypot(h.x - lh.x, h.y - lh.y) < 20).length).toBeGreaterThanOrEqual(2);
   });
 });

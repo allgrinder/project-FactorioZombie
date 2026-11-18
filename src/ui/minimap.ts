@@ -206,7 +206,7 @@ export class Minimap {
       ctx.stroke();
       ctx.font = `${detail ? 13 : 10}px sans-serif`;
       ctx.textAlign = 'center';
-      for (const t of [...WORLD.towns, ...WORLD.outposts]) {
+      for (const t of [...WORLD.towns, ...WORLD.outposts, ...WORLD.places]) {
         if (t.x < x0 || t.y < y0 || t.x > x1 || t.y > y1) continue;
         ctx.fillStyle = 'rgba(0,0,0,0.7)';
         ctx.fillText(t.name, toX(t.x) + 1, toY(t.y) - 7);
@@ -214,6 +214,12 @@ export class Minimap {
         ctx.fillText(t.name, toX(t.x), toY(t.y) - 8);
       }
       ctx.textAlign = 'start';
+    }
+    // begehbare Häuser (Dachfarbe)
+    for (const h of world.sites.houses) {
+      if (h.x + h.w < x0 || h.y + h.h < y0 || h.x > x1 || h.y > y1 || !charted(h.x, h.y)) continue;
+      ctx.fillStyle = h.roof === 'tile' ? '#8a4a34' : h.roof === 'slate' ? '#5a5e62' : h.roof === 'metal' ? '#7a7062' : '#6e6a62';
+      ctx.fillRect(toX(h.x), toY(h.y), Math.max(1, h.w * scale), Math.max(1, h.h * scale));
     }
     // Fundorte (Häuser, Wracks) und Lärm (Ringe), dann Zombies
     ctx.fillStyle = '#c9b58a';

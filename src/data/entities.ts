@@ -321,6 +321,10 @@ export interface WallDef extends EntityBase {
   readonly kind: 'wall';
   /** Tor: die Figur geht hindurch (walkable), Zombies nicht. */
   readonly gate?: boolean;
+  /** Bauteil eines begehbaren Hauses (src/sim/sites.ts): Bauart der Wand bzw. 'door'. */
+  readonly house?: string;
+  /** Fenster (lässt sich verbarrikadieren, bricht leicht). */
+  readonly window?: boolean;
 }
 
 /** Stacheldraht / Nagelfalle: begehbar, bremst bzw. verletzt Zombies (Werte HAZARD in src/data/enemies.ts). */
@@ -787,6 +791,47 @@ const list: EntityDef[] = [
   {
     kind: 'camp', id: 'scavenger-camp', name: 'Vorratslager', width: 3, height: 3, health: 400,
     item: 'scavenger-camp', mineTime: 0.6, solid: true, rotatable: false, slots: 24, workers: 3, radius: 80,
+  },
+  // Begehbare Häuser: Wände (Abbau liefert Baustoff), Fenster, Türen (lib/haus.py, Werte docs/KONZEPT.md)
+  ...([
+    ['brick', 'Ziegelwand', 650, 'stone', 2], ['plaster', 'Hauswand', 500, 'stone', 2], ['wood', 'Bretterwand', 280, 'wood', 3], ['concrete', 'Betonwand', 1100, 'stone', 3],
+  ] as const).flatMap(([m, name, hp, item, n]): WallDef[] => [
+    { kind: 'wall', id: `hwall-${m}`, name, width: 1, height: 1, health: hp, item, itemCount: n, mineTime: 3, solid: true, rotatable: false, house: m },
+    { kind: 'wall', id: `hwin-${m}`, name: 'Fenster', width: 1, height: 1, health: 60, item: 'wood', itemCount: 1, mineTime: 1.5, solid: true, rotatable: false, house: m, window: true },
+  ]),
+  {
+    kind: 'wall', id: 'hdoor', name: 'Haustür', width: 1, height: 1, health: 220, item: 'wood', itemCount: 2, mineTime: 2,
+    solid: true, walkable: true, rotatable: false, gate: true, house: 'door',
+  },
+  // Möbel: durchsuchbar (Beute je Möbelstück), Bett zum Schlafen, Sofa und Tisch als Requisiten
+  ...([
+    ['kitchen', 'Küchenzeile', 1, 1, 'kitchen', 1.5], ['fridge', 'Kühlschrank', 1, 1, 'fridge', 1], ['stove', 'Herd', 1, 1, 'stove', 1],
+    ['wardrobe', 'Kleiderschrank', 1, 1, 'wardrobe', 1.5], ['shelf', 'Bücherregal', 1, 1, 'shelf', 1.5], ['bathroom', 'Bad', 1, 1, 'bathroom', 1.2],
+    ['desk', 'Schreibtisch', 1, 1, 'desk', 1.5], ['store-shelf', 'Ladenregal', 2, 1, 'store', 2], ['locker', 'Spind', 1, 1, 'locker', 1.5],
+    ['workbench', 'Werkbank', 1, 1, 'workbench', 1.5],
+  ] as const).map(([id, name, w, h, table, t]): LootDef => ({
+    kind: 'loot', id, name, width: w, height: h, health: 120, item: 'wood', itemCount: 2, mineTime: 1.5, solid: true, rotatable: false,
+    slots: 6, table, searchTime: t, salvage: [{ item: id === 'fridge' || id === 'stove' || id === 'locker' || id === 'store-shelf' ? 'iron-plate' : 'wood', amount: 3 }],
+  })),
+  { kind: 'bed', id: 'house-bed', name: 'Bett', width: 1, height: 2, health: 100, item: 'wood', itemCount: 4, mineTime: 1, solid: true, walkable: true, rotatable: false },
+  { kind: 'bed', id: 'bunk', name: 'Pritsche', width: 1, height: 2, health: 120, item: 'iron-plate', itemCount: 2, mineTime: 1, solid: true, walkable: true, rotatable: false },
+  ...([['sofa', 'Sofa', 2, 1, 'cloth', 4], ['table', 'Tisch', 1, 1, 'wood', 3]] as const).map(([id, name, w, h, item, n]): PropDef => ({
+    kind: 'prop', id, name, width: w, height: h, health: 100, item, itemCount: n, mineTime: 1, solid: true, rotatable: false,
+  })),
+  // Großbauten der Sonderorte (lib/grossbau.py)
+  ...([
+    ['cooling-tower', 'Kühlturm', 6, 6, 'stone', 30, 6000], ['chimney', 'Schornstein', 2, 2, 'stone', 12, 3000],
+    ['silo', 'Getreidesilo', 3, 3, 'iron-plate', 12, 1500], ['prison-tower', 'Gefängnis-Wachturm', 2, 2, 'stone', 10, 2500],
+  ] as const).map(([id, name, w, h, item, n, hp]): PropDef => ({
+    kind: 'prop', id, name, width: w, height: h, health: hp, item, itemCount: n, mineTime: 12, solid: true, rotatable: false,
+  })),
+  {
+    kind: 'loot', id: 'transformer', name: 'Trafo', width: 2, height: 2, health: 600, item: 'iron-plate', itemCount: 4, mineTime: 4,
+    solid: true, rotatable: false, slots: 6, table: 'transformer', searchTime: 2.5, salvage: [{ item: 'copper-cable', amount: 20 }, { item: 'iron-plate', amount: 6 }],
+  },
+  {
+    kind: 'loot', id: 'container', name: 'Container', width: 3, height: 1, health: 900, item: 'iron-plate', itemCount: 8, mineTime: 6,
+    solid: true, rotatable: false, slots: 10, table: 'container', searchTime: 3, salvage: [{ item: 'iron-plate', amount: 16 }],
   },
   // Requisiten der alten Welt (Abbau liefert item × itemCount)
   ...([

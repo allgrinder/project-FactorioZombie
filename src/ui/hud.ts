@@ -351,7 +351,7 @@ export class Hud {
     this.survKey = key;
     this.survEl.replaceChildren();
     const head = el('div', 'surv-head', this.survEl);
-    const town = w.settings.plan ? WORLD.towns.find((t) => Math.hypot(t.x - p.x, t.y - p.y) < 30 + t.size * 22) : undefined;
+    const town = w.settings.plan ? WORLD.towns.find((t) => Math.hypot(t.x - p.x, t.y - p.y) < 30 + t.size * 22) ?? WORLD.places.find((t) => Math.hypot(t.x - p.x, t.y - p.y) < 30) : undefined;
     head.textContent = `Tag ${day} · ${this.clock()} · ${night}${town ? ` · ${town.name}` : ''}`;
     const bar = (label: string, frac: number, cls: string, title: string) => {
       const r = el('div', `surv-row ${cls}${frac < 0.25 ? ' low' : ''}`, this.survEl);

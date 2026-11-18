@@ -20,6 +20,17 @@ export interface TownDef {
   readonly blurb: string;
 }
 
+/** Sonderorte (Wunsch 18.11.2026): Gefängnis, Kraftwerk, Gewerbegebiet, Gutshöfe. gate: Seite der Einfahrt (0 N … 3 W). */
+export interface PlaceDef {
+  readonly id: string;
+  readonly kind: 'prison' | 'powerplant' | 'industrial' | 'farmstead';
+  readonly name: string;
+  readonly x: number;
+  readonly y: number;
+  readonly gate: 0 | 1 | 2 | 3;
+  readonly blurb: string;
+}
+
 export const WORLD = {
   /** Fester Karten-Seed der Welt. */
   seed: 326,
@@ -43,6 +54,12 @@ export const WORLD = {
     [[-124, -336], [-40, -230], [40, -120], [96, -44]],
     [[164, 216], [290, 250], [432, 262]],
     [[392, -124], [440, 40], [432, 262]],
+    // Zufahrten zu den Sonderorten
+    [[-300, 64], [-300, 132]],
+    [[270, -70], [270, 36]],
+    [[440, -41], [434, -41]],
+    [[-60, 20], [-60, 118]],
+    [[300, -118], [300, -168]],
   ] as readonly (readonly (readonly [number, number])[])[],
   /** Schrottplätze (Ziel der Sammeltrupps): zwei nahe am Start, je einer bei den Orten. */
   junkyards: [
@@ -50,6 +67,13 @@ export const WORLD = {
   ] as readonly (readonly [number, number])[],
   /** Militärposten: Lager mit Militärkisten, stark bewacht. */
   outposts: [{ name: 'Posten 7', x: 432, y: 262 }] as readonly { name: string; x: number; y: number }[],
+  places: [
+    { id: 'jva', kind: 'prison', name: 'JVA Aschland', x: -300, y: 152, gate: 0, blurb: 'Gefängnis: Betonmauern, Wachtürme, Zellentrakt – die sicherste Festung im Kreis' },
+    { id: 'kraftwerk', kind: 'powerplant', name: 'Kraftwerk Aschland', x: 270, y: 56, gate: 0, blurb: 'Kühltürme, Turbinenhalle, Kohlenhalde, Trafos' },
+    { id: 'gewerbe', kind: 'industrial', name: 'Gewerbegebiet Eisenrode', x: 412, y: -40, gate: 1, blurb: 'Lagerhallen, Container, Schrott ohne Ende' },
+    { id: 'lindenhof', kind: 'farmstead', name: 'Gut Lindenhof', x: -70, y: 132, gate: 0, blurb: 'Gutshof mit Scheune, Silos und Feldern' },
+    { id: 'birkenrain', kind: 'farmstead', name: 'Hof Birkenrain', x: 296, y: -186, gate: 2, blurb: 'Abgelegener Hof im Osten' },
+  ] as readonly PlaceDef[],
   /** Höfe an den Landstraßen: alle so viele Felder einer, so weit neben der Straße. */
   farmEvery: 85,
   farmOffset: 13,

@@ -98,7 +98,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await page.mouse.click(sx, sy);
   await page.keyboard.press('q');
   await page.waitForTimeout(200);
-  const kinds = await g(page)(() => [...(window as Any).letzteschicht.world.entities.values()].map((e: Any) => e.kind).filter((k: string) => !['loot', 'pile', 'prop'].includes(k)).sort());
+  const kinds = await g(page)(() => [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop', 'bed', 'wire', 'producer'].includes(e.kind) && !e.def.house).map((e: Any) => e.kind).sort());
   expect(kinds).toEqual(['fire', 'furnace']);
   expect(await g(page)(() => !!(window as Any).letzteschicht.world.base)).toBe(true);
 
@@ -125,7 +125,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await page.waitForTimeout(1000);
   await page.keyboard.press('Control+l');
   await expect(page.locator('.messages')).toHaveText('Geladen');
-  const after = await g(page)(() => ({ tick: (window as Any).letzteschicht.world.tick, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop'].includes(e.kind)).length }));
+  const after = await g(page)(() => ({ tick: (window as Any).letzteschicht.world.tick, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop', 'bed', 'wire', 'producer'].includes(e.kind) && !e.def.house).length }));
   expect(after.n).toBe(2);
   expect(after.tick).toBeLessThan(saved + 45);
   await page.keyboard.press('Alt');
@@ -142,7 +142,7 @@ test('Freies Spiel: abbauen, bauen, befüllen, herstellen, speichern und laden',
   await expect(cont).toBeVisible();
   await cont.click();
   await expect(page.locator('.messages')).toHaveText('Geladen');
-  const restored = await g(page)(() => ({ seed: (window as Any).letzteschicht.world.seed, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop'].includes(e.kind)).length }));
+  const restored = await g(page)(() => ({ seed: (window as Any).letzteschicht.world.seed, n: [...(window as Any).letzteschicht.world.entities.values()].filter((e: Any) => !['loot', 'pile', 'prop', 'bed', 'wire', 'producer'].includes(e.kind) && !e.def.house).length }));
   expect(restored).toEqual({ seed, n: 2 });
   expect(errors).toEqual([]);
 });

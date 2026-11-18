@@ -44,8 +44,11 @@ Die Schleife ist: **hinausgehen, plündern, kämpfen – und zurück zur bewacht
    Kohle, Holz, Autoteile, Elektroschrott) – am Startfundort, an Höfen, in Orten und auf eingezäunten
    **Schrottplätzen**. Rechtsklick halten schlachtet aus, das Brecheisen verdoppelt das Tempo. Häuser, Läden und
    Wracks werden durchsucht (Linksklick). Der Rucksack bringt 20 Plätze – trotzdem muss man oft heim.
-   **Gemeinschaft (K):** Gerettete Überlebende werden Bewohner mit Aufgabe – Sammeln, Wache, Gärtnern, Ausbessern,
-   Sanitäter – und arbeiten selbstständig. Sie essen aus dem *Vorratslager* und werden von Zombies gejagt.
+   **Begehbare Häuser:** Türen, Fenster, Zimmer und Möbel zum Durchsuchen; das Dach blendet aus, wenn du drin bist.
+   Fenster und Türen lassen sich verbarrikadieren (Holz in der Hand, Klick). Sonderorte: Gefängnis, Kraftwerk,
+   Gewerbegebiet, Gutshöfe.
+   **Gemeinschaft (K):** Gerettete Überlebende werden Bewohner mit Aufgabe – Sammeln, Plündern, Wache, Gärtnern,
+   Ausbessern, Sanitäter – und arbeiten selbstständig. Sie essen aus dem *Vorratslager* und werden von Zombies gejagt.
 3. **Überleben.** Hunger, Durst und Müdigkeit sinken ständig. Konserven und Wasser gibt es als Beute; auf Dauer
    helfen Gemüsebeet und Regentonne. Geschlafen wird mit **N** (im Feldbett erholsamer). Blutungen stoppt ein
    Verband, ein infizierter Biss endet ohne Antibiotika tödlich.

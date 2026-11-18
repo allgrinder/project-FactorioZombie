@@ -62,6 +62,9 @@ export const UNITS: Readonly<Record<UnitKind, UnitDef>> = {
 export const UNIT_KINDS = Object.keys(UNITS) as UnitKind[];
 
 /** Wahrnehmung und Verhalten. */
+/** Verbarrikadieren (Fenster, Türen begehbarer Häuser): Holz je Brett, Lebenspunkte je Brett, höchstens maxBoards. */
+export const BARRICADE = { wood: 2, boardHp: 90, maxBoards: 3 } as const;
+
 export const ZOMBIE = {
   /** Sichtweite am Tag und in der Nacht (Felder); dazwischen nach Dunkelheit. */
   sightDay: 11,

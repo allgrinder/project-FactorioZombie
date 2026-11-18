@@ -1,7 +1,7 @@
 import { type EntityDef, entityDef } from '../data/entities';
-import { ASPHALT, FIELD, PAVEMENT, ROADLINE_E, ROADLINE_S } from '../data/floors';
+import { ASPHALT, CONCRETE, FIELD, PAVEMENT, PLANKS, ROADLINE_E, ROADLINE_S, TILES } from '../data/floors';
 import { SITES } from '../data/loot';
-import { type TownDef, WORLD, roadSegments } from '../data/world';
+import { type PlaceDef, type TownDef, WORLD, roadSegments } from '../data/world';
 import { hash01 } from './rng';
 import type { World } from './world';
 
@@ -16,6 +16,20 @@ export interface Site {
   kind: SiteKind;
 }
 
+export type RoofKind = 'tile' | 'slate' | 'metal' | 'flat';
+/** Begehbares Haus: Grundriss (Felder), Dach (Darstellung, blendet aus, wenn die Figur drin ist), First (0 Ost-West, 1 Nord-Süd). */
+export interface House {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  roof: RoofKind;
+  ridge: 0 | 1;
+}
+/** Nutzung: Wohnhaus, Laden, Scheune, Werkstatt/Halle, Zellentrakt, Büro/Wache. */
+export type HouseKind = 'home' | 'store' | 'barn' | 'works' | 'cells' | 'office' | 'church';
+type Room = { x: number; y: number; w: number; h: number; type: string };
+
 const cellKey = (gx: number, gy: number) => gx * 100003 + gy;
 const STARTER = 999_999_937;
 
@@ -26,6 +40,8 @@ const STARTER = 999_999_937;
  */
 export class SiteSystem {
   readonly sites: Site[] = [];
+  /** Begehbare Häuser (für Dächer und Karte). */
+  readonly houses: House[] = [];
   private readonly cells = new Set<number>();
 
   ensureArea(w: World, x0: number, y0: number, x1: number, y1: number): void {
@@ -256,12 +272,27 @@ export class SiteSystem {
       let i = 0;
       while (a < a0 + len - 3) {
         const name = pick(h(20 + side * 40 + i));
+        // meist begehbare Häuser; manche sind ausgebrannte Ruinen (nicht betretbar)
+        const hi = (m: number) => h(1000 + side * 500 + i * 17 + m);
+        const walk = name === 'ruin-house' ? hi(0) < 0.85 : name === 'ruin-store' ? hi(0) < 0.8 : name === 'ruin-garage' ? hi(0) < 0.65 : false;
+        const hk: HouseKind = name === 'ruin-store' ? 'store' : name === 'ruin-garage' ? 'works' : 'home';
         const def = entityDef(name);
-        const along = horizontal ? def.width : def.height;
-        const depth = horizontal ? def.height : def.width;
-        // Abstand zur Straße: ein Feld Gehweg
-        const off = side === 0 ? -1 - depth : 3;
-        const ok = horizontal ? this.put(w, name, cx + a, cy + off, level) : this.put(w, name, cx + off, cy + a, level);
+        const HW = hk === 'store' ? 10 + Math.floor(hi(1) * 3) : hk === 'works' ? 8 + Math.floor(hi(1) * 3) : 7 + Math.floor(hi(1) * 4);
+        const HH = hk === 'store' ? 7 + Math.floor(hi(2) * 2) : hk === 'works' ? 7 + Math.floor(hi(2) * 2) : 6 + Math.floor(hi(2) * 3);
+        const along = walk ? (horizontal ? HW : HH) : horizontal ? def.width : def.height;
+        const depth = walk ? (horizontal ? HH : HW) : horizontal ? def.height : def.width;
+        // Abstand zur Straße: ein Feld Gehweg, dazu ein Vorgarten unterschiedlicher Tiefe
+        const setback = walk && hk === 'home' ? Math.floor(hi(3) * 3) : 0;
+        const off = side === 0 ? -1 - depth - setback : 3 + setback;
+        let ok: boolean;
+        if (walk) {
+          const doorSide = horizontal ? (side === 0 ? 2 : 0) : side === 0 ? 1 : 3;
+          const m = hi(4);
+          const mat = hk === 'works' ? (m < 0.6 ? 'concrete' : 'brick') : m < 0.45 ? 'brick' : m < 0.9 ? 'plaster' : 'wood';
+          const r = hi(5);
+          const roof: RoofKind = hk === 'store' ? 'flat' : hk === 'works' ? (r < 0.6 ? 'metal' : 'flat') : r < 0.5 ? 'tile' : r < 0.85 ? 'slate' : 'metal';
+          ok = horizontal ? this.house(w, cx + a, cy + off, HW, HH, hk, doorSide, mat, roof, hi, level) : this.house(w, cx + off, cy + a, HW, HH, hk, doorSide, mat, roof, hi, level);
+        } else ok = horizontal ? this.put(w, name, cx + a, cy + off, level) : this.put(w, name, cx + off, cy + a, level);
         if (ok) {
           placed++;
           if (name === 'ruin-store') special |= 1;
@@ -279,6 +310,20 @@ export class SiteSystem {
             const ey = horizontal ? cy + off + (side === 0 ? -2 : depth) : cy + a;
             void back;
             placed += +this.put(w, name === 'ruin-garage' ? 'parts-pile' : 'rubble-pile', ex, ey, level);
+          }
+        }
+        // Gartenzaun hinter dem Haus und manchmal ein verwildertes Gemüsebeet
+        if (ok && level && walk && hk === 'home' && hi(6) < 0.55) {
+          const back = side === 0 ? off - 3 : off + depth + 2;
+          for (let q = -1; q <= along; q++) {
+            if (q === Math.floor(along / 2)) continue;
+            if (horizontal) this.put(w, 'fence', cx + a + q, cy + back);
+            else this.put(w, 'fence', cx + back, cy + a + q);
+          }
+          if (hi(7) < 0.5) {
+            const gb = side === 0 ? off - 2 : off + depth;
+            if (horizontal) this.put(w, 'garden', cx + a + 1 + Math.floor(hi(8) * (along - 3)), cy + gb - (side === 0 ? 0 : 0));
+            else this.put(w, 'garden', cx + gb, cy + a + 1 + Math.floor(hi(8) * (along - 3)));
           }
         }
         // Garten hinter dem Haus: ein, zwei Bäume (manche Grundstücke bleiben leer und verwildern)
@@ -394,6 +439,7 @@ export class SiteSystem {
     const inCell = (x: number, y: number) => x >= x0 && x < x1 && y >= y0 && y < y1;
     for (const t of WORLD.towns) if (inCell(t.x, t.y)) this.town(w, t);
     for (const o of WORLD.outposts) if (inCell(o.x, o.y)) this.outpost(w, o.x, o.y);
+    for (const pl of WORLD.places) if (inCell(pl.x, pl.y)) this.place(w, pl);
     WORLD.junkyards.forEach(([x, y], i) => {
       if (inCell(x, y)) this.junkyard(w, x, y, i);
     });
@@ -471,19 +517,42 @@ export class SiteSystem {
     for (let a = -len / 2 + 9; a < len / 2; a += 18) this.sites.push({ x: t.x + (horizontal ? a : 0), y: t.y + (horizontal ? 0 : a), r: 11, weight, kind: 'town' });
     const n = WORLD.crossStreets[t.size - 1];
     const cl = WORLD.crossLength[t.size - 1];
+    // Dorfplatz mit Kirche (ab Dorfgröße) an einer zufälligen Stelle der Hauptstraße
+    if (t.size >= 2) {
+      const a = Math.round((hs(50)(1) - 0.5) * len * 0.5);
+      const side = hs(50)(2) < 0.5 ? -1 : 1;
+      const px = t.x + (horizontal ? a - 6 : side < 0 ? -15 : 4);
+      const py = t.y + (horizontal ? (side < 0 ? -13 : 4) : a - 6);
+      for (let y = py; y < py + (horizontal ? 10 : 12); y++) for (let x = px; x < px + (horizontal ? 12 : 10); x++) this.paint(w, x, y, PAVEMENT);
+      this.tree(w, px + 5.5, py + 5.5);
+      const cw = 9;
+      const ch = 12;
+      this.house(w, horizontal ? px + 13 : px, horizontal ? py + (side < 0 ? -3 : 1) : py + 13, horizontal ? cw : ch, horizontal ? ch : cw,
+        'church', horizontal ? (side < 0 ? 2 : 0) : side < 0 ? 1 : 3, 'plaster', 'slate', hs(51), true);
+    }
     for (let k = 0; k < n; k++) {
-      const a = Math.round(-len / 2 + ((k + 0.5) * len) / n);
-      // abwechselnd nach beiden Seiten, vom Gehweg der Hauptstraße weg
-      const side = k % 2 === 0 ? 1 : -1;
-      const off = side * (cl / 2 + 8);
+      // Querstraßen an unregelmäßigen Stellen, zu beiden Seiten nach Los, unterschiedlich lang
+      const a = Math.round(-len / 2 + ((k + 0.25 + hs(60)(k) * 0.5) * len) / n);
+      const side = hs(61)(k) < 0.5 ? 1 : -1;
+      const clk = Math.round(cl * (0.55 + hs(62)(k) * 0.6));
+      const off = side * (clk / 2 + 8);
       const cx = t.x + (horizontal ? a : off);
       const cy = t.y + (horizontal ? off : a);
       const profile = t.industrial && k % 2 === 1 ? 'works' : 'homes';
       // Zufahrt von der Hauptstraße
       if (horizontal) this.asphalt(w, cx, Math.min(t.y, cy), cx + 1, Math.max(t.y, cy), true);
       else this.asphalt(w, Math.min(t.x, cx), cy, Math.max(t.x, cx), cy + 1, true);
-      this.street(w, cx, cy, !horizontal, cl, profile, hs(k + 1), true);
+      this.street(w, cx, cy, !horizontal, clk, profile, hs(k + 1), true);
       this.sites.push({ x: cx, y: cy, r: 13, weight: weight * 0.8, kind: 'town' });
+      // Stichweg am Ende der Querstraße (manchmal), mit ein paar Häusern
+      if (hs(63)(k) < 0.6) {
+        const end = side * (clk + 8);
+        const sl = 16 + Math.floor(hs(64)(k) * 14);
+        const dir2 = hs(65)(k) < 0.5 ? -1 : 1;
+        const sx = t.x + (horizontal ? a + dir2 * (sl / 2 + 1) : end);
+        const sy = t.y + (horizontal ? end : a + dir2 * (sl / 2 + 1));
+        this.street(w, sx, sy, horizontal, sl, 'homes', hs(70 + k), true);
+      }
     }
   }
 
@@ -547,6 +616,179 @@ export class SiteSystem {
     if (h(18) < 0.4) this.treeRow(w, x0 - g, y0 - g, x0 - g, y0 + fh + g, 3.2, 0.35);
   }
 
+  // ------------------------------------------------------------ Sonderorte
+
+  /** Fläche einebnen, Bäume roden, optional Belag. */
+  private ground(w: World, x0: number, y0: number, x1: number, y1: number, floor = 0): void {
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      this.flatten(w, x, y);
+      if (floor && !w.entityAt(x, y)) w.map.setFloor(x, y, floor);
+    }
+    w.map.clearTrees(x0, y0, x1, y1);
+  }
+
+  /** Umfassung aus Einzelteilen (Mauer, Zaun) mit Lücke für eine Einfahrt (gate: Seite, gw: Breite, gateName: Tor). */
+  private ring(w: World, x0: number, y0: number, x1: number, y1: number, name: string, gate: number, gw: number, gateName: string | null): void {
+    const gx = Math.round((x0 + x1) / 2) - Math.floor(gw / 2);
+    const gy = Math.round((y0 + y1) / 2) - Math.floor(gw / 2);
+    for (let x = x0; x <= x1; x++) for (const y of [y0, y1]) {
+      const inGate = ((gate === 0 && y === y0) || (gate === 2 && y === y1)) && x >= gx && x < gx + gw;
+      if (inGate) {
+        if (gateName) this.put(w, gateName, x, y, true);
+      } else this.put(w, name, x, y, true);
+    }
+    for (let y = y0 + 1; y < y1; y++) for (const x of [x0, x1]) {
+      const inGate = ((gate === 3 && x === x0) || (gate === 1 && x === x1)) && y >= gy && y < gy + gw;
+      if (inGate) {
+        if (gateName) this.put(w, gateName, x, y, true);
+      } else this.put(w, name, x, y, true);
+    }
+  }
+
+  private place(w: World, p: PlaceDef): void {
+    const h = (n: number) => hash01(WORLD.seed, p.x, p.y, 3000 + n);
+    switch (p.kind) {
+      case 'prison': return this.prison(w, p, h);
+      case 'powerplant': return this.powerplant(w, p, h);
+      case 'industrial': return this.industrial(w, p, h);
+      default: return this.farmstead(w, p, h);
+    }
+  }
+
+  /**
+   * Gefängnis (wie in der Fernsehserie, die der Wunsch nennt, als Festung gedacht): Betonmauer mit Tor, außen
+   * Stacheldraht, Wachtürme in den Ecken, Zellentrakt, Verwaltung, Kantine, Hof. Drinnen Spinde und Pritschen,
+   * draußen viele Zombies (ehemalige Insassen); zwei Überlebende haben sich in der Verwaltung verschanzt.
+   */
+  private prison(w: World, p: PlaceDef, h: (n: number) => number): void {
+    const x0 = p.x - 18;
+    const y0 = p.y - 14;
+    const x1 = p.x + 18;
+    const y1 = p.y + 14;
+    this.ground(w, x0 - 4, y0 - 4, x1 + 4, y1 + 4);
+    for (let y = y0 + 1; y < y1; y++) for (let x = x0 + 1; x < x1; x++) w.map.setFloor(x, y, CONCRETE);
+    this.ring(w, x0, y0, x1, y1, 'hwall-concrete', p.gate, 2, 'gate');
+    // Stacheldraht außen (Lücke vor dem Tor)
+    for (let x = x0 - 2; x <= x1 + 2; x++) for (const y of [y0 - 2, y1 + 2]) if (!(y === y0 - 2 && Math.abs(x - p.x) <= 2)) this.put(w, 'barbed-wire', x, y);
+    for (let y = y0 - 1; y <= y1 + 1; y++) for (const x of [x0 - 2, x1 + 2]) this.put(w, 'barbed-wire', x, y);
+    // Wachtürme in den Ecken
+    for (const [tx, ty] of [[x0 + 1, y0 + 1], [x1 - 2, y0 + 1], [x0 + 1, y1 - 2], [x1 - 2, y1 - 2]]) this.put(w, 'prison-tower', tx, ty);
+    // Zellentrakt (Süden), Verwaltung (Nordwest), Kantine (Nordost)
+    this.cellBlock(w, p.x - 11, y1 - 11, 22, h);
+    this.house(w, x0 + 4, y0 + 4, 10, 7, 'office', 2, 'concrete', 'flat', (n) => h(100 + n));
+    this.house(w, x1 - 13, y0 + 4, 10, 7, 'store', 2, 'concrete', 'flat', (n) => h(200 + n));
+    // Hof: Basketballkorb gibt es nicht – dafür ein Gemüsebeet der letzten Wärter und eine Werkbank
+    this.put(w, 'garden', p.x - 1, p.y - 4);
+    this.put(w, 'supply-crate', p.x + 3, p.y - 4);
+    w.community.addSurvivor(x0 + 8.5, y0 + 7.5, w.seed);
+    w.community.addSurvivor(x0 + 6.5, y0 + 8.5, w.seed);
+    this.sites.push({ x: p.x, y: p.y - 22, r: 12, weight: 5, kind: 'town' });
+    this.sites.push({ x: p.x, y: p.y, r: 14, weight: 4, kind: 'town' });
+  }
+
+  /** Zellentrakt: Gang in der Mitte, oben und unten je eine Reihe Zellen (2×2 innen) mit Pritsche und Gittertür. */
+  private cellBlock(w: World, x: number, y: number, W: number, h: (n: number) => number): void {
+    const H = 9;
+    for (let j = -1; j <= H; j++) for (let i = -1; i <= W; i++) if (w.entityAt(x + i, y + j)) return;
+    const door = new Set<string>();
+    const wall = (i: number, j: number): boolean => {
+      if (i === 0 || i === W - 1 || j === 0 || j === H - 1) return !(j === 4 && (i === 0 || i === W - 1));
+      if (j === 3 || j === 5) return true;
+      if (j !== 4 && (i - 0) % 3 === 0) return true;
+      return false;
+    };
+    for (let c = 0; c * 3 + 3 <= W - 1; c++) {
+      door.add(`${c * 3 + 1},3`);
+      door.add(`${c * 3 + 2},5`);
+    }
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+      const tx = x + i;
+      const ty = y + j;
+      w.map.setFloor(tx, ty, CONCRETE);
+      if (j === 4 && (i === 0 || i === W - 1)) {
+        w.create(w.nextId++, 'hdoor', tx, ty, 1);
+        continue;
+      }
+      if (!wall(i, j)) continue;
+      if (door.has(`${i},${j}`)) w.create(w.nextId++, 'hdoor', tx, ty, 0);
+      else w.create(w.nextId++, 'hwall-concrete', tx, ty, 0);
+    }
+    for (let c = 0; c * 3 + 3 <= W - 1; c++) {
+      const i = c * 3 + 1;
+      w.create(w.nextId++, 'bunk', x + i + 1, y + 1, 0);
+      if (h(c) < 0.5) w.create(w.nextId++, 'locker', x + i, y + 2, 0);
+      w.create(w.nextId++, 'bunk', x + i, y + 6, 0);
+      if (h(c + 40) < 0.6 && w.settings.enemies !== 'aus') w.enemies.spawnAt(x + i + 1.5, y + 7.5, 'walker');
+    }
+    this.houses.push({ x, y, w: W, h: H, roof: 'flat', ridge: 0 });
+  }
+
+  /** Kraftwerk: zwei Kühltürme, Turbinenhalle, Schornstein, Trafohof hinter Zaun, Kohlenhalde, Parkplatz. */
+  private powerplant(w: World, p: PlaceDef, h: (n: number) => number): void {
+    const x0 = p.x - 22;
+    const y0 = p.y - 17;
+    this.ground(w, x0 - 2, y0 - 2, p.x + 24, p.y + 19);
+    for (let y = y0; y < y0 + 8; y++) for (let x = p.x - 8; x < p.x + 8; x++) w.map.setFloor(x, y, ASPHALT);
+    this.ring(w, x0, y0, p.x + 22, p.y + 17, 'fence', p.gate, 4, null);
+    this.put(w, 'cooling-tower', x0 + 3, y0 + 9, true);
+    this.put(w, 'cooling-tower', x0 + 3, y0 + 18, true);
+    this.house(w, p.x - 8, p.y - 3, 16, 10, 'works', 0, 'concrete', 'metal', (n) => h(10 + n));
+    this.put(w, 'chimney', p.x + 9, p.y - 2, true);
+    // Trafohof
+    const tx = p.x + 12;
+    const ty = p.y + 6;
+    this.ring(w, tx - 1, ty - 1, tx + 9, ty + 8, 'fence', 3, 2, null);
+    for (const [a, b] of [[0, 0], [4, 0], [0, 4], [4, 4]]) this.put(w, 'transformer', tx + 1 + a, ty + 1 + b, true);
+    for (let k = 0; k < 4; k++) this.put(w, 'utility-pole', tx + 10 + k * 5, ty + 3);
+    // Kohlenhalde und Schrott
+    for (let k = 0; k < 5; k++) this.put(w, 'coal-pile', p.x - 6 + k * 3, p.y + 11 + Math.floor(h(30 + k) * 2), true);
+    for (let k = 0; k < 3; k++) this.put(w, k === 1 ? 'parts-pile' : 'scrap-pile', p.x + 12 + k * 3, p.y - 12, true);
+    this.put(w, 'car-wreck', p.x - 6, y0 + 2, true);
+    this.put(w, 'car-wreck', p.x + 2, y0 + 4, true);
+    this.sites.push({ x: p.x, y: p.y, r: 16, weight: 4, kind: 'town' });
+  }
+
+  /** Gewerbegebiet: Zaun, zwei Lagerhallen, Containerreihen, viele Schrott- und Teilehaufen, Laster. */
+  private industrial(w: World, p: PlaceDef, h: (n: number) => number): void {
+    const x0 = p.x - 20;
+    const y0 = p.y - 15;
+    const x1 = p.x + 20;
+    const y1 = p.y + 15;
+    this.ground(w, x0 - 1, y0 - 1, x1 + 1, y1 + 1);
+    for (let y = y0 + 1; y < y1; y++) for (let x = x0 + 1; x < x1; x++) w.map.setFloor(x, y, ASPHALT);
+    this.ring(w, x0, y0, x1, y1, 'fence', p.gate, 4, null);
+    this.house(w, x0 + 3, y0 + 3, 14, 9, 'works', 2, h(1) < 0.5 ? 'concrete' : 'brick', 'metal', (n) => h(10 + n));
+    this.house(w, x0 + 3, y0 + 16, 14, 9, 'works', 0, 'concrete', 'flat', (n) => h(60 + n));
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) if (h(100 + r * 2 + c) < 0.8) this.put(w, 'container', x0 + 21 + c * 5, y0 + 3 + r * 3, true);
+    const kinds = ['scrap-pile', 'parts-pile', 'ewaste-pile', 'scrap-pile', 'rubble-pile', 'scrap-pile'];
+    for (let k = 0; k < 8; k++) this.put(w, kinds[k % kinds.length], x0 + 21 + (k % 4) * 4, y0 + 17 + Math.floor(k / 4) * 5 + Math.floor(h(200 + k) * 2), true);
+    this.put(w, 'chimney', x0 + 18, y0 + 12, true);
+    for (let k = 0; k < 3; k++) this.put(w, 'car-wreck', x1 - 5, y0 + 4 + k * 8, true);
+    this.put(w, 'dumpster', x0 + 18, y0 + 3, true);
+    this.sites.push({ x: p.x, y: p.y, r: 16, weight: 4, kind: 'town' });
+  }
+
+  /** Gutshof: Bauernhaus, Scheune (begehbar), zwei Silos, Felder mit Hecken, Hofbäume, Holz und Schrott. */
+  private farmstead(w: World, p: PlaceDef, h: (n: number) => number): void {
+    this.ground(w, p.x - 14, p.y - 12, p.x + 14, p.y + 12);
+    const s = p.gate === 0 ? -1 : 1;
+    this.house(w, p.x - 12, p.y + (s < 0 ? 3 : -11), 9, 7, 'home', s < 0 ? 0 : 2, 'brick', 'tile', (n) => h(10 + n));
+    this.house(w, p.x + 1, p.y + (s < 0 ? 3 : -12), 12, 8, 'barn', s < 0 ? 0 : 2, 'wood', 'metal', (n) => h(60 + n));
+    this.put(w, 'silo', p.x + 1, p.y + (s < 0 ? -8 : 4), true);
+    this.put(w, 'silo', p.x + 5, p.y + (s < 0 ? -8 : 4), true);
+    this.put(w, 'wood-pile', p.x - 8, p.y + (s < 0 ? -7 : 5), true);
+    this.put(w, 'scrap-pile', p.x + 10, p.y + (s < 0 ? -7 : 5), true);
+    this.put(w, 'car-wreck', p.x - 4, p.y - 2, true);
+    for (let k = 0; k < 3; k++) if (h(80 + k) < 0.8) this.put(w, 'garden', p.x - 12 + k * 3, p.y + (s < 0 ? -6 : 6));
+    this.field(w, p.x - 34, p.y - 10, 16, 10, (n) => h(120 + n));
+    this.field(w, p.x + 18, p.y - 10, 14, 12, (n) => h(150 + n));
+    this.field(w, p.x - 8, p.y + (s < 0 ? 14 : -26), 18, 10, (n) => h(180 + n));
+    this.tree(w, p.x - 2, p.y + (s < 0 ? 6 : -6));
+    this.tree(w, p.x - 14.5, p.y - 1);
+    w.community.addSurvivor(p.x - 7.5, p.y + (s < 0 ? 6.5 : -7.5), w.seed);
+    this.sites.push({ x: p.x, y: p.y, r: 12, weight: 2.5, kind: 'farm' });
+  }
+
   /** Militärposten: Kisten hinter Wracks, stark bewacht. */
   private outpost(w: World, x: number, y: number): void {
     this.asphalt(w, x - 6, y - 4, x + 7, y + 5, true);
@@ -561,14 +803,242 @@ export class SiteSystem {
 
   // ------------------------------------------------------------ Speichern
 
-  serialize(): { c: number[]; s: [number, number, number, number, SiteKind][] } {
-    return { c: [...this.cells].sort((a, b) => a - b), s: this.sites.map((s) => [s.x, s.y, s.r, s.weight, s.kind]) };
+  serialize(): { c: number[]; s: [number, number, number, number, SiteKind][]; h?: [number, number, number, number, RoofKind, 0 | 1][] } {
+    return {
+      c: [...this.cells].sort((a, b) => a - b), s: this.sites.map((s) => [s.x, s.y, s.r, s.weight, s.kind]),
+      ...(this.houses.length ? { h: this.houses.map((h) => [h.x, h.y, h.w, h.h, h.roof, h.ridge] as [number, number, number, number, RoofKind, 0 | 1]) } : {}),
+    };
   }
 
   load(d: ReturnType<SiteSystem['serialize']> | undefined): void {
     this.cells.clear();
     this.sites.length = 0;
+    this.houses.length = 0;
     for (const c of d?.c ?? []) this.cells.add(c);
     for (const [x, y, r, weight, kind] of d?.s ?? []) this.sites.push({ x, y, r, weight, kind });
+    for (const [x, y, w, h, roof, ridge] of d?.h ?? []) this.houses.push({ x, y, w, h, roof, ridge });
+  }
+
+  /** Begehbares Haus unter (x, y), falls vorhanden. */
+  houseAt(x: number, y: number): House | null {
+    for (const h of this.houses) if (x >= h.x && x < h.x + h.w && y >= h.y && y < h.y + h.h) return h;
+    return null;
+  }
+
+  // ------------------------------------------------------------ Begehbare Häuser
+
+  /**
+   * Begehbares Haus (Wunsch 18.11.2026): Außenwände mit Fenstern und Haustür auf der Seite door (0 N … 3 W), Räume
+   * durch Innenwände mit Durchgängen, Böden und Möbel je Raum, Dach als Darstellung. false: Fläche nicht frei.
+   */
+  house(w: World, x: number, y: number, W: number, H: number, kind: HouseKind, door: number, mat: string, roof: RoofKind,
+    h: (n: number) => number, level = true): boolean {
+    for (let j = -1; j <= H; j++) for (let i = -1; i <= W; i++) {
+      const tx = x + i;
+      const ty = y + j;
+      if ((!level && w.map.isBlocked(tx, ty)) || w.entityAt(tx, ty) || w.map.resourceAt(tx, ty).amount > 0) return false;
+    }
+    const p = w.player;
+    if (p && p.overlapsRect(x - 1, y - 1, W + 2, H + 2)) return false;
+    if (level) for (let j = -1; j <= H; j++) for (let i = -1; i <= W; i++) this.flatten(w, x + i, y + j);
+    w.map.clearTrees(x - 1, y - 1, x + W, y + H);
+    const idx = (i: number, j: number) => j * W + i;
+    const wall = new Uint8Array(W * H); // 1 Wand, 2 Durchgang innen
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (i === 0 || j === 0 || i === W - 1 || j === H - 1) wall[idx(i, j)] = 1;
+    // Räume: rekursiv teilen (Wohnhäuser zweimal, Läden/Hallen einmal, Scheunen gar nicht)
+    const rooms: Room[] = [];
+    const depthMax = kind === 'home' || kind === 'office' ? 2 : kind === 'barn' || kind === 'church' ? 0 : 1;
+    let n = 0;
+    const split = (r: Room, depth: number) => {
+      const k = n++;
+      const canV = r.w >= 5;
+      const canH = r.h >= 5;
+      if (depth >= depthMax || (!canV && !canH)) {
+        rooms.push(r);
+        return;
+      }
+      const vert = canV && (!canH || r.w >= r.h || h(200 + k) < 0.3);
+      if (vert) {
+        const sx = r.x + 2 + Math.floor(h(210 + k) * (r.w - 4));
+        const gy = r.y + 1 + Math.floor(h(220 + k) * Math.max(1, r.h - 2));
+        for (let j = r.y; j < r.y + r.h; j++) wall[idx(sx, j)] = j === gy ? 2 : 1;
+        split({ x: r.x, y: r.y, w: sx - r.x, h: r.h, type: '' }, depth + 1);
+        split({ x: sx + 1, y: r.y, w: r.x + r.w - sx - 1, h: r.h, type: '' }, depth + 1);
+      } else {
+        const sy = r.y + 2 + Math.floor(h(230 + k) * (r.h - 4));
+        const gx = r.x + 1 + Math.floor(h(240 + k) * Math.max(1, r.w - 2));
+        for (let i = r.x; i < r.x + r.w; i++) wall[idx(i, sy)] = i === gx ? 2 : 1;
+        split({ x: r.x, y: r.y, w: r.w, h: sy - r.y, type: '' }, depth + 1);
+        split({ x: r.x, y: sy + 1, w: r.w, h: r.y + r.h - sy - 1, type: '' }, depth + 1);
+      }
+    };
+    split({ x: 1, y: 1, w: W - 2, h: H - 2, type: '' }, 0);
+    const isWall = (i: number, j: number) => i >= 0 && j >= 0 && i < W && j < H && wall[idx(i, j)] === 1;
+    const edge = (i: number, j: number) => i === 0 || j === 0 || i === W - 1 || j === H - 1;
+    // Abzweig einer Innenwand an der Außenwand (dort weder Tür noch Fenster)
+    const junction = (i: number, j: number) => edge(i, j) && [[0, 1], [1, 0], [0, -1], [-1, 0]].some(([a, b]) => {
+      const ni = i + a;
+      const nj = j + b;
+      return ni > 0 && nj > 0 && ni < W - 1 && nj < H - 1 && wall[idx(ni, nj)] >= 1;
+    });
+    const corner = (i: number, j: number) => (i === 0 || i === W - 1) && (j === 0 || j === H - 1);
+    // Haustür(en): Feld auf der Türseite, innen ein Raum, nicht an Ecken oder Abzweigen
+    const sideTiles = (side: number): [number, number][] => {
+      const out: [number, number][] = [];
+      if (side === 0 || side === 2) for (let i = 1; i < W - 1; i++) out.push([i, side === 0 ? 0 : H - 1]);
+      else for (let j = 1; j < H - 1; j++) out.push([side === 3 ? 0 : W - 1, j]);
+      return out;
+    };
+    const inward = (i: number, j: number): [number, number] => [i === 0 ? 1 : i === W - 1 ? W - 2 : i, j === 0 ? 1 : j === H - 1 ? H - 2 : j];
+    const doors = new Set<number>();
+    const okDoor = (i: number, j: number) => {
+      const [ii, jj] = inward(i, j);
+      return !corner(i, j) && !junction(i, j) && wall[idx(ii, jj)] === 0 && !junction(i + (j === 0 || j === H - 1 ? 1 : 0), j + (i === 0 || i === W - 1 ? 1 : 0))
+        && !junction(i - (j === 0 || j === H - 1 ? 1 : 0), j - (i === 0 || i === W - 1 ? 1 : 0));
+    };
+    const pickDoor = (side: number, salt: number, width = 1) => {
+      const c = sideTiles(side).filter(([i, j]) => okDoor(i, j));
+      if (!c.length) return;
+      const [i, j] = c[Math.floor(h(salt) * c.length)];
+      doors.add(idx(i, j));
+      if (width > 1) {
+        const [a, b] = side === 0 || side === 2 ? [i + 1, j] : [i, j + 1];
+        if (!corner(a, b) && a < W - 1 && b < H - 1) doors.add(idx(a, b));
+      }
+    };
+    pickDoor(door, 300, kind === 'barn' || kind === 'works' ? 2 : 1);
+    if (kind !== 'cells' && h(301) < (kind === 'home' ? 0.5 : 0.3)) pickDoor((door + 2) % 4, 302);
+    // Bauteile setzen
+    const nearDoor = (i: number, j: number) => [[0, 1], [1, 0], [0, -1], [-1, 0], [0, 0]].some(([a, b]) => doors.has(idx(i + a, j + b)) || wall[idx(Math.min(W - 1, Math.max(0, i + a)), Math.min(H - 1, Math.max(0, j + b)))] === 2);
+    const winChance = kind === 'church' ? 0.95 : kind === 'barn' ? 0.15 : kind === 'cells' ? 0 : kind === 'works' ? 0.35 : 0.8;
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+      const tx = x + i;
+      const ty = y + j;
+      const k = idx(i, j);
+      const horiz = j === 0 || j === H - 1;
+      if (doors.has(k)) {
+        w.create(w.nextId++, 'hdoor', tx, ty, horiz ? 0 : 1);
+        continue;
+      }
+      if (wall[k] !== 1) continue;
+      const along = horiz ? i : j;
+      const shop = kind === 'store' && j === (door === 0 ? 0 : door === 2 ? H - 1 : -1);
+      const win = edge(i, j) && !corner(i, j) && !junction(i, j) && !nearDoor(i, j) && (shop || along % 2 === 1) && h(400 + k) < winChance;
+      if (win) {
+        const e = w.create(w.nextId++, `hwin-${mat}`, tx, ty, horiz ? 0 : 1);
+        if (e.kind === 'wall' && h(500 + k) < 0.3) e.broken = true;
+      } else w.create(w.nextId++, `hwall-${mat}`, tx, ty, 0);
+    }
+    // Räume einordnen: kleinster (≤ 6 Felder) Bad, einer Küche, größter Wohnzimmer, Rest Schlafzimmer
+    const byArea = [...rooms].sort((a, b) => a.w * a.h - b.w * b.h || a.x - b.x || a.y - b.y);
+    if (kind === 'home') {
+      if (byArea.length >= 3 && byArea[0].w * byArea[0].h <= 9) byArea[0].type = 'bath';
+      const rest = byArea.filter((r) => !r.type);
+      if (rest.length) rest[rest.length - 1].type = 'living';
+      const k2 = rest.filter((r) => !r.type);
+      if (k2.length) k2[Math.floor(h(600) * k2.length)].type = 'kitchen';
+      for (const r of rooms) if (!r.type) r.type = 'bed';
+      if (!rooms.some((r) => r.type === 'kitchen')) rooms[0].type = 'kitchen';
+    } else if (kind === 'office') {
+      for (const [i, r] of byArea.entries()) r.type = i === 0 ? 'bath' : i === byArea.length - 1 ? 'office' : h(610 + i) < 0.5 ? 'office' : 'locker';
+    } else for (const [i, r] of byArea.entries()) r.type = i === byArea.length - 1 ? kind : `${kind}-back`;
+    // Böden
+    const floorOf = (t: string) => t === 'kitchen' || t === 'bath' ? TILES : kind === 'home' || kind === 'office' || kind === 'church' ? PLANKS : kind === 'barn' ? 0 : CONCRETE;
+    for (const r of rooms) for (let j = r.y; j < r.y + r.h; j++) for (let i = r.x; i < r.x + r.w; i++) {
+      const f = floorOf(r.type);
+      if (f) w.map.setFloor(x + i, y + j, f);
+    }
+    for (let k = 0; k < W * H; k++) if (wall[k] === 2 || doors.has(k)) {
+      const f = kind === 'barn' ? 0 : kind === 'home' || kind === 'office' ? PLANKS : CONCRETE;
+      if (f) w.map.setFloor(x + (k % W), y + Math.floor(k / W), f);
+    }
+    // Möbel: an der Nordwand (so sind die Modelle gebaut), Durchgänge frei
+    const used = new Set<number>();
+    const free = (i: number, j: number) => i > 0 && j > 0 && i < W - 1 && j < H - 1 && wall[idx(i, j)] === 0 && !used.has(idx(i, j)) && !nearDoor(i, j);
+    const north = (r: Room) => {
+      const out: number[] = [];
+      for (let i = r.x; i < r.x + r.w; i++) if (isWall(i, r.y - 1) && free(i, r.y)) out.push(i);
+      return out;
+    };
+    const put = (name: string, i: number, j: number, fw = 1, fh = 1) => {
+      for (let b = 0; b < fh; b++) for (let a = 0; a < fw; a++) if (!free(i + a, j + b)) return false;
+      w.create(w.nextId++, name, x + i, y + j, 0);
+      for (let b = 0; b < fh; b++) for (let a = 0; a < fw; a++) used.add(idx(i + a, j + b));
+      return true;
+    };
+    const along = (r: Room, list: string[], salt: number) => {
+      const xs = north(r);
+      let s = Math.floor(h(salt) * Math.max(1, xs.length - list.length + 1));
+      for (const name of list) {
+        while (s < xs.length && !free(xs[s], r.y)) s++;
+        if (s >= xs.length) return;
+        const fw = name === 'sofa' || name === 'store-shelf' ? 2 : 1;
+        if (fw === 2 && !free(xs[s] + 1, r.y)) {
+          s++;
+          continue;
+        }
+        put(name, xs[s], r.y, fw);
+        s += fw;
+      }
+    };
+    rooms.forEach((r, ri) => {
+      const hr = (m: number) => h(700 + ri * 13 + m);
+      switch (r.type) {
+        case 'kitchen': along(r, hr(1) < 0.5 ? ['kitchen', 'stove', 'kitchen', 'fridge'] : ['fridge', 'kitchen', 'stove'], 701 + ri); break;
+        case 'bath': along(r, ['bathroom'], 702 + ri); break;
+        case 'bed': {
+          const xs = north(r);
+          if (xs.length) put('house-bed', xs[Math.floor(hr(2) * xs.length)], r.y, 1, 2);
+          along(r, hr(3) < 0.5 ? ['wardrobe', 'desk'] : ['wardrobe'], 703 + ri);
+          break;
+        }
+        case 'living': {
+          along(r, hr(4) < 0.6 ? ['shelf', 'sofa', 'shelf'] : ['sofa', 'desk'], 704 + ri);
+          const cx = r.x + Math.floor(r.w / 2);
+          const cy = r.y + Math.floor(r.h / 2) + 1;
+          if (r.w >= 3 && r.h >= 3) put('table', cx, Math.min(cy, r.y + r.h - 1));
+          break;
+        }
+        case 'office': along(r, ['desk', 'shelf', 'locker'], 705 + ri); break;
+        case 'locker': along(r, ['locker', 'locker', 'locker'], 706 + ri); break;
+        case 'store': {
+          // Regalreihen quer, Gänge dazwischen; Theke (Schreibtisch) an der Tür
+          for (let j = r.y + 1; j < r.y + r.h - 1; j += 2) for (let i = r.x + 1; i + 1 < r.x + r.w - 1; i += 3) if (hr(10 + i + j * 7) < 0.85) put('store-shelf', i, j, 2);
+          break;
+        }
+        case 'store-back': case 'works-back': along(r, ['shelf', 'locker', 'shelf'], 707 + ri); break;
+        case 'church': {
+          // Bankreihen (Tische) und der Altar (Schreibtisch) an der Nordwand
+          along(r, ['shelf', 'desk', 'shelf'], 710 + ri);
+          for (let j = r.y + 2; j < r.y + r.h - 1; j += 2) for (let i = r.x + 1; i < r.x + r.w - 1; i++) if (i !== r.x + Math.floor(r.w / 2)) put('table', i, j);
+          break;
+        }
+        case 'works': {
+          along(r, ['workbench', 'workbench', 'locker', 'shelf'], 708 + ri);
+          if (r.w >= 4 && r.h >= 4) this.put(w, hr(5) < 0.5 ? 'parts-pile' : 'scrap-pile', x + r.x + 1, y + r.y + r.h - 2);
+          break;
+        }
+        case 'barn': {
+          if (r.w >= 4 && r.h >= 4) this.put(w, hr(6) < 0.5 ? 'wood-pile' : 'scrap-pile', x + r.x + r.w - 3, y + r.y + 1);
+          for (let k = 0; k < 4; k++) {
+            const i = r.x + Math.floor(hr(20 + k) * r.w);
+            const j = r.y + Math.floor(hr(30 + k) * r.h);
+            if (free(i, j)) this.put(w, 'hay-bale', x + i, y + j);
+          }
+          along(r, ['workbench'], 709 + ri);
+          break;
+        }
+        default: break;
+      }
+    });
+    this.houses.push({ x, y, w: W, h: H, roof, ridge: W >= H ? 0 : 1 });
+    // manchmal wartet ein Zombie drinnen
+    if (kind !== 'cells' && h(900) < 0.22) {
+      const r = rooms[Math.floor(h(901) * rooms.length)];
+      const i = r.x + Math.floor(r.w / 2);
+      const j = r.y + Math.floor(r.h / 2);
+      if (free(i, j) && w.settings.enemies !== 'aus') w.enemies.spawnAt(x + i + 0.5, y + j + 0.5, 'walker');
+    }
+    return true;
   }
 }

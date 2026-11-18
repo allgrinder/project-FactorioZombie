@@ -36,7 +36,9 @@ export class FlowField {
             cost[k] = d && d.solid && !d.walkable ? Infinity : e && (e.kind === 'wire' || e.kind === 'trap') ? 4 : 1;
             continue;
           }
-          cost[k] = e && (e.kind === 'loot' || e.kind === 'pile' || e.kind === 'prop') && e.id !== ignore ? Infinity : e && e.id !== ignore && e.kind !== 'rail' && entityDef(e.name).solid ? 1 + OBSTACLE_COST : 1;
+          // Hauswände: Zombies brechen durch Fenster und Türen, nicht durch Mauerwerk
+          const wall = e && e.kind === 'wall' && e.def.house && !e.def.window && !e.def.gate;
+          cost[k] = e && (e.kind === 'loot' || e.kind === 'pile' || e.kind === 'prop' || wall) && e.id !== ignore ? Infinity : e && e.id !== ignore && e.kind !== 'rail' && entityDef(e.name).solid ? 1 + OBSTACLE_COST : 1;
         }
       }
     }
