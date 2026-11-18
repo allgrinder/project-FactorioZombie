@@ -1681,17 +1681,7 @@ export class GameRenderer {
           if (world.weather.winter) sp.tint = mulTint(sp.tint, 0xe2e7ee);
           if (burnt) sp.tint = 0x34302c;
           sp.zIndex = (h.y + h.h) * TILE - 2;
-          // Schnee auf dem Dach (Winter, nicht über Brandruinen)
-          if (snowy && !burnt) {
-            const sn = this.ents.get(Texture.WHITE);
-            sn.anchor.set(0.5);
-            sn.width = TILE * sx * 1.02;
-            sn.height = TILE * sy * 1.02;
-            sn.position.copyFrom(sp.position);
-            sn.tint = 0xeef2f6;
-            sn.alpha = a * (0.55 + (((h.x + i) * 7 + (h.y + j) * 3) % 5) * 0.06);
-            sn.zIndex = sp.zIndex + 0.3;
-          }
+
           // Flachdächer: Moos, Pfützen, Laub und Unrat
           if (kind === 'flat') {
             const rh = ((Math.imul(h.x + i, 2654435761) ^ Math.imul(h.y + j, 40503)) >>> 0) % 1000;
@@ -1708,6 +1698,17 @@ export class GameRenderer {
             }
           }
         }
+      }
+      // Schnee auf dem Dach: eine gleichmäßige Decke je Dach (Winter, nicht über Brandruinen)
+      if (snowy && !burnt) {
+        const sn = this.ents.get(Texture.WHITE);
+        sn.anchor.set(0.5);
+        sn.width = h.w * TILE * sx;
+        sn.height = h.h * TILE * sy;
+        sn.position.set(ccx, ccy);
+        sn.tint = 0xeef2f6;
+        sn.alpha = a * 0.6;
+        sn.zIndex = (h.y + h.h) * TILE - 1.5;
       }
       // Hilferufe auf Dächern (gemalt, nur Haupthäuser, nicht ausgebrannt)
       if (h.g === undefined && !burnt && h.w >= 5 && h.h >= 4) {
