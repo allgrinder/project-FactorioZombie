@@ -57,7 +57,23 @@ export class BiomeField {
     return this.map.trees.fertility(tx, ty);
   }
 
+  /** Farbe je Feld, je Chunk (32×32) zwischengespeichert: die Rauschfunktionen sind pro Bild zu teuer. */
+  private readonly cache = new Map<number, Uint32Array>();
   color(tx: number, ty: number): number {
+    const cx = tx >> 5;
+    const cy = ty >> 5;
+    const key = (cx + 32768) * 65536 + (cy + 32768);
+    let c = this.cache.get(key);
+    if (!c) {
+      if (this.cache.size > 4096) this.cache.clear();
+      c = new Uint32Array(1024);
+      for (let i = 0; i < 1024; i++) c[i] = this.compute(cx * 32 + (i & 31), cy * 32 + (i >> 5)) | 0x1000000;
+      this.cache.set(key, c);
+    }
+    return c[((ty - cy * 32) << 5) + (tx - cx * 32)] & 0xffffff;
+  }
+
+  private compute(tx: number, ty: number): number {
     const m = LOOK.macro;
     // Farbflecken: saftig grüne und strohgelbe Wiesenstücke (großräumig, unabhängig von der Helligkeit)
     const hue = valueNoise(tx / m.hueScale, ty / m.hueScale, 37) * 0.7 + valueNoise(tx / (m.hueScale * 0.35), ty / (m.hueScale * 0.35), 41) * 0.3;
