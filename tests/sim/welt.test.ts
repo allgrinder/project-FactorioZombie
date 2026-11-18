@@ -222,6 +222,20 @@ describe('Vielfalt', () => {
     expect(camp.filter((n) => n === 'site-fence').length).toBeGreaterThan(80);
   });
 
+  it('Landmarken: Windpark, Hochspannungstrasse, Campingplatz, Sägewerk', () => {
+    const w = new World(WORLD.seed, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
+    w.player = new Player(0.5, 0.5);
+    const at = (x: number, y: number) => { w.player!.px = x * 256; w.player!.py = (y + 40) * 256; w.run(61); };
+    at(WORLD.windpark.x + 20, WORLD.windpark.y);
+    const names = () => [...w.entities.values()].map((e) => e.name);
+    expect(names().filter((n) => n === 'turbine').length).toBe(WORLD.windpark.n);
+    expect(names().filter((n) => n === 'pylon').length).toBeGreaterThan(3);
+    at(WORLD.campsite.x, WORLD.campsite.y);
+    expect(names().filter((n) => n === 'caravan').length).toBeGreaterThanOrEqual(3);
+    at(WORLD.sawmill.x, WORLD.sawmill.y);
+    expect(names()).toContain('saw-hall');
+  });
+
   it('Bahnstrecke mit Gleisbett, Bahnhof und entgleistem Güterzug', () => {
     const w = new World(WORLD.seed, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
     w.player = new Player(0.5, 0.5);

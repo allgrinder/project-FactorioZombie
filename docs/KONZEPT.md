@@ -271,6 +271,11 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
 - Entgleister Güterzug: Diesellok und sechs Wagen (Güter- und Kesselwagen als Fundorte, Tabellen `freight`, `loco`,
   `drums`), manche aus dem Gleis gesprungen, verstreute Fracht; Zombie-Gewicht 4.
 
+## Landmarken (`lib/landmarken.py`, Lage in `WORLD.windpark/powerline/campsite/sawmill`)
+- Windpark mit sechs Windrädern (Rotor dreht sich, jedes fünfte mit abgebrochenem Blatt), Hochspannungstrasse vom Kraftwerk
+  nach Nordwesten (Gittermasten alle 26 Felder, Seile im Renderer), Campingplatz am See bei Moorbrück (Wohnwagen als Fundorte,
+  Kuppelzelte, Feuerstellen, Waschhaus), Sägewerk im Wald (offene Halle, Stammstapel, Traktor).
+
 ## Feinschliff Welt
 - Laub aller Bäume und Sträucher um gut ein Fünftel aufgehellt (Wälder wirkten fast schwarz).
 - Trampelpfade (nur Darstellung, `TRAILS`): wo Figur und Bewohner oft gehen, wird das Gras zu Erde; verblasst langsam.

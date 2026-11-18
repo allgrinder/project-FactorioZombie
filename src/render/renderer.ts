@@ -1415,7 +1415,14 @@ export class GameRenderer {
       }
       case 'prop': {
         // Zaun: Richtung nach den Nachbarn (waagerecht, wenn links oder rechts ein Zaun steht)
-        if (e.name === 'hedge' && s.has('hedge.v0')) {
+        if (e.name === 'turbine' && s.has('turbine.v0')) {
+          // Windrad: Turm, darüber der Rotor (dreht sich; eines von fünf steht mit abgebrochenem Blatt)
+          const tsp = this.drawNamed('turbine.v0', cx, cy, z);
+          const broken = ((e.x * 7 + e.y * 13) & 7) === 3;
+          const rsp = this.ents.get(s.frame(broken ? 'turbine.broken' : 'turbine.rotor', broken ? 0 : Math.floor((world.tick + alpha) / 9 + e.id)));
+          rsp.position.copyFrom(tsp.position);
+          rsp.zIndex = z + 1;
+        } else if (e.name === 'hedge' && s.has('hedge.v0')) {
           // Hecke: eine Art je Gartenstück (grobes Raster), zwei Formen im Wechsel
           const sp = (((Math.floor(e.x / 9) * 73856093) ^ (Math.floor(e.y / 9) * 19349663)) >>> 0) % 3;
           const hsp = this.drawNamed(`hedge.v${sp * 2 + ((e.x + e.y) & 1)}`, cx, cy, z);
@@ -1427,7 +1434,10 @@ export class GameRenderer {
         } else {
           // Varianten <name>.v<n> nach der Lage
           const n = s.countPrefix(`${e.name}.v`);
-          if (n) this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy, z);
+          if (n) {
+            const psp = this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy, z);
+            if (e.name === 'saw-hall' || e.name === 'platform-roof') psp.tint = 0xa49c90;
+          }
           else this.drawGeneric(e, cx, cy, z);
         }
         break;
@@ -1955,6 +1965,21 @@ export class GameRenderer {
           g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + d * 0.06, bx, by).stroke({ width: 1.4, color: 0x1e1c1a, alpha: 0.85 });
           gs.moveTo(ax + POLE_LIFT * SHX, pa.cy * TILE + POLE_LIFT * SHY).quadraticCurveTo((ax + bx) / 2 + POLE_LIFT * SHX, (pa.cy + pb.cy) / 2 * TILE + POLE_LIFT * SHY, bx + POLE_LIFT * SHX, pb.cy * TILE + POLE_LIFT * SHY).stroke({ width: 1.6, color: 0x000000, alpha: 0.2 });
         }
+      }
+    }
+    // Hochspannungsleitung: zwischen benachbarten Gittermasten, je drei Seile an zwei Traversen
+    const hv = this.visibleEntities(world, { x0: v.x0 - 60, y0: v.y0 - 60, x1: v.x1 + 60, y1: v.y1 + 60 }).filter((e) => e.name === 'pylon');
+    for (const pa of hv) for (const pb of hv) {
+      if (pb.id <= pa.id) continue;
+      const d = Math.hypot(pb.cx - pa.cx, pb.cy - pa.cy);
+      // nächster Nachbar auf der Trasse (Masten fehlen, wo Straßen oder Wasser kreuzen)
+      if (d > 60 || hv.some((q) => q !== pa && q !== pb && Math.hypot(q.cx - pa.cx, q.cy - pa.cy) < d && Math.hypot(q.cx - pb.cx, q.cy - pb.cy) < d)) continue;
+      for (const [off, lift] of [[-1.05, 3.0], [1.05, 3.0], [-0.75, 3.7], [0.75, 3.7]] as const) {
+        const ax = (pa.cx + off) * TILE;
+        const ay = pa.cy * TILE - lift * TILE;
+        const bx = (pb.cx + off) * TILE;
+        const by = pb.cy * TILE - lift * TILE;
+        g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + d * TILE * 0.05, bx, by).stroke({ width: 2.4, color: 0x1e1e20, alpha: 0.9 });
       }
     }
     // Schaltungsdrähte (rot/grün), leicht versetzt

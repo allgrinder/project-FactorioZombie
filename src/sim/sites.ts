@@ -553,6 +553,32 @@ export class SiteSystem {
     for (const t of WORLD.towns) if (inCell(t.x, t.y)) this.town(w, t);
     for (const o of WORLD.outposts) if (inCell(o.x, o.y)) this.outpost(w, o.x, o.y);
     for (const [cx2, cy2] of WORLD.crashes) if (inCell(cx2, cy2)) this.crash(w, cx2, cy2);
+    // Windpark: Windräder im lockeren Raster, eines mit abgebrochenem Blatt
+    const wp = WORLD.windpark;
+    for (let i = 0; i < wp.n; i++) {
+      const tx = wp.x + (i % 3) * 22 + Math.round((hash01(WORLD.seed, i, 0, 4300) - 0.5) * 8);
+      const ty = wp.y + Math.floor(i / 3) * 24 + Math.round((hash01(WORLD.seed, i, 1, 4300) - 0.5) * 8);
+      if (inCell(tx, ty)) {
+        this.ground(w, tx - 2, ty - 2, tx + 4, ty + 4);
+        this.put(w, 'turbine', tx, ty, true);
+      }
+    }
+    // Hochspannungstrasse: Gittermasten in festem Abstand entlang der Wegpunkte
+    const pl = WORLD.powerline;
+    for (let k = 0; k + 1 < pl.pts.length; k++) {
+      const [ax, ay] = pl.pts[k];
+      const [bx, by] = pl.pts[k + 1];
+      const L = Math.hypot(bx - ax, by - ay);
+      for (let d = 0; d < L; d += pl.step) {
+        const tx = Math.round(ax + ((bx - ax) * d) / L);
+        const ty = Math.round(ay + ((by - ay) * d) / L);
+        if (!inCell(tx, ty) || w.map.isWater(tx, ty) || w.map.floorAt(tx, ty)) continue;
+        w.map.clearTrees(tx - 1, ty - 1, tx + 2, ty + 2);
+        this.put(w, 'pylon', tx, ty, true);
+      }
+    }
+    if (inCell(WORLD.campsite.x, WORLD.campsite.y)) this.campsite(w, WORLD.campsite.x, WORLD.campsite.y);
+    if (inCell(WORLD.sawmill.x, WORLD.sawmill.y)) this.sawmill(w, WORLD.sawmill.x, WORLD.sawmill.y);
     for (const pl of WORLD.places) if (inCell(pl.x, pl.y)) this.place(w, pl);
     WORLD.junkyards.forEach(([x, y], i) => {
       if (inCell(x, y)) this.junkyard(w, x, y, i);
@@ -1138,6 +1164,37 @@ export class SiteSystem {
     });
     this.put(w, 'corpse', RAILWAY.train.x + 3, y + 2, true);
     this.sites.push({ x: RAILWAY.train.x + 22, y, r: 22, weight: 4, kind: 'wreck' });
+  }
+
+  /** Campingplatz am See: Wohnwagen in Reihen mit Parkbuchten, Kuppelzelte, Feuerstellen, Waschhaus. */
+  private campsite(w: World, x: number, y: number): void {
+    this.ground(w, x - 14, y - 10, x + 14, y + 10);
+    for (let xx = x - 12; xx <= x + 12; xx++) for (const yy of [y, y + 1]) w.map.setFloor(xx, yy, ASPHALT);
+    let k = 0;
+    for (const row of [-5, 4]) for (let xx = x - 11; xx < x + 10; xx += 5) {
+      const h = hash01(WORLD.seed, xx, row, 4400);
+      if (h < 0.55) this.put(w, 'caravan', xx, y + row, true);
+      else if (h < 0.8) this.put(w, 'dome-tent', xx, y + row, true);
+      if (hash01(WORLD.seed, xx, row, 4401) < 0.4) this.put(w, 'fire-ring', xx + 3, y + row + (row < 0 ? 2 : -1), true);
+      k++;
+    }
+    this.house(w, x - 3, y - 12, 6, 4, 'store', 2, 'wood', 'flat', (n) => hash01(WORLD.seed, x, y, 4450 + n), true);
+    this.put(w, 'picnic-table', x + 6, y - 2, true);
+    this.put(w, 'corpse', x - 2, y + 3, true);
+    this.sites.push({ x, y, r: 14, weight: 2.5, kind: 'camp' });
+  }
+
+  /** Sägewerk am Waldrand: offene Halle, Stammstapel, Holzstapel, Traktor. */
+  private sawmill(w: World, x: number, y: number): void {
+    this.ground(w, x - 10, y - 8, x + 10, y + 8);
+    for (let yy = y - 6; yy <= y + 6; yy++) for (let xx = x - 9; xx <= x + 9; xx++) w.map.setFloor(xx, yy, ASPHALT);
+    this.put(w, 'saw-hall', x - 3, y - 2, true);
+    for (let i = 0; i < 4; i++) this.put(w, 'log-stack', x - 8 + i * 4, y + 4, true);
+    this.put(w, 'wood-pile', x + 5, y - 5, true);
+    this.put(w, 'wood-pile', x + 5, y - 2, true);
+    this.put(w, 'tractor-wreck', x + 5, y + 1, true);
+    this.put(w, 'pallets', x - 8, y - 5, true);
+    this.sites.push({ x, y, r: 10, weight: 1.8, kind: 'garage' });
   }
 
   /** Absturzstelle: Hubschrauberwrack in einer Schneise, verstreute Kisten, Gefallene; Bäume ringsum umgeknickt. */

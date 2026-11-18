@@ -1535,6 +1535,38 @@
     "item.noise-lure"
    ]
   },
+  "landmarken": {
+   "hash": "8d490b4b14c194e4",
+   "sprites": [
+    "turbine.v0",
+    "turbine.v0.nrm",
+    "turbine.v0.shadow",
+    "turbine.rotor",
+    "turbine.rotor.nrm",
+    "turbine.broken",
+    "turbine.broken.nrm",
+    "pylon.v0",
+    "pylon.v0.nrm",
+    "pylon.v0.shadow",
+    "caravan.v0",
+    "caravan.v0.nrm",
+    "caravan.v0.shadow",
+    "caravan.v1",
+    "caravan.v1.nrm",
+    "caravan.v1.shadow",
+    "caravan.v2",
+    "caravan.v2.nrm",
+    "caravan.v2.shadow",
+    "saw-hall.v0",
+    "saw-hall.v0.nrm",
+    "saw-hall.v0.shadow",
+    "log-stack.v0",
+    "log-stack.v0.nrm",
+    "log-stack.v0.shadow",
+    "decal.parking.0",
+    "decal.parking.1"
+   ]
+  },
   "landscape": {
    "hash": "2cbde2a59ee7ec0a",
    "sprites": [
@@ -5560,6 +5592,30 @@
     0.5
    ]
   },
+  "decal.parking.0": {
+   "group": "decals",
+   "frames": [
+    "decal.parking.0#0"
+   ],
+   "w": 64,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.parking.1": {
+   "group": "decals",
+   "frames": [
+    "decal.parking.1#0"
+   ],
+   "w": 64,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "decal.pebbles.0": {
    "group": "decals",
    "frames": [
@@ -9539,6 +9595,87 @@
     0.25,
     0.22727272727272727
    ]
+  },
+  "caravan.v0": {
+   "group": "entities",
+   "frames": [
+    "caravan.v0#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "caravan.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "caravan.v0.shadow#0"
+   ],
+   "w": 272,
+   "h": 208,
+   "anchor": [
+    0.2525490196078431,
+    0.22032967032967032
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "caravan.v1": {
+   "group": "entities",
+   "frames": [
+    "caravan.v1#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "caravan.v1.shadow": {
+   "group": "entities",
+   "frames": [
+    "caravan.v1.shadow#0"
+   ],
+   "w": 272,
+   "h": 208,
+   "anchor": [
+    0.2525490196078431,
+    0.22032967032967032
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
+  "caravan.v2": {
+   "group": "entities",
+   "frames": [
+    "caravan.v2#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "caravan.v2.shadow": {
+   "group": "entities",
+   "frames": [
+    "caravan.v2.shadow#0"
+   ],
+   "w": 272,
+   "h": 208,
+   "anchor": [
+    0.2525490196078431,
+    0.22032967032967032
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "cargo-landing-pad": {
    "group": "entities",
@@ -13777,6 +13914,33 @@
     "scale": 2
    }
   },
+  "log-stack.v0": {
+   "group": "entities",
+   "frames": [
+    "log-stack.v0#0"
+   ],
+   "w": 256,
+   "h": 224,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "log-stack.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "log-stack.v0.shadow#0"
+   ],
+   "w": 256,
+   "h": 192,
+   "anchor": [
+    0.25083333333333335,
+    0.22797619047619047
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "mailbox.v0": {
    "group": "entities",
    "frames": [
@@ -15708,6 +15872,33 @@
     0.2222222222222222
    ]
   },
+  "pylon.v0": {
+   "group": "entities",
+   "frames": [
+    "pylon.v0#0"
+   ],
+   "w": 192,
+   "h": 464,
+   "anchor": [
+    0.5,
+    0.8068965517241379
+   ]
+  },
+  "pylon.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "pylon.v0.shadow#0"
+   ],
+   "w": 384,
+   "h": 288,
+   "anchor": [
+    0.23630952380952383,
+    0.226984126984127
+   ],
+   "meta": {
+    "scale": 2
+   }
+  },
   "radar": {
    "group": "entities",
    "frames": [
@@ -16349,6 +16540,33 @@
     0.22727272727272727,
     0.22727272727272727
    ]
+  },
+  "saw-hall.v0": {
+   "group": "entities",
+   "frames": [
+    "saw-hall.v0#0"
+   ],
+   "w": 448,
+   "h": 432,
+   "anchor": [
+    0.5,
+    0.6444444444444444
+   ]
+  },
+  "saw-hall.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "saw-hall.v0.shadow#0"
+   ],
+   "w": 448,
+   "h": 320,
+   "anchor": [
+    0.28785714285714287,
+    0.26181818181818184
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "scavenger-camp": {
    "group": "entities",
@@ -17529,6 +17747,63 @@
     0.1875,
     0.1875
    ]
+  },
+  "turbine.broken": {
+   "group": "entities",
+   "frames": [
+    "turbine.broken#0"
+   ],
+   "w": 400,
+   "h": 896,
+   "anchor": [
+    0.5,
+    0.7785714285714286
+   ]
+  },
+  "turbine.rotor": {
+   "group": "entities",
+   "frames": [
+    "turbine.rotor#0",
+    "turbine.rotor#1",
+    "turbine.rotor#2",
+    "turbine.rotor#3",
+    "turbine.rotor#4",
+    "turbine.rotor#5"
+   ],
+   "w": 400,
+   "h": 896,
+   "anchor": [
+    0.5,
+    0.7785714285714286
+   ],
+   "fps": 6
+  },
+  "turbine.v0": {
+   "group": "entities",
+   "frames": [
+    "turbine.v0#0"
+   ],
+   "w": 400,
+   "h": 896,
+   "anchor": [
+    0.5,
+    0.7785714285714286
+   ]
+  },
+  "turbine.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "turbine.v0.shadow#0"
+   ],
+   "w": 512,
+   "h": 416,
+   "anchor": [
+    0.2552083333333333,
+    0.2542735042735043
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "underground-belt.in.0": {
    "group": "entities",
@@ -28385,6 +28660,42 @@
     0.6000000000000001
    ]
   },
+  "caravan.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "caravan.v0.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "caravan.v1.nrm": {
+   "group": "normals",
+   "frames": [
+    "caravan.v1.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
+  "caravan.v2.nrm": {
+   "group": "normals",
+   "frames": [
+    "caravan.v2.nrm#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.5,
+    0.65
+   ]
+  },
   "cargo-landing-pad.nrm": {
    "group": "normals",
    "frames": [
@@ -31061,6 +31372,18 @@
     0.675
    ]
   },
+  "log-stack.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "log-stack.v0.nrm#0"
+   ],
+   "w": 256,
+   "h": 224,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
   "mailbox.v0.nrm": {
    "group": "normals",
    "frames": [
@@ -32105,6 +32428,18 @@
     0.5333333333333333
    ]
   },
+  "pylon.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "pylon.v0.nrm#0"
+   ],
+   "w": 192,
+   "h": 464,
+   "anchor": [
+    0.5,
+    0.8068965517241379
+   ]
+  },
   "radar.nrm": {
    "group": "normals",
    "frames": [
@@ -32403,6 +32738,18 @@
    "anchor": [
     0.5,
     0.5636363636363636
+   ]
+  },
+  "saw-hall.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "saw-hall.v0.nrm#0"
+   ],
+   "w": 448,
+   "h": 432,
+   "anchor": [
+    0.5,
+    0.6444444444444444
    ]
   },
   "scavenger-camp.nrm": {
@@ -32955,6 +33302,42 @@
    "anchor": [
     0.5,
     0.65
+   ]
+  },
+  "turbine.broken.nrm": {
+   "group": "normals",
+   "frames": [
+    "turbine.broken.nrm#0"
+   ],
+   "w": 400,
+   "h": 896,
+   "anchor": [
+    0.5,
+    0.7785714285714286
+   ]
+  },
+  "turbine.rotor.nrm": {
+   "group": "normals",
+   "frames": [
+    "turbine.rotor.nrm#0"
+   ],
+   "w": 400,
+   "h": 896,
+   "anchor": [
+    0.5,
+    0.7785714285714286
+   ]
+  },
+  "turbine.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "turbine.v0.nrm#0"
+   ],
+   "w": 400,
+   "h": 896,
+   "anchor": [
+    0.5,
+    0.7785714285714286
    ]
   },
   "underground-belt.in.0.nrm": {

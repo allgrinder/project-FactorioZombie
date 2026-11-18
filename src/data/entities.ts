@@ -688,7 +688,7 @@ const list: EntityDef[] = [
     ['dome-tent', 'Kuppelzelt', 2, 2, 'camping', 2],
     // Bahn (lib/strecke.py)
     ['freight-car', 'Güterwagen', 6, 2, 'freight', 3.5], ['tank-car', 'Kesselwagen', 6, 2, 'drums', 2.5], ['locomotive', 'Diesellok', 7, 2, 'loco', 4],
-    ['heli-wreck', 'Hubschrauberwrack', 5, 4, 'military', 4],
+    ['heli-wreck', 'Hubschrauberwrack', 5, 4, 'military', 4], ['caravan', 'Wohnwagen', 3, 2, 'camping', 2.5],
   ] as const).map(([id, name, w, h, table, t]): LootDef => ({
     kind: 'loot', id, name, width: w, height: h, health: w * h * 120, item: w > 2 ? 'iron-plate' : 'wood', itemCount: w * h, mineTime: 2 + w,
     solid: id !== 'corpse', rotatable: false, slots: 8, table, searchTime: t,
@@ -707,6 +707,8 @@ const list: EntityDef[] = [
     ['fire-ring', 'Feuerstelle', 1, 1, 'stone', 3, false], ['platform-roof', 'Bahnsteigdach', 6, 2, 'iron-plate', 8, false],
     ['fountain', 'Brunnen', 3, 3, 'stone', 12, true], ['slide', 'Rutsche', 2, 1, 'iron-plate', 4, true], ['sandbox', 'Sandkasten', 2, 2, 'wood', 4, false],
     ['climber', 'Klettergerüst', 2, 2, 'iron-stick', 6, true], ['jetty', 'Bootssteg', 2, 1, 'wood', 6, false],
+    ['turbine', 'Windrad', 3, 3, 'iron-plate', 20, true], ['pylon', 'Hochspannungsmast', 2, 2, 'iron-stick', 12, true],
+    ['saw-hall', 'Sägewerkshalle', 6, 4, 'iron-plate', 10, false], ['log-stack', 'Stammstapel', 3, 2, 'wood', 24, true],
   ] as const).map(([id, name, w, h, item, n, solid]): PropDef => ({
     kind: 'prop', id, name, width: w, height: h, health: 150, item, itemCount: n, mineTime: 1, solid, rotatable: false,
   })),
