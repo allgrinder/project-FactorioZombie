@@ -110,3 +110,15 @@ describe('Begehbare Häuser', () => {
     expect(JSON.stringify(serializeWorld(b))).toBe(JSON.stringify(serializeWorld(w)));
   });
 });
+
+describe('Häuser in der festen Welt', () => {
+  it('in Häusern wachsen keine Bäume', async () => {
+    const { WORLD } = await import('../../src/data/world');
+    const { DEFAULT_MAP_SETTINGS } = await import('../../src/data/mapgen');
+    const w = new World(WORLD.seed, { ...DEFAULT_MAP_SETTINGS, enemies: 'aus' });
+    w.player = new Player(-196, 90);
+    w.run(2);
+    expect(w.sites.houses.length).toBeGreaterThan(10);
+    for (const h of w.sites.houses) for (let y = h.y; y < h.y + h.h; y++) for (let x = h.x; x < h.x + h.w; x++) expect(w.map.trees.treeAt(x, y), `${x},${y}`).toBeUndefined();
+  });
+});

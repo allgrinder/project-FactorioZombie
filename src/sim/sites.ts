@@ -113,6 +113,7 @@ export class SiteSystem {
     const ty = Math.floor(y);
     if (w.map.isBlocked(tx, ty) || w.map.floorAt(tx, ty) || w.map.resourceAt(tx, ty).amount > 0) return;
     for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) if (w.entityAt(tx + i, ty + j)) return;
+    for (const hs of this.houses) if (tx >= hs.x - 1 && tx <= hs.x + hs.w && ty >= hs.y - 1 && ty <= hs.y + hs.h) return;
     if (Math.hypot(x, y) < SITES.startFree * 0.5) return;
     w.map.trees.plant(x, y, kind, Math.floor(hash01(WORLD.seed, tx, ty, 77) * 8));
   }
