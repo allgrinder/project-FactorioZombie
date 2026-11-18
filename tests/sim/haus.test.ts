@@ -122,3 +122,28 @@ describe('Häuser in der festen Welt', () => {
     for (const h of w.sites.houses) for (let y = h.y; y < h.y + h.h; y++) for (let x = h.x; x < h.x + h.w; x++) expect(w.map.trees.treeAt(x, y), `${x},${y}`).toBeUndefined();
   });
 });
+
+describe('Selbst bauen', () => {
+  it('ein geschlossener Raum aus eigenen Wänden mit Tür bekommt ein Dach; fehlt eine Wand, ist es weg', () => {
+    const w = arena({ enemies: 'aus' });
+    for (let x = 10; x <= 14; x++) {
+      w.place('hwall-wood', x, 10, 0);
+      w.place(x === 12 ? 'hdoor' : 'hwall-wood', x, 14, 0);
+    }
+    for (let y = 11; y <= 13; y++) {
+      w.place('hwall-wood', 10, y, 0);
+      if (y !== 13) w.place('hwall-wood', 14, y, 0);
+    }
+    expect(w.sites.houses).toHaveLength(0);
+    const last = w.place('hwin-wood', 14, 13, 1)!;
+    expect(w.sites.houses).toHaveLength(1);
+    expect(w.sites.houses[0]).toMatchObject({ x: 10, y: 10, w: 5, h: 5, own: true });
+    w.remove(last.id);
+    expect(w.sites.houses).toHaveLength(0);
+  });
+
+  it('eigene Hausteile lassen sich herstellen', async () => {
+    const { RECIPES } = await import('../../src/data/recipes');
+    for (const id of ['hwall-wood', 'hwall-brick', 'hwin-wood', 'hwin-brick', 'hdoor']) expect(RECIPES[id], id).toBeTruthy();
+  });
+});

@@ -560,6 +560,11 @@ const SURVIVAL: RecipeDef[] = [
   craft('crowbar', 2, [I('iron-plate', 4)]),
   // Verteidigung
   craft('wooden-barricade', 0.5, [I('wood', 3)]),
+  craft('hwall-wood', 0.5, [I('wood', 3)]),
+  craft('hwall-brick', 1, [I('stone-brick', 4)]),
+  craft('hwin-wood', 1, [I('wood', 3)]),
+  craft('hwin-brick', 1, [I('stone-brick', 2), I('wood', 1)]),
+  craft('hdoor', 1, [I('wood', 4), I('iron-plate', 1)]),
   craft('gate', 1, [I('wood', 4), I('iron-plate', 2), I('iron-gear-wheel', 1)]),
   craft('barbed-wire', 0.5, [I('iron-stick', 2), I('iron-plate', 1)], 2),
   craft('spike-trap', 1, [I('wood', 2), I('iron-stick', 4)]),

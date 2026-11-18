@@ -26,6 +26,8 @@ export interface House {
   h: number;
   roof: RoofKind;
   ridge: 0 | 1;
+  /** Selbst gebaut (Dach verschwindet, wenn eine Wand fehlt). */
+  own?: boolean;
 }
 /** Nutzung: Wohnhaus, Laden, Scheune, Werkstatt/Halle, Zellentrakt, Büro/Wache. */
 export type HouseKind = 'home' | 'store' | 'barn' | 'works' | 'cells' | 'office' | 'church';
@@ -834,10 +836,10 @@ export class SiteSystem {
 
   // ------------------------------------------------------------ Speichern
 
-  serialize(): { c: number[]; s: [number, number, number, number, SiteKind][]; h?: [number, number, number, number, RoofKind, 0 | 1][] } {
+  serialize(): { c: number[]; s: [number, number, number, number, SiteKind][]; h?: [number, number, number, number, RoofKind, 0 | 1, number?][] } {
     return {
       c: [...this.cells].sort((a, b) => a - b), s: this.sites.map((s) => [s.x, s.y, s.r, s.weight, s.kind]),
-      ...(this.houses.length ? { h: this.houses.map((h) => [h.x, h.y, h.w, h.h, h.roof, h.ridge] as [number, number, number, number, RoofKind, 0 | 1]) } : {}),
+      ...(this.houses.length ? { h: this.houses.map((h) => (h.own ? [h.x, h.y, h.w, h.h, h.roof, h.ridge, 1] : [h.x, h.y, h.w, h.h, h.roof, h.ridge]) as [number, number, number, number, RoofKind, 0 | 1, number?]) } : {}),
     };
   }
 
@@ -847,7 +849,54 @@ export class SiteSystem {
     this.houses.length = 0;
     for (const c of d?.c ?? []) this.cells.add(c);
     for (const [x, y, r, weight, kind] of d?.s ?? []) this.sites.push({ x, y, r, weight, kind });
-    for (const [x, y, w, h, roof, ridge] of d?.h ?? []) this.houses.push({ x, y, w, h, roof, ridge });
+    for (const [x, y, w, h, roof, ridge, own] of d?.h ?? []) this.houses.push(own ? { x, y, w, h, roof, ridge, own: true } : { x, y, w, h, roof, ridge });
+  }
+
+  /**
+   * Selbst gebauter Raum (Block C): Schließt eine neue Wand einen rechteckigen Innenraum (höchstens ROOM_MAX Felder)
+   * vollständig ein, bekommt er ein Dach wie ein Haus (Wellblech, bei Ziegelwänden Ziegel).
+   */
+  detectRoom(w: World, x: number, y: number): void {
+    const ROOM_MAX = 144;
+    const isWall = (tx: number, ty: number) => w.entityAt(tx, ty)?.kind === 'wall';
+    for (const [dx, dy] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+      const sx = x + dx;
+      const sy = y + dy;
+      if (isWall(sx, sy) || w.map.isBlocked(sx, sy) || this.houseAt(sx, sy)) continue;
+      const seen = new Set<number>();
+      const stack: [number, number][] = [[sx, sy]];
+      let x0 = sx, y0 = sy, x1 = sx, y1 = sy;
+      let open = false;
+      while (stack.length && !open) {
+        const [cx, cy] = stack.pop()!;
+        const k = (cx + 32768) * 65536 + (cy + 32768);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        if (seen.size > ROOM_MAX) open = true;
+        x0 = Math.min(x0, cx); y0 = Math.min(y0, cy); x1 = Math.max(x1, cx); y1 = Math.max(y1, cy);
+        for (const [ax, ay] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
+          const nx = cx + ax;
+          const ny = cy + ay;
+          if (!isWall(nx, ny)) stack.push([nx, ny]);
+        }
+      }
+      // nur geschlossene, rechteckige Innenräume
+      if (open || seen.size !== (x1 - x0 + 1) * (y1 - y0 + 1)) continue;
+      const mat = w.entityAt(x, y);
+      const brick = mat?.kind === 'wall' && (mat.def.house === 'brick' || mat.def.house === 'plaster');
+      const W = x1 - x0 + 3;
+      const H = y1 - y0 + 3;
+      this.houses.push({ x: x0 - 1, y: y0 - 1, w: W, h: H, roof: brick ? 'tile' : 'metal', ridge: W >= H ? 0 : 1, own: true });
+    }
+  }
+
+  /** Eine Wand ist weg: Dächer über diesem Feld (Rand eines Hauses) verschwinden. */
+  wallGone(x: number, y: number): void {
+    for (let i = this.houses.length - 1; i >= 0; i--) {
+      const h = this.houses[i];
+      const edge = (x === h.x || x === h.x + h.w - 1) && y >= h.y && y < h.y + h.h || (y === h.y || y === h.y + h.h - 1) && x >= h.x && x < h.x + h.w;
+      if (edge && h.own) this.houses.splice(i, 1);
+    }
   }
 
   /** Begehbares Haus unter (x, y), falls vorhanden. */

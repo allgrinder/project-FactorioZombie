@@ -169,6 +169,13 @@ morgens +6 mit Essen bzw. −20 ohne, +6 mit Bett bzw. −8 ohne, −15 je Toten
 Bewohner folgt der Figur (Wegsuche), nimmt eine Pistole und Magazine aus dem Vorrat (10 Schuss, 8 Schaden, Reichweite
 10) und kämpft mit; Wachen nehmen ebenfalls Pistolen.
 
+## Selbst bauen (Block C)
+
+Steinmauern und Holzbarrikaden verbinden sich optisch wie Hauswände. Herstellbar: Bretterwand (3 Holz), Ziegelwand
+(4 Steinziegel), Holzfenster (3 Holz), Ziegelfenster (2 Steinziegel, 1 Holz), Tür (4 Holz, 1 Eisenplatte); Fenster und
+Türen mit R drehen. Schließen Wände einen rechteckigen Innenraum (bis 144 Felder) ein, bekommt er ein Dach (Wellblech,
+bei Ziegel- und Putzwänden Ziegel), das ausblendet, wenn die Figur drinnen ist; fehlt eine Wand, verschwindet es.
+
 ## Neue Aufgaben
 
 - **Plündern:** durchsucht Fundorte mit Beute im Umkreis von 90 Feldern ums Feuer (Suchzeit × 1,5), nimmt bis 16

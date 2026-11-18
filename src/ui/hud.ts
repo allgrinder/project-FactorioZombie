@@ -102,7 +102,7 @@ type CraftGroup = (typeof CRAFT_GROUPS)[number];
 const LOGISTIK_KINDS = new Set(['belt', 'underground', 'splitter', 'inserter', 'container', 'pole', 'pipe', 'pipe-ground', 'pump', 'tank', 'rail', 'train-stop', 'roboport', 'lamp', 'combinator']);
 const KAMPF = new Set([
   'firearm-magazine', 'piercing-rounds-magazine', 'pistol', 'submachine-gun', 'gun-turret', 'stone-wall', 'repair-pack', 'radar', 'grenade', 'heavy-armor',
-  'spear', 'knife', 'baseball-bat', 'axe', 'crowbar', 'wooden-barricade', 'gate', 'barbed-wire', 'spike-trap', 'noise-lure', 'watchtower',
+  'spear', 'knife', 'baseball-bat', 'axe', 'crowbar', 'wooden-barricade', 'hwall-wood', 'hwall-brick', 'hwin-wood', 'hwin-brick', 'hdoor', 'gate', 'barbed-wire', 'spike-trap', 'noise-lure', 'watchtower',
 ]);
 const UEBERLEBEN = new Set([
   'bandage', 'first-aid-kit', 'antibiotics', 'empty-bottle', 'stew', 'bed', 'garden', 'rain-barrel', 'radio-tower', 'campfire', 'brazier', 'floodlight',

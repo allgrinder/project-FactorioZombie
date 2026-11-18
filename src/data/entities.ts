@@ -797,11 +797,11 @@ const list: EntityDef[] = [
     ['brick', 'Ziegelwand', 650, 'stone', 2], ['plaster', 'Hauswand', 500, 'stone', 2], ['wood', 'Bretterwand', 280, 'wood', 3], ['concrete', 'Betonwand', 1100, 'stone', 3],
   ] as const).flatMap(([m, name, hp, item, n]): WallDef[] => [
     { kind: 'wall', id: `hwall-${m}`, name, width: 1, height: 1, health: hp, item, itemCount: n, mineTime: 3, solid: true, rotatable: false, house: m },
-    { kind: 'wall', id: `hwin-${m}`, name: 'Fenster', width: 1, height: 1, health: 60, item: 'wood', itemCount: 1, mineTime: 1.5, solid: true, rotatable: false, house: m, window: true },
+    { kind: 'wall', id: `hwin-${m}`, name: 'Fenster', width: 1, height: 1, health: 60, item: 'wood', itemCount: 1, mineTime: 1.5, solid: true, rotatable: true, house: m, window: true },
   ]),
   {
     kind: 'wall', id: 'hdoor', name: 'Haustür', width: 1, height: 1, health: 220, item: 'wood', itemCount: 2, mineTime: 2,
-    solid: true, walkable: true, rotatable: false, gate: true, house: 'door',
+    solid: true, walkable: true, rotatable: true, gate: true, house: 'door',
   },
   // Möbel: durchsuchbar (Beute je Möbelstück), Bett zum Schlafen, Sofa und Tisch als Requisiten
   ...([

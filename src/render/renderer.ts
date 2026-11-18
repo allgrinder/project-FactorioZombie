@@ -1145,7 +1145,7 @@ export class GameRenderer {
         break;
       }
       case 'wall': {
-        if (e.def.house) {
+        if (e.def.house || e.name === 'stone-wall' || e.name === 'wooden-barricade') {
           this.drawHousePart(world, e, cx, cy, z);
           break;
         }
@@ -1172,7 +1172,7 @@ export class GameRenderer {
    */
   private drawHousePart(world: World, e: Entity & { kind: 'wall' }, cx: number, cy: number, z: number): void {
     const s = this.sprites;
-    const axis = e.dir === 0 ? 'h' : 'v';
+    const axis = e.dir % 2 === 0 ? 'h' : 'v';
     let base: string;
     let shadow: string;
     if (e.def.gate) {
@@ -1184,12 +1184,11 @@ export class GameRenderer {
       base = `hwin.${e.def.house}.${axis}${e.broken ? '.broken' : ''}`;
       shadow = `hwin.${axis}.shadow`;
     } else {
-      const wallAt = (x: number, y: number) => {
-        const o = world.entityAt(x, y);
-        return !!o && o.kind === 'wall' && !!o.def.house;
-      };
+      // Wände verbinden sich mit allen Wandstücken, Fenstern, Türen und Toren daneben
+      const wallAt = (x: number, y: number) => world.entityAt(x, y)?.kind === 'wall';
       const m = (wallAt(e.x, e.y - 1) ? 1 : 0) | (wallAt(e.x + 1, e.y) ? 2 : 0) | (wallAt(e.x, e.y + 1) ? 4 : 0) | (wallAt(e.x - 1, e.y) ? 8 : 0);
-      base = `hwall.${e.def.house}.${m}`;
+      const mat = e.def.house ?? (e.name === 'stone-wall' ? 'concrete' : 'wood');
+      base = `hwall.${mat}.${m}`;
       shadow = `hwall.${m}.shadow`;
     }
     if (!s.has(base)) {

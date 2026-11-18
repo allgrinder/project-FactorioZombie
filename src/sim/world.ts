@@ -265,6 +265,8 @@ export class World {
     if (!chk.ok && !force) return null;
     const e = this.create(this.nextId++, name, x, y, dir);
     this.events.push('build', e.cx, e.cy, { id: e.id, w: e.w, h: e.h });
+    // selbst gebaute Räume bekommen ein Dach
+    if (e.kind === 'wall') this.sites.detectRoom(this, e.x, e.y);
     return e;
   }
 
@@ -301,6 +303,7 @@ export class World {
   remove(id: number): { item: string; count: number }[] {
     const e = this.entities.get(id);
     if (!e) return [];
+    if (e.kind === 'wall') this.sites.wallGone(e.x, e.y);
     const def = entityDef(e.name);
     const out: { item: string; count: number }[] = [{ item: def.item, count: def.itemCount ?? 1 }];
     if (e.kind === 'belt' || e.kind === 'underground') {

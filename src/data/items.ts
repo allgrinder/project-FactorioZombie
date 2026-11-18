@@ -185,6 +185,12 @@ const list: ItemDef[] = [
   { id: 'knife', name: 'Messer', stackSize: 5, order: 129 },
   { id: 'noise-lure', name: 'Lockvogel', stackSize: 20, order: 137.5 },
   { id: 'wooden-barricade', name: 'Holzbarrikade', stackSize: 100, placeResult: 'wooden-barricade', order: 134.5 },
+  // Hausbau (Block C): Wände verbinden sich, Fenster und Türen mit R drehen
+  { id: 'hwall-wood', name: 'Bretterwand', stackSize: 100, placeResult: 'hwall-wood', order: 134.51 },
+  { id: 'hwall-brick', name: 'Ziegelwand', stackSize: 100, placeResult: 'hwall-brick', order: 134.52 },
+  { id: 'hwin-wood', name: 'Holzfenster', stackSize: 50, placeResult: 'hwin-wood', order: 134.53 },
+  { id: 'hwin-brick', name: 'Fenster (Ziegel)', stackSize: 50, placeResult: 'hwin-brick', order: 134.54 },
+  { id: 'hdoor', name: 'Tür', stackSize: 50, placeResult: 'hdoor', order: 134.55 },
   { id: 'gate', name: 'Tor', stackSize: 50, placeResult: 'gate', order: 135.2 },
   { id: 'barbed-wire', name: 'Stacheldraht', stackSize: 100, placeResult: 'barbed-wire', order: 135.4 },
   { id: 'spike-trap', name: 'Nagelfalle', stackSize: 50, placeResult: 'spike-trap', order: 135.6 },
