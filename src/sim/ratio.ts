@@ -7,7 +7,7 @@ import { RESOURCES } from '../data/resources';
 /**
  * Verhältnis-Rechner für das Handbuch: Für ein Produkt und eine Zielmenge je Sekunde wird der Produktionsbaum
  * bis zu den Rohstoffen aufgelöst (Maschinenzahl = Menge × Rezeptzeit / (Ergebnis × Geschwindigkeit)).
- * Alle Werte kommen aus `src/data/`; ohne Module, Forschungsboni und Produktivität.
+ * Alle Werte kommen aus `src/data/`; ohne Forschungsboni und Produktivität.
  */
 
 export type MachineChoice = {
@@ -33,28 +33,14 @@ export interface RatioNode {
   byproducts: { item: string; rate: number }[];
   /** Rohstoff (kein Rezept). */
   raw: boolean;
-  /** Kreis im Baum (z. B. Kovarex): hier abgebrochen. */
+  /** Kreis im Baum: hier abgebrochen. */
   cycle?: boolean;
 }
 
-/** Ohne Rezept zu Rohstoffen (Barrel-Entleeren u. Ä. gilt nicht als Herstellung). */
-const SKIP = (r: RecipeDef) => (r.id.startsWith('empty-') && r.id.endsWith('-barrel') && r.id !== 'empty-barrel') || r.id === 'kovarex-enrichment-process' || r.id === 'nuclear-fuel-reprocessing';
-
-/** Bevorzugtes Rezept, wenn mehrere ein Produkt herstellen (wie ein Einsteiger es zuerst baut). */
-const PREFERRED: Record<string, string> = {
-  'petroleum-gas': 'basic-oil-processing',
-  'heavy-oil': 'advanced-oil-processing',
-  'light-oil': 'advanced-oil-processing',
-  'solid-fuel': 'solid-fuel-from-light-oil',
-  'uranium-235': 'uranium-processing',
-  'uranium-238': 'uranium-processing',
-};
-
-/** Alle Rezepte, die ein Produkt herstellen (bevorzugtes zuerst). */
+/** Alle Rezepte, die ein Produkt herstellen (gleichnamiges zuerst). */
 export function recipesFor(item: string): RecipeDef[] {
-  const list = RECIPE_LIST.filter((r) => !SKIP(r) && r.results.some((x) => x.item === item));
-  const pref = PREFERRED[item] ?? item;
-  return list.sort((a, b) => (b.id === pref ? 1 : 0) - (a.id === pref ? 1 : 0));
+  const list = RECIPE_LIST.filter((r) => r.results.some((x) => x.item === item));
+  return list.sort((a, b) => (b.id === item ? 1 : 0) - (a.id === item ? 1 : 0));
 }
 
 /** Rezepte, in denen ein Produkt Zutat ist. */
@@ -62,40 +48,24 @@ export function usesOf(item: string): RecipeDef[] {
   return RECIPE_LIST.filter((r) => r.ingredients.some((x) => x.item === item));
 }
 
-/** Menge eines Ergebnisses je Durchlauf (mit Wahrscheinlichkeit). */
+/** Menge eines Ergebnisses je Durchlauf. */
 export function yieldOf(r: RecipeDef, item: string): number {
-  return r.results.filter((x) => x.item === item).reduce((s, x) => s + x.amount * (x.probability ?? 1), 0);
+  return r.results.filter((x) => x.item === item).reduce((s, x) => s + x.amount, 0);
 }
 
 /** Gebäude für ein Rezept und dessen Geschwindigkeit. */
 export function machineFor(r: RecipeDef, m: MachineChoice): { machine: string; speed: number } {
-  const id = (() => {
-    switch (r.category) {
-      case 'smelting': return m.furnace;
-      case 'oil-processing': return 'oil-refinery';
-      case 'chemistry': return 'chemical-plant';
-      case 'centrifuging': return 'centrifuge';
-      case 'rocket-building': return 'rocket-silo';
-      case 'crafting-with-fluid': return m.assembler === 'assembling-machine-1' ? 'assembling-machine-2' : m.assembler;
-      default: return m.assembler;
-    }
-  })();
+  const id = r.category === 'smelting' ? m.furnace : m.assembler;
   return { machine: id, speed: (ENTITIES[id] as { craftingSpeed?: number }).craftingSpeed ?? 1 };
 }
 
 /** Abbau bzw. Förderung eines Rohstoffs: Gebäude und Menge je Sekunde und Gebäude. */
-export function rawSource(item: string, m: MachineChoice): { machine: string; perMachine: number; note?: string } | null {
+export function rawSource(item: string, m: MachineChoice): { machine: string; perMachine: number } | null {
   if (item === 'water') return { machine: 'offshore-pump', perMachine: (ENTITIES['offshore-pump'] as { pumpingSpeed: number }).pumpingSpeed * 60 };
   const res = RESOURCES.find((r) => r.result === item);
   if (!res) return null;
-  if (res.fluid) {
-    // Pumpjack: 10 Einheiten je Zyklus bei 100 % Ergiebigkeit (src/sim/entities/fluidplus.ts)
-    const ms = (ENTITIES.pumpjack as { miningSpeed: number }).miningSpeed;
-    return { machine: 'pumpjack', perMachine: 10 * ms, note: 'bei 100 % Ergiebigkeit' };
-  }
-  const drill = res.requiresFluid ? 'electric-mining-drill' : m.drill;
-  const ms = (ENTITIES[drill] as { miningSpeed: number }).miningSpeed;
-  return { machine: drill, perMachine: ms / res.miningTime };
+  const ms = (ENTITIES[m.drill] as { miningSpeed: number }).miningSpeed;
+  return { machine: m.drill, perMachine: ms / res.miningTime };
 }
 
 /** Produktionsbaum für `rate` Einheiten je Sekunde. `choice` legt je Produkt ein anderes Rezept fest. */
@@ -233,17 +203,17 @@ export function ratioRules(m: MachineChoice = DEFAULT_MACHINES): RatioRule[] {
     const k = practicalMultiple(item, m);
     const root = solve(item, ratePerMachine(item, m) * k, m);
     const parts: RatioRule['parts'] = [];
-    const walk = (n: RatioNode, top: boolean) => {
+    const walk = (n: RatioNode) => {
       if (n.raw || !n.machine) return;
       const cat = n.recipe?.category;
-      // Platten kommen vom Band, Öl- und Chemieprodukte aus eigener Anlage
-      if (cat === 'smelting' || (!top && (cat === 'oil-processing' || cat === 'chemistry'))) return;
+      // Platten kommen vom Band
+      if (cat === 'smelting') return;
       const ex = parts.find((p) => p.item === n.item);
       if (ex) ex.count += n.count;
       else parts.push({ count: n.count, machine: n.machine, item: n.item });
-      n.children.forEach((c) => walk(c, false));
+      n.children.forEach((c) => walk(c));
     };
-    walk(root, true);
+    walk(root);
     for (const p of parts) p.count = Math.round(p.count * 1000) / 1000;
     rules.push({ title, item, parts: parts.reverse(), note: `${note}${note ? ' ' : ''}Ergibt ${fmt(root.rate)}/s.` });
   };
@@ -277,24 +247,6 @@ export function ratioRules(m: MachineChoice = DEFAULT_MACHINES): RatioRule[] {
       title: 'Solar mit Akkus', item: 'solar-panel',
       parts: [{ count: 25, machine: 'solar-panel', item: 'solar-panel' }, { count: 21, machine: 'accumulator', item: 'accumulator' }],
       note: `Panel ${fmt(panel.production / 1000)} kW Spitze, Akku ${fmt(acc.buffer / 1e6)} MJ: 25 : 21 trägt die Nacht (Wiki-Verhältnis 0,84).`,
-    });
-  }
-  if (RECIPES['plastic-bar']) {
-    const crude = rawSource('crude-oil', m)!.perMachine;
-    const gas = ratePerMachine('petroleum-gas', m);
-    const plastic = solve('plastic-bar', 1, m);
-    const gasPerPlant = (plastic.children.find((c) => c.item === 'petroleum-gas')?.rate ?? 0) / plastic.count;
-    const crudePerRef = solve('petroleum-gas', gas, m).children[0].rate;
-    const [ref, plants] = intRatio(gas, gasPerPlant);
-    rules.push({
-      title: 'Öl → Plastik (Grundverarbeitung)', item: 'plastic-bar',
-      parts: [
-        { count: Math.round(((crudePerRef * ref) / crude) * 10) / 10, machine: 'pumpjack', item: 'crude-oil' },
-        { count: ref, machine: 'oil-refinery', item: 'petroleum-gas' },
-        { count: plants, machine: 'chemical-plant', item: 'plastic-bar' },
-      ],
-      note: `Raffinerie ${fmt(gas)} Erdgas/s, Chemiefabrik braucht ${fmt(gasPerPlant)} Erdgas/s (≈ ${fmt(gasPerPlant / gas)} Raffinerien je Chemiefabrik); `
-        + `Pumpjack ${fmt(crude)} Rohöl/s bei 100 % Ergiebigkeit, Raffinerie braucht ${fmt(crudePerRef)} Rohöl/s.`,
     });
   }
   return rules;

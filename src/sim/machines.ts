@@ -7,16 +7,15 @@ import { BeltEntity, ContainerEntity, DrillEntity, FurnaceEntity } from './entit
 import { HALF_TURN, InserterEntity, InserterPhase } from './entities/inserter';
 import { FluidPumpEntity, LampEntity, PipeGroundEntity, TankEntity } from './entities/fluidplus';
 import { SplitterEntity, UndergroundEntity } from './entities/logistics';
-import { AssemblerEntity, BeaconEntity, LabEntity } from './entities/production';
-import { RoboportEntity } from './entities/robots';
-import { CombinatorEntity, RadarEntity } from './entities/rocket';
+import { AssemblerEntity, LabEntity } from './entities/production';
+import { RadarEntity } from './entities/radar';
 import { TurretEntity, WallEntity } from './entities/military';
 import { BedEntity, CampEntity, FireEntity, HazardEntity, LootEntity, PileEntity, ProducerEntity, PropEntity, RadioEntity } from './entities/survival';
 
 export { BedEntity, CampEntity, FireEntity, HazardEntity, LootEntity, PileEntity, PropEntity, ProducerEntity, RadioEntity, TurretEntity, WallEntity };
 import { AccumulatorEntity, BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity, SolarEntity } from './entities/power';
 
-export { AccumulatorEntity, BeaconEntity, CombinatorEntity, RadarEntity, RoboportEntity, SolarEntity };
+export { AccumulatorEntity, RadarEntity, SolarEntity };
 export { AssemblerEntity, FluidPumpEntity, LabEntity, LampEntity, PipeGroundEntity, SplitterEntity, TankEntity, UndergroundEntity };
 export { BeltEntity, BoilerEntity, ContainerEntity, DrillEntity, FurnaceEntity, GeneratorEntity, HALF_TURN, InserterEntity, InserterPhase, PipeEntity, PoleEntity, PumpEntity };
 export type { InsertMode };
@@ -24,7 +23,7 @@ export type { InsertMode };
 export type Entity =
   | BeltEntity | DrillEntity | FurnaceEntity | InserterEntity | ContainerEntity
   | PipeEntity | PumpEntity | BoilerEntity | GeneratorEntity | PoleEntity | AssemblerEntity | LabEntity | UndergroundEntity | SplitterEntity
-  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | SolarEntity | AccumulatorEntity | BeaconEntity | RoboportEntity | RadarEntity | CombinatorEntity
+  | PipeGroundEntity | FluidPumpEntity | TankEntity | LampEntity | SolarEntity | AccumulatorEntity | RadarEntity
   | TurretEntity | WallEntity
   | HazardEntity | BedEntity | ProducerEntity | RadioEntity | LootEntity | PileEntity | FireEntity | CampEntity | PropEntity;
 

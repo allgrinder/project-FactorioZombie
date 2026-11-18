@@ -24,7 +24,7 @@ export interface MapSettings {
   /** Fundorte (Häuser, Wracks) auf der Karte (fehlt: keine). */
   readonly sites?: boolean;
   /**
-   * Rohstofffelder (Erz, Kohle, Stein, Öl, Uran) wie beim Vorgänger; fehlt = ja (Tests, Demo). „Letzte Schicht“ hat keine:
+   * Rohstofffelder (Erz, Kohle, Stein) wie beim Vorgänger; fehlt = ja (Tests, Demo). „Letzte Schicht“ hat keine:
    * Material kommt aus Schrotthaufen, Fundorten und Sammeltrupps (src/data/scavenge.ts).
    */
   readonly ore?: boolean;
@@ -52,7 +52,7 @@ export const DEATH_SETTINGS: Readonly<Record<DeathSetting, { label: string; hint
 
 /**
  * Häufigkeit (Wunsch 09.11.2026: „deutlich mehr Rohstoffe“): factor vervielfacht die Zahl der Felder
- * (Raster enger, auch Öl und Uran), amount die Menge je Feld; ab „viel“ zusätzliche Startfelder.
+ * (Raster enger), amount die Menge je Feld; ab „viel“ zusätzliche Startfelder.
  */
 export const FREQUENCY_SETTINGS: Readonly<Record<FrequencySetting, { label: string; hint: string; factor: number; amount: number }>> = {
   normal: { label: 'Normal', hint: 'Felder wie bisher', factor: 1, amount: 1 },
@@ -131,8 +131,6 @@ export const MAPGEN = {
    * geteilt; ein Feld ist Klippe, wenn ein Nachbar eine Stufe tiefer liegt. Lücken, wo das Lückenrauschen unter gap
    * liegt (Durchgänge). Keine Klippen im Startgebiet (startFree), an Wasser oder auf Erz.
    */
-  /** Uranvorkommen (Wiki: selten, weit vom Start): eigenes Raster, Mindestabstand, Radius, Reichtum. */
-  uranium: { cell: 240, chance: 0.45, minDistance: 250, radiusMin: 5, radiusMax: 9, richness: 400, richnessPerTile: 1 },
   cliffs: {
     scale: 75,
     gapScale: 14,
@@ -141,11 +139,6 @@ export const MAPGEN = {
     normal: { levels: 7, gap: 0.3 },
   },
   rivers: { scale: 380, warp: 60, warpScale: 90, width: 0.009, widthScale: 45, fordBelow: 0.38 },
-  /**
-   * Ölfelder: Gruppen einzelner Quellen (Wiki: Pumpjack fördert 10 × Ergiebigkeit/s). Ergiebigkeit in Prozent,
-   * steigt mit der Entfernung; Mindestabstand zum Start.
-   */
-  oil: { cell: 110, chance: 0.55, minDistance: 70, wellsMin: 4, wellsMax: 10, radius: 7, spacing: 3, yieldMin: 60, yieldMax: 200, yieldPerTile: 0.25 },
   /** Startsee in Sichtweite (verzerrte Ellipse) in einer Richtung ohne Startfeld. */
   startLake: { distance: 34, radiusMin: 8, radiusMax: 11 },
   /** Kleine Teiche (verzerrte Ellipsen). */

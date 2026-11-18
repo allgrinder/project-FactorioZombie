@@ -7,7 +7,7 @@ const unkey = (k: number): [number, number] => [Math.floor(k / 65536) - 32768, (
 const chunkOf = (t: number) => Math.floor(t / CHART.chunk);
 
 /**
- * Aufgedeckte Kartenabschnitte (Wiki „Radar“): Figur, Roboterhangar und Radar decken ihre Umgebung laufend auf,
+ * Aufgedeckte Kartenabschnitte (Wiki „Radar“): Figur und Radar decken ihre Umgebung laufend auf,
  * Radare erkunden zusätzlich ferne Abschnitte. Nur Anzeige (Karte/Minimap); die Simulation bleibt unberührt.
  */
 export class ChartSystem {
@@ -58,7 +58,6 @@ export class ChartSystem {
     for (const e of w.entities.values()) {
       if (e.status !== Status.Working) continue;
       if (e.kind === 'radar') this.chartAround(e.cx, e.cy, CHART.radarNearRadius, tick);
-      else if (e.kind === 'roboport') this.chartAround(e.cx, e.cy, CHART.roboportRadius, tick);
     }
   }
 

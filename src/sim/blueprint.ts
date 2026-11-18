@@ -1,4 +1,4 @@
-import { entityDef, sizeOf } from '../data/entities';
+import { ENTITIES, entityDef, sizeOf } from '../data/entities';
 import { ITEM_IDS } from '../data/items';
 import { type Dir, tileKey } from './geom';
 import type { Entity } from './machines';
@@ -33,7 +33,7 @@ export interface GhostEntity {
 }
 
 export function settingsOf(e: Entity): Settings | undefined {
-  if (e.kind === 'assembler' && e.recipe) return { recipe: e.recipeKey! };
+  if (e.kind === 'assembler' && e.recipe) return { recipe: e.recipe.id };
   if (e.kind === 'underground') return { out: e.output };
   if (e.kind === 'container' && e.inventory.bar < e.inventory.size) return { bar: e.inventory.bar };
   if (e.kind === 'inserter' && e.filters.some((f) => f)) return { if: [...e.filters], ib: e.filterBlacklist };
@@ -130,7 +130,7 @@ export function decode(text: string): Blueprint | null {
   }
 }
 
-/** Geister in der Welt: werden durch passendes Bauen (Spieler, später Roboter) zu echten Gebäuden. */
+/** Geister in der Welt: werden durch passendes Bauen des Spielers zu echten Gebäuden. */
 export class GhostSystem {
   readonly all = new Map<number, GhostEntity>();
   private readonly occ = new Map<number, number>();
@@ -196,6 +196,7 @@ export class GhostSystem {
   load(_w: World, d: ReturnType<GhostSystem['serialize']> | undefined): void {
     if (!d || !Array.isArray(d.g)) return;
     for (const [id, name, x, y, dir, s] of d.g) {
+      if (!ENTITIES[name]) continue;
       const g: GhostEntity = { id, name, x, y, dir: dir as Dir, ...(s ? { settings: s } : {}) };
       this.all.set(id, g);
       for (const [tx, ty] of footprint(name, x, y, g.dir)) this.occ.set(tileKey(tx, ty), id);

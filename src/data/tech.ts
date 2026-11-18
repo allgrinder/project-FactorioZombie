@@ -5,8 +5,8 @@
  * Quelle: Wiki, Infoboxen „… (research)“ (cost, cost-multiplier, required-technologies, effects, technology-trigger).
  */
 export interface TechTrigger {
-  /** craft-item: herstellen; mine-entity: abbauen/fördern (z. B. Rohöl). */
-  readonly type: 'craft-item' | 'mine-entity';
+  /** craft-item: herstellen. */
+  readonly type: 'craft-item';
   readonly item: string;
   readonly count: number;
 }
@@ -14,7 +14,7 @@ export interface TechTrigger {
 /** Bonusarten der Forschung (Wiki „Research“, Abschnitt Bonusse). value: Prozent als Bruch (0,1 = +10 %) bzw. Anzahl. */
 export type BonusType =
   | 'inserter-stack' | 'bulk-stack' | 'mining-productivity' | 'lab-speed' | 'toolbelt'
-  | 'bullet-damage' | 'turret-damage' | 'shooting-speed' | 'robot-speed' | 'robot-cargo' | 'braking' | 'hand-mining'
+  | 'bullet-damage' | 'turret-damage' | 'shooting-speed' | 'hand-mining'
   /** Strommasten leuchten nachts (Wunsch, nicht im Original). */
   | 'pole-light';
 
@@ -166,11 +166,11 @@ const RAW_TECHS: readonly TechDef[] = [
 /**
  * Wie im Original braucht jede Forschung die Forschung, die ihre Wissenschaftspakete freischaltet (z. B. Stufe 3 von
  * „Physischer Projektilschaden“ mit Militär-Paketen → „Militär-Wissenschaft“). Fehlt sie in den Vorgängern, wird sie
- * ergänzt. Weltraumpakete gibt es erst nach dem Raketensilo.
+ * ergänzt.
  */
 function withPackPrereqs(raw: readonly TechDef[]): TechDef[] {
   const byId = new Map(raw.map((t) => [t.id, t]));
-  const packTech = new Map<string, string>([['space-science-pack', 'rocket-silo']]);
+  const packTech = new Map<string, string>();
   for (const t of raw) for (const u of t.unlocks) if (u.endsWith('-science-pack') && !packTech.has(u)) packTech.set(u, t.id);
   const ancestors = (id: string, seen = new Set<string>()): Set<string> => {
     for (const p of byId.get(id)?.prerequisites ?? []) {

@@ -6,9 +6,6 @@ import type { World } from './world';
  * Mengen ganzzahlig in Tausendstel Einheiten. Netze werden bei Bauänderungen neu gebildet;
  * der Inhalt wird dabei anteilig auf die Behälter verteilt und wieder zusammengezählt.
  */
-/** Filter für Behälter, die das aktuelle Rezept nicht braucht (Anschluss verbindet nicht). */
-export const UNUSED = '__none';
-
 export class FluidBox {
   amount = 0;
   fluid: string | null = null;
@@ -137,8 +134,6 @@ export class FluidSystem {
         if (!other) continue;
         const fa = p.box.filter;
         const fb = other.port.box.filter;
-        // unbenutzte Anschlüsse (Rezept braucht den Behälter nicht) sind tot, wie im Original
-        if (fa === UNUSED || fb === UNUSED) continue;
         if (fa && fb && fa !== fb) continue;
         const ra = find(p.box);
         const rb = find(other.port.box);
@@ -170,7 +165,7 @@ export class FluidSystem {
         }
         net.boxes.push(b);
         net.capacity += b.capacity;
-        if (b.filter && b.filter !== UNUSED) net.filter = b.filter;
+        if (b.filter) net.filter = b.filter;
         b.net = net;
       }
     }
@@ -194,7 +189,7 @@ export class FluidSystem {
  */
 export function fluidSummary(b: FluidBox, unit: number): { fluid: string | null; own: number; ownCap: number; net: number; netCap: number } {
   const n = b.net;
-  const fluid = (n?.fluid ?? b.fluid ?? (b.filter && b.filter !== '__none' ? b.filter : null)) as string | null;
+  const fluid = (n?.fluid ?? b.fluid ?? b.filter) as string | null;
   if (!n) return { fluid, own: b.amount / unit, ownCap: b.capacity / unit, net: b.amount / unit, netCap: b.capacity / unit };
   const own = n.capacity > 0 ? (n.amount * b.capacity) / n.capacity : 0;
   return { fluid, own: own / unit, ownCap: b.capacity / unit, net: n.amount / unit, netCap: n.capacity / unit };

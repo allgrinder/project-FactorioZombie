@@ -1,4 +1,7 @@
-import { EquipmentGrid } from './armor';
+import { ARMORS } from '../data/armor';
+import { ENTITIES } from '../data/entities';
+import { ITEMS } from '../data/items';
+import { RECIPES } from '../data/recipes';
 import { LEGACY_MAP_SETTINGS, type MapSettings } from '../data/mapgen';
 import type { EnemySystem } from './enemies';
 import type { NoiseSystem } from './noise';
@@ -6,8 +9,6 @@ import type { SiteSystem } from './sites';
 import type { GhostSystem } from './blueprint';
 import type { ResearchData } from './research';
 import type { ProductionStats } from './stats';
-import type { RobotSystem } from './robots';
-import type { CircuitSystem } from './circuit';
 import type { Status } from './entity';
 import type { Dir } from './geom';
 import type { Inventory } from './inventory';
@@ -61,8 +62,6 @@ export interface SaveData {
   floors?: [number, number, number][];
   capsules?: ReturnType<World['capsules']['serialize']>;
   corpses?: ReturnType<World['corpses']['serialize']>;
-  /** Durch Schaltbedingung angehaltene Bänder. */
-  beltStop?: number[];
   /** gefällte Bäume [Chunk-x, Chunk-y, Index] */
   trees?: [number, number, number][];
   planted?: [number, number, number, number][];
@@ -72,11 +71,8 @@ export interface SaveData {
   research?: ResearchData;
   ghosts?: ReturnType<GhostSystem['serialize']>;
   stats?: ReturnType<ProductionStats['serialize']>;
-  robots?: ReturnType<RobotSystem['serialize']>;
-  rockets?: number;
   /** Zahl der Figuren, die diese Welt schon gesehen hat. */
   chars?: number;
-  circuit?: ReturnType<CircuitSystem['serialize']>;
   noise?: ReturnType<NoiseSystem['serialize']>;
   scav?: ReturnType<import('./community').Community['serialize']>;
   weather?: ReturnType<import('./weather').WeatherSystem['serialize']>;
@@ -112,10 +108,8 @@ interface PlayerData {
   lh?: number;
   rd?: number;
   ri?: string | null;
-  /** Rüstung, Ausrüstungsraster, persönliche Roboter an/aus. */
+  /** Rüstung. */
   ar?: string | null;
-  gr?: ReturnType<EquipmentGrid['serialize']> | null;
-  pr?: boolean;
   /** Überleben: Hunger, Durst, Müdigkeit, Wunden (Ablauf-Ticks), Infektion, Schlaf, Tod, Nahkampf-Abnutzung, Waffenwahl. */
   sv?: ReturnType<Player['saveSurvival']>;
 }
@@ -144,14 +138,11 @@ export function serializeWorld(w: World): SaveData {
     floors: w.map.serializeFloors(),
     capsules: w.capsules.serialize(),
     ...(w.corpses.all.length ? { corpses: w.corpses.serialize() } : {}),
-    ...(w.beltStopped.size ? { beltStop: [...w.beltStopped].sort((a, b) => a - b) } : {}),
     trees: w.map.trees.serialize(),
     planted: w.map.trees.serializePlanted(),
     research: w.research.serialize(),
     ghosts: w.ghosts.serialize(),
     stats: w.stats.serialize(),
-    robots: w.robots.serialize(),
-    rockets: w.rocketsLaunched,
     ...(w.characters > 1 ? { chars: w.characters } : {}),
     noise: w.noise.serialize(),
     weather: w.weather.serialize(),
@@ -162,7 +153,6 @@ export function serializeWorld(w: World): SaveData {
     ...(w.rescuedAt !== null ? { rescued: w.rescuedAt } : {}),
     chart: w.chart.serialize(),
     enemies: w.enemies.serialize(w.structureVersion),
-    circuit: w.circuit.serialize(),
     ground: [...w.ground.entries()].sort((a, b) => a[0] - b[0]).map(([k, list]) => [k, list.map((g) => [g.item, g.x, g.y] as [string, number, number])]),
     player: p
       ? {
@@ -180,8 +170,6 @@ export function serializeWorld(w: World): SaveData {
         rd: p.rounds,
         ri: p.roundsItem,
         ar: p.armor,
-        gr: p.grid?.serialize() ?? null,
-        pr: p.personalRobots,
         sv: p.saveSurvival(),
       }
       : null,
@@ -192,6 +180,10 @@ function entityData(e: Entity): EntityData {
   return { id: e.id, name: e.name, x: e.x, y: e.y, dir: e.dir, st: e.status, ...(e.hp < e.def.health ? { hp: e.hp } : {}), ...e.save() } as EntityData;
 }
 
+/**
+ * Lädt einen Spielstand. Ältere Stände können Felder, Gebäude und Items gestrichener Systeme (Roboter, Schaltungsnetz,
+ * Module, Züge …) enthalten: unbekannte Felder werden nicht gelesen, unbekannte Gebäude und Items fallen weg.
+ */
 export function deserializeWorld(d: SaveData): World {
   if (d.version !== SAVE_VERSION) throw new Error(`Spielstandversion ${d.version} wird nicht unterstützt`);
   const w = new World(d.seed, d.settings ? { ...LEGACY_MAP_SETTINGS, ...d.settings } : LEGACY_MAP_SETTINGS);
@@ -202,22 +194,22 @@ export function deserializeWorld(d: SaveData): World {
   w.map.loadFloors(d.floors);
   w.capsules.load(d.capsules);
   w.corpses.load(d.corpses);
-  for (const id of d.beltStop ?? []) w.beltStopped.add(id);
   w.map.trees.loadPlanted(d.planted);
   if (d.trees) w.map.trees.load(d.trees);
   if (d.research) w.research.load(d.research);
-  w.circuit.load(d.circuit);
   for (const ed of d.entities) {
+    if (!ENTITIES[ed.name]) continue;
     const e = w.create(ed.id, ed.name, ed.x, ed.y, ed.dir);
     e.status = ed.st;
     if (ed.hp !== undefined) e.hp = ed.hp;
     e.load(ed as unknown as Record<string, unknown>);
   }
-  for (const [k, list] of d.ground ?? []) w.ground.set(k, list.map(([item, x, y]) => ({ item, x, y })));
+  for (const [k, list] of d.ground ?? []) {
+    const known = list.filter(([item]) => ITEMS[item]);
+    if (known.length) w.ground.set(k, known.map(([item, x, y]) => ({ item, x, y })));
+  }
   w.ghosts.load(w, d.ghosts);
   w.stats.load(d.stats);
-  w.robots.load(w, d.robots);
-  w.rocketsLaunched = d.rockets ?? 0;
   w.characters = d.chars ?? 1;
   w.noise.load(d.noise);
   w.community.load(d.scav);
@@ -229,7 +221,7 @@ export function deserializeWorld(d: SaveData): World {
   w.chart.load(d.chart);
   w.enemies.load(w, d.enemies);
   for (const [id, list] of d.beltItems) {
-    w.belts.loadTileItems(id, list.map(([lane, offset, item]) => ({ lane, offset, item: itemIndex(item) })));
+    w.belts.loadTileItems(id, list.filter(([, , item]) => ITEMS[item]).map(([lane, offset, item]) => ({ lane, offset, item: itemIndex(item) })));
   }
   w.belts.ensure();
   w.nextId = d.nextId;
@@ -251,13 +243,10 @@ export function deserializeWorld(d: SaveData): World {
     p.walking = pd.walking;
     p.pickingUp = pd.pu ?? false;
     p.inventory.load(pd.inv);
-    p.armor = pd.ar ?? null;
-    p.grid = p.armor ? EquipmentGrid.forArmor(p.armor) : null;
-    p.grid?.load(pd.gr ?? undefined);
-    p.personalRobots = pd.pr ?? true;
+    p.armor = pd.ar && ARMORS[pd.ar] ? pd.ar : null;
     p.loadSurvival(pd.sv);
     pd.quickbar.forEach((q, i) => (p.quickbar[i] = q));
-    for (const j of pd.queue) p.craftQueue.push({ ...j });
+    for (const j of pd.queue) if (RECIPES[j.recipe]) p.craftQueue.push({ ...j });
     p.mineTarget = pd.mine;
     p.mineProgress = pd.mineProgress;
     p.mineTotal = pd.mineTotal;

@@ -159,34 +159,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .bp-icons { display: flex; gap: 1px; }
 .bp-icons .icon.small { width: 20px; height: 20px; }
 
-/* Anforderungen (Logistik) */
-.requests { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
-.req-row { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-.req-row .icon.small { width: 22px; height: 22px; }
-.req-row span { flex: 1; }
-.req-row input, .req-row select, .req-row button { background: var(--slot); color: var(--text); border: 1px solid var(--slot-edge); border-radius: 3px; padding: 2px 4px; font: inherit; }
-.req-row .req-count { width: 64px; }
-.req-row .req-item { flex: 1; max-width: 200px; }
-.req-row button { cursor: pointer; }
-.req-row button.bad { color: var(--bad); }
-
-/* Schaltungsnetz */
-.circuit { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; max-width: 520px; }
-.circ-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; font-size: 12px; }
-.circuit select, .circuit input, .circuit button { background: var(--slot); color: var(--text); border: 1px solid var(--slot-edge); border-radius: 3px; padding: 2px 4px; font: inherit; }
-.circuit .sig-select { max-width: 170px; }
-.circuit .num { width: 70px; }
-.circuit button { cursor: pointer; align-self: flex-start; }
-.circuit-live { font-size: 11px; color: var(--dim); }
-
-/* Züge */
-.train { left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; max-height: 80vh; overflow: auto; }
-.train .slot-row { flex-wrap: wrap; }
-.train select, .train input, .train button, .entity .stop-name { background: var(--slot); color: var(--text); border: 1px solid var(--slot-edge); border-radius: 3px; padding: 2px 4px; font: inherit; }
-.train button { cursor: pointer; }
-.train button.bad { color: var(--bad); }
-.train .num { width: 60px; }
-.train .circ-row.current { color: var(--accent); }
 .slot.recipe.locked { opacity: 0.35; cursor: default; }
 .slot.recipe.locked .lock { position: absolute; right: 1px; top: -1px; font-size: 10px; }
 .tt-locked { color: var(--bad); margin-top: 4px; font-weight: 600; }
@@ -235,12 +207,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .quickbar { border-radius: 0; background: linear-gradient(180deg, #34312d, #2b2926); border: 1px solid #0c0b0a;
   box-shadow: 0 6px 18px rgba(0,0,0,.5), inset 1px 1px 0 var(--frame-hi), inset -1px -1px 0 var(--frame-lo); }
 /* Schaltflächen */
-.menu-btn, .small-btn, .choice, .bp-body button, .circuit button, .req-row button, .train button, .stats-tabs button {
+.menu-btn, .small-btn, .choice, .bp-body button, .stats-tabs button {
   border-radius: 0 !important; border: 1px solid #0c0b0a !important; color: #15130f !important; font-weight: 600;
   background: var(--btn) !important; box-shadow: inset 1px 1px 0 rgba(255,255,255,0.35), 0 1px 0 rgba(0,0,0,0.5) !important;
   text-shadow: 0 1px 0 rgba(255,255,255,0.25); cursor: pointer; }
-.menu-btn:hover, .small-btn:hover, .choice:hover, .bp-body button:hover:not(:disabled), .circuit button:hover, .req-row button:hover,
-.train button:hover, .stats-tabs button:hover { background: var(--btn-hover) !important; }
+.menu-btn:hover, .small-btn:hover, .choice:hover, .bp-body button:hover:not(:disabled), .stats-tabs button:hover { background: var(--btn-hover) !important; }
 .menu-btn:active, .small-btn:active, .choice:active { box-shadow: inset 1px 1px 2px rgba(0,0,0,0.6) !important; transform: translateY(1px); }
 .menu-btn.primary, .choice.on, .small-btn.active, .stats-tabs button.active { background: var(--btn-ok) !important; }
 .menu-btn { padding: 7px 10px; }
@@ -376,20 +347,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .armor-row { display: flex; gap: 8px; align-items: center; }
 .armor-slot { width: 40px; height: 40px; cursor: pointer; flex: none; }
 .armor-info { font-size: 12px; }
-.equip-grid { position: relative; background: repeating-linear-gradient(0deg, #2b2824 0 25px, #1a1815 25px 26px), #1a1815;
-  background-image: linear-gradient(#1a1815 1px, transparent 1px), linear-gradient(90deg, #1a1815 1px, transparent 1px);
-  background-size: 26px 26px; background-color: #2b2824; border: 1px solid #0c0b0a; }
-.equip { position: absolute; display: grid; place-items: center; cursor: pointer; border: 1px solid #0c0b0a;
-  background: linear-gradient(180deg, #4a4438 0%, #36322b 100%); }
-.equip:hover { border-color: #e0a53a; }
-.equip.roboport { background: linear-gradient(180deg, #3e4a52 0%, #2b343a 100%); }
-.equip.solar { background: linear-gradient(180deg, #2f3d55 0%, #222c3d 100%); }
-.equip.battery { background: linear-gradient(180deg, #3d4d33 0%, #2b3725 100%); }
-.equip .icon { width: 22px; height: 22px; }
-.small-btn.on { background: #e0a53a; color: #1c1a17; }
 
-.armor-cols { display: flex; gap: 10px; align-items: flex-start; }
-.armor-side { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
 
 /* Gebäudefenster: blasse Vorschau der benötigten Zutaten bzw. des Ergebnisses in leeren Plätzen */
 .slot.ghost-slot .icon { opacity: 0.32; filter: grayscale(0.6); }
@@ -454,7 +412,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .hb-tcell { display: flex; align-items: center; min-width: 0; }
 .hb-tog { width: 14px; flex: none; color: var(--accent); cursor: pointer; user-select: none; }
 /* Sammelrezepte Fass befüllen (+) / entleeren (−) */
-.slot .recipe-badge { position: absolute; right: 1px; top: -2px; font-size: 16px; font-weight: 800; color: #ffd27a; text-shadow: 0 0 2px #000, 0 0 3px #000; pointer-events: none; }
 
 /* ======================================================================
    Letzte Schicht: Überlebensanzeige, Schlaf, Abschluss

@@ -47,7 +47,7 @@ export const SOUNDS: Record<string, Params> = {
 
 /** Gebäudeart → Umgebungsklang. */
 const AMBIENT: Partial<Record<string, string>> = {
-  drill: 'drill', furnace: 'furnace', assembler: 'assembler', generator: 'engine', boiler: 'furnace', pumpjack: 'drill',
+  drill: 'drill', furnace: 'furnace', assembler: 'assembler', generator: 'engine', boiler: 'furnace',
 };
 
 const VOL_KEY = 'letzteschicht.volume';

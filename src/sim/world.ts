@@ -13,7 +13,6 @@ import { CarSystem } from './cars';
 import { ChartSystem } from './chart';
 import { EventQueue } from './events';
 import { type EntityDef, entityDef, sizeOf } from '../data/entities';
-import { RESOURCE_BY_INDEX } from '../data/resources';
 import { DAY, darknessAt } from '../data/time';
 import { BeltSystem } from './belts';
 import type { InsertMode } from './entities/base';
@@ -26,9 +25,6 @@ import { PowerSystem } from './power';
 import { ResearchSystem } from './research';
 import { ProductionStats } from './stats';
 import { GhostSystem } from './blueprint';
-import { BeaconSystem } from './modules';
-import { RobotSystem } from './robots';
-import { CircuitSystem } from './circuit';
 import { Burner } from './burner';
 import { Status } from './entity';
 import { Player } from './player';
@@ -64,13 +60,6 @@ export class World {
   readonly stats = new ProductionStats();
   /** Geplante Gebäude (Blaupausen). */
   readonly ghosts = new GhostSystem();
-  /** Leuchtfeuer → Maschinen. */
-  readonly beacons = new BeaconSystem();
-  /** Bau- und Logistikroboter. */
-  readonly robots = new RobotSystem();
-  /** Schaltungsnetz (rote und grüne Drähte). */
-  readonly circuit = new CircuitSystem();
-  /** Gleise und Züge. */
   /** Lärm lockt Zombies an (Maschinen, Schüsse, Lockvögel). */
   readonly noise = new NoiseSystem();
   readonly weather = new WeatherSystem();
@@ -82,14 +71,11 @@ export class World {
   readonly drops = new DropSystem();
   /** Fahrzeuge (Pritschenwagen). */
   readonly cars = new CarSystem();
-  /** Aufgedeckte Kartenabschnitte (Figur, Radar, Roboterhangar). */
+  /** Aufgedeckte Kartenabschnitte (Figur, Radar). */
   readonly chart = new ChartSystem();
   /** Ereignisse für Ton/Effekte (nicht gespeichert). */
   readonly events = new EventQueue();
   readonly enemies = new EnemySystem();
-  /** Bänder, die im nächsten Tick durch ihre Schaltbedingung angehalten sind (gespeichert). */
-  readonly beltStopped = new Set<number>();
-  /** Wärmenetz (Kernkraft). */
   /** Leichen der Spielfigur mit Inventar. */
   readonly corpses = new CorpseSystem();
   /** Geworfene Granaten und Klippensprengstoff. */
@@ -114,8 +100,6 @@ export class World {
       p.onUsed = (item, n) => this.stats.used(item, n);
     }
   }
-  /** Gestartete Raketen (Vorgänger, ungenutzt). */
-  rocketsLaunched = 0;
   /** Leuchtende Lichtquellen (alle 30 Ticks neu): [x, y, Radius]. */
   private lights: [number, number, number][] = [];
   private lightsTick = -1;
@@ -236,8 +220,7 @@ export class World {
     if (def.kind === 'drill') {
       const tmp = new DrillEntity(0, name, x, y, dir);
       if (!tmp.areaTiles().some(([tx, ty]) => {
-        const r = this.map.resourceAt(tx, ty);
-        return r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid;
+        return this.map.resourceAt(tx, ty).amount > 0;
       })) {
         return { ok: false, reason: 'Keine Ressourcen' };
       }
@@ -378,24 +361,10 @@ export class World {
   step(): void {
     this.fluids.ensure(this);
     this.power.ensure(this);
-    this.beacons.ensure(this);
     this.power.update(1 - this.darkness);
-    // Bänder mit Schaltbedingung (Wiki „Transport belt“: Bedingung aktivieren/deaktivieren) halten einzeln an
-    const stop = new Set<number>();
-    for (const [id, c] of this.circuit.conditions) if (c.first && this.belts.tileById(id)) stop.add(id);
-    this.belts.setStoppers(stop);
     this.belts.ensure();
-    // Halte-Zustand aus dem Vortick (Schaltungswerte entstehen erst in circuit.update, ein Tick Verzögerung)
-    for (const id of stop) {
-      const t = this.belts.tileById(id);
-      if (t?.line) t.line.stopped = this.beltStopped.has(id);
-    }
     this.belts.update();
-    this.circuit.update(this);
-    this.beltStopped.clear();
-    for (const id of stop) if (!this.circuit.enabled(id)) this.beltStopped.add(id);
     for (const e of this.entities.values()) e.update(this);
-    this.robots.update(this);
     // Fundorte vor den Zombies anlegen (Zombies lungern um Häuser und Wracks)
     if (this.tick % 60 === 0 && this._player && this.settings.sites) {
       const p = this._player;

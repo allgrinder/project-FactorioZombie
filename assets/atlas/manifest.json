@@ -2,7 +2,7 @@
  "version": 1,
  "tileSize": 128,
  "generator": "blender",
- "blender": "bpy 5.2.4 LTS",
+ "blender": "bpy 5.2.0 LTS",
  "models": {
   "basis": {
    "hash": "fd6ecc7e7dcccb87",
@@ -1236,19 +1236,11 @@
    ]
   },
   "kapseln": {
-   "hash": "6ca16d88b2248582",
+   "hash": "f2aa58741d1eeb55",
    "sprites": [
-    "item.water-barrel",
-    "item.crude-oil-barrel",
-    "item.heavy-oil-barrel",
-    "item.light-oil-barrel",
-    "item.petroleum-gas-barrel",
-    "item.lubricant-barrel",
-    "item.sulfuric-acid-barrel",
     "item.bulk-inserter",
     "item.military-science-pack",
     "item.grenade",
-    "item.empty-barrel",
     "item.cliff-explosives"
    ]
   },
@@ -1335,83 +1327,19 @@
    ]
   },
   "late": {
-   "hash": "95633725bede70db",
+   "hash": "86d12ed1337587d0",
    "sprites": [
-    "beacon",
-    "beacon.nrm",
-    "beacon.glow",
-    "beacon.shadow",
-    "roboport",
-    "roboport.nrm",
-    "roboport.shadow",
     "radar",
     "radar.nrm",
-    "radar.shadow",
-    "rocket-silo",
-    "rocket-silo.nrm",
-    "rocket-silo.shadow",
-    "cargo-landing-pad",
-    "cargo-landing-pad.nrm",
-    "cargo-landing-pad.shadow",
-    "passive-provider-chest",
-    "passive-provider-chest.nrm",
-    "passive-provider-chest.shadow",
-    "active-provider-chest",
-    "active-provider-chest.nrm",
-    "active-provider-chest.shadow",
-    "storage-chest",
-    "storage-chest.nrm",
-    "storage-chest.shadow",
-    "requester-chest",
-    "requester-chest.nrm",
-    "requester-chest.shadow",
-    "buffer-chest",
-    "buffer-chest.nrm",
-    "buffer-chest.shadow",
-    "robot.construction-robot",
-    "robot.construction-robot.nrm",
-    "robot.construction-robot.shadow",
-    "robot.logistic-robot",
-    "robot.logistic-robot.nrm",
-    "robot.logistic-robot.shadow"
+    "radar.shadow"
    ]
   },
   "lateitems": {
-   "hash": "a7c33d097aa9d587",
+   "hash": "35efa3954f7a2180",
    "sprites": [
-    "item.speed-module",
-    "item.speed-module-2",
-    "item.speed-module-3",
-    "item.productivity-module",
-    "item.productivity-module-2",
-    "item.productivity-module-3",
-    "item.efficiency-module",
-    "item.efficiency-module-2",
-    "item.efficiency-module-3",
-    "item.processing-unit",
-    "item.low-density-structure",
-    "item.rocket-fuel",
-    "item.flying-robot-frame",
     "item.concrete",
-    "item.rail",
-    "item.rocket-part",
-    "item.satellite",
-    "item.production-science-pack",
-    "item.utility-science-pack",
-    "item.space-science-pack",
     "item.assembling-machine-3",
-    "item.beacon",
-    "item.roboport",
-    "item.radar",
-    "item.rocket-silo",
-    "item.cargo-landing-pad",
-    "item.passive-provider-chest",
-    "item.active-provider-chest",
-    "item.storage-chest",
-    "item.requester-chest",
-    "item.buffer-chest",
-    "item.construction-robot",
-    "item.logistic-robot"
+    "item.radar"
    ]
   },
   "logistics": {
@@ -1518,29 +1446,13 @@
    ]
   },
   "oilitems": {
-   "hash": "d5a69faf75f031a7",
+   "hash": "45ac9bf48fca89da",
    "sprites": [
-    "item.plastic-bar",
-    "item.sulfur",
-    "item.battery",
-    "item.solid-fuel",
     "item.explosives",
-    "item.advanced-circuit",
-    "item.electric-engine-unit",
-    "item.pumpjack",
-    "item.oil-refinery",
-    "item.chemical-plant",
     "item.electric-furnace",
     "item.substation",
-    "item.chemical-science-pack",
     "item.water",
     "item.steam",
-    "item.crude-oil",
-    "item.heavy-oil",
-    "item.light-oil",
-    "item.petroleum-gas",
-    "item.lubricant",
-    "item.sulfuric-acid",
     "item.express-splitter",
     "item.express-underground-belt",
     "item.express-transport-belt"
@@ -1823,14 +1735,9 @@
    ]
   },
   "ruestung": {
-   "hash": "ccb27bd0acd58875",
+   "hash": "f02bc11848dabf66",
    "sprites": [
-    "item.heavy-armor",
-    "item.modular-armor",
-    "item.power-armor",
-    "item.personal-roboport-equipment",
-    "item.solar-panel-equipment",
-    "item.battery-equipment"
+    "item.heavy-armor"
    ]
   },
   "ruinen": {
@@ -2668,10 +2575,6 @@
   {
    "group": "entities",
    "file": "atlas-entities-8.json"
-  },
-  {
-   "group": "entities",
-   "file": "atlas-entities-9.json"
   },
   {
    "group": "flora",
@@ -6296,30 +6199,6 @@
     0.22727272727272727
    ]
   },
-  "active-provider-chest": {
-   "group": "entities",
-   "frames": [
-    "active-provider-chest#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
-   ]
-  },
-  "active-provider-chest.shadow": {
-   "group": "entities",
-   "frames": [
-    "active-provider-chest.shadow#0"
-   ],
-   "w": 192,
-   "h": 192,
-   "anchor": [
-    0.19999999999999998,
-    0.19999999999999998
-   ]
-  },
   "airdrop.chute": {
    "group": "entities",
    "frames": [
@@ -6556,52 +6435,6 @@
     0.1875,
     0.1875
    ]
-  },
-  "beacon": {
-   "group": "entities",
-   "frames": [
-    "beacon#0"
-   ],
-   "w": 224,
-   "h": 288,
-   "anchor": [
-    0.5,
-    0.6111111111111112
-   ]
-  },
-  "beacon.glow": {
-   "group": "entities",
-   "frames": [
-    "beacon.glow#0",
-    "beacon.glow#1",
-    "beacon.glow#2",
-    "beacon.glow#3"
-   ],
-   "w": 224,
-   "h": 288,
-   "anchor": [
-    0.5,
-    0.6111111111111112
-   ],
-   "fps": 10,
-   "meta": {
-    "blend": "add"
-   }
-  },
-  "beacon.shadow": {
-   "group": "entities",
-   "frames": [
-    "beacon.shadow#0"
-   ],
-   "w": 224,
-   "h": 224,
-   "anchor": [
-    0.2714285714285714,
-    0.2714285714285714
-   ],
-   "meta": {
-    "scale": 2
-   }
   },
   "bed": {
    "group": "entities",
@@ -6980,30 +6813,6 @@
     0.1875
    ]
   },
-  "buffer-chest": {
-   "group": "entities",
-   "frames": [
-    "buffer-chest#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
-   ]
-  },
-  "buffer-chest.shadow": {
-   "group": "entities",
-   "frames": [
-    "buffer-chest.shadow#0"
-   ],
-   "w": 192,
-   "h": 192,
-   "anchor": [
-    0.19999999999999998,
-    0.19999999999999998
-   ]
-  },
   "bunk": {
    "group": "entities",
    "frames": [
@@ -7193,33 +7002,6 @@
     0.25,
     0.22727272727272727
    ]
-  },
-  "cargo-landing-pad": {
-   "group": "entities",
-   "frames": [
-    "cargo-landing-pad#0"
-   ],
-   "w": 560,
-   "h": 640,
-   "anchor": [
-    0.5,
-    0.5599999999999999
-   ]
-  },
-  "cargo-landing-pad.shadow": {
-   "group": "entities",
-   "frames": [
-    "cargo-landing-pad.shadow#0"
-   ],
-   "w": 480,
-   "h": 480,
-   "anchor": [
-    0.29333333333333333,
-    0.29333333333333333
-   ],
-   "meta": {
-    "scale": 2
-   }
   },
   "chimney": {
    "group": "entities",
@@ -10839,30 +10621,6 @@
     0.22727272727272727
    ]
   },
-  "passive-provider-chest": {
-   "group": "entities",
-   "frames": [
-    "passive-provider-chest#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
-   ]
-  },
-  "passive-provider-chest.shadow": {
-   "group": "entities",
-   "frames": [
-    "passive-provider-chest.shadow#0"
-   ],
-   "w": 192,
-   "h": 192,
-   "anchor": [
-    0.19999999999999998,
-    0.19999999999999998
-   ]
-  },
   "phone-booth.v0": {
    "group": "entities",
    "frames": [
@@ -12494,30 +12252,6 @@
     0.1875
    ]
   },
-  "requester-chest": {
-   "group": "entities",
-   "frames": [
-    "requester-chest#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
-   ]
-  },
-  "requester-chest.shadow": {
-   "group": "entities",
-   "frames": [
-    "requester-chest.shadow#0"
-   ],
-   "w": 192,
-   "h": 192,
-   "anchor": [
-    0.19999999999999998,
-    0.19999999999999998
-   ]
-  },
   "road-barrier.v0": {
    "group": "entities",
    "frames": [
@@ -12541,108 +12275,6 @@
     0.22727272727272727,
     0.1875
    ]
-  },
-  "roboport": {
-   "group": "entities",
-   "frames": [
-    "roboport#0"
-   ],
-   "w": 304,
-   "h": 384,
-   "anchor": [
-    0.5,
-    0.6
-   ]
-  },
-  "roboport.shadow": {
-   "group": "entities",
-   "frames": [
-    "roboport.shadow#0"
-   ],
-   "w": 288,
-   "h": 288,
-   "anchor": [
-    0.2777777777777778,
-    0.2777777777777778
-   ],
-   "meta": {
-    "scale": 2
-   }
-  },
-  "robot.construction-robot": {
-   "group": "entities",
-   "frames": [
-    "robot.construction-robot#0"
-   ],
-   "w": 48,
-   "h": 48,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "robot.construction-robot.shadow": {
-   "group": "entities",
-   "frames": [
-    "robot.construction-robot.shadow#0"
-   ],
-   "w": 96,
-   "h": 96,
-   "anchor": [
-    0.3333333333333333,
-    0.3333333333333333
-   ]
-  },
-  "robot.logistic-robot": {
-   "group": "entities",
-   "frames": [
-    "robot.logistic-robot#0"
-   ],
-   "w": 48,
-   "h": 48,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "robot.logistic-robot.shadow": {
-   "group": "entities",
-   "frames": [
-    "robot.logistic-robot.shadow#0"
-   ],
-   "w": 96,
-   "h": 96,
-   "anchor": [
-    0.3333333333333333,
-    0.3333333333333333
-   ]
-  },
-  "rocket-silo": {
-   "group": "entities",
-   "frames": [
-    "rocket-silo#0"
-   ],
-   "w": 640,
-   "h": 832,
-   "anchor": [
-    0.5,
-    0.6153846153846154
-   ]
-  },
-  "rocket-silo.shadow": {
-   "group": "entities",
-   "frames": [
-    "rocket-silo.shadow#0"
-   ],
-   "w": 624,
-   "h": 624,
-   "anchor": [
-    0.2564102564102564,
-    0.2564102564102564
-   ],
-   "meta": {
-    "scale": 2
-   }
   },
   "rubble-pile.half": {
    "group": "entities",
@@ -13519,30 +13151,6 @@
    "anchor": [
     0.16666666666666666,
     0.16666666666666666
-   ]
-  },
-  "storage-chest": {
-   "group": "entities",
-   "frames": [
-    "storage-chest#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
-   ]
-  },
-  "storage-chest.shadow": {
-   "group": "entities",
-   "frames": [
-    "storage-chest.shadow#0"
-   ],
-   "w": 192,
-   "h": 192,
-   "anchor": [
-    0.19999999999999998,
-    0.19999999999999998
    ]
   },
   "storage-tank.0": {
@@ -16474,30 +16082,6 @@
     0.5
    ]
   },
-  "item.active-provider-chest": {
-   "group": "items",
-   "frames": [
-    "item.active-provider-chest#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.advanced-circuit": {
-   "group": "items",
-   "frames": [
-    "item.advanced-circuit#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.antibiotics": {
    "group": "items",
    "frames": [
@@ -16618,42 +16202,6 @@
     0.5
    ]
   },
-  "item.battery": {
-   "group": "items",
-   "frames": [
-    "item.battery#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.battery-equipment": {
-   "group": "items",
-   "frames": [
-    "item.battery-equipment#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.beacon": {
-   "group": "items",
-   "frames": [
-    "item.beacon#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.bed": {
    "group": "items",
    "frames": [
@@ -16694,18 +16242,6 @@
    "group": "items",
    "frames": [
     "item.brazier#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.buffer-chest": {
-   "group": "items",
-   "frames": [
-    "item.buffer-chest#0"
    ],
    "w": 64,
    "h": 64,
@@ -16774,42 +16310,6 @@
     0.5
    ]
   },
-  "item.cargo-landing-pad": {
-   "group": "items",
-   "frames": [
-    "item.cargo-landing-pad#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.chemical-plant": {
-   "group": "items",
-   "frames": [
-    "item.chemical-plant#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.chemical-science-pack": {
-   "group": "items",
-   "frames": [
-    "item.chemical-science-pack#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.cliff-explosives": {
    "group": "items",
    "frames": [
@@ -16870,18 +16370,6 @@
     0.5
    ]
   },
-  "item.construction-robot": {
-   "group": "items",
-   "frames": [
-    "item.construction-robot#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.copper-cable": {
    "group": "items",
    "frames": [
@@ -16930,78 +16418,6 @@
     0.5
    ]
   },
-  "item.crude-oil": {
-   "group": "items",
-   "frames": [
-    "item.crude-oil#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.crude-oil-barrel": {
-   "group": "items",
-   "frames": [
-    "item.crude-oil-barrel#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.efficiency-module": {
-   "group": "items",
-   "frames": [
-    "item.efficiency-module#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.efficiency-module-2": {
-   "group": "items",
-   "frames": [
-    "item.efficiency-module-2#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.efficiency-module-3": {
-   "group": "items",
-   "frames": [
-    "item.efficiency-module-3#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.electric-engine-unit": {
-   "group": "items",
-   "frames": [
-    "item.electric-engine-unit#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.electric-furnace": {
    "group": "items",
    "frames": [
@@ -17030,18 +16446,6 @@
    "group": "items",
    "frames": [
     "item.electronic-circuit#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.empty-barrel": {
-   "group": "items",
-   "frames": [
-    "item.empty-barrel#0"
    ],
    "w": 64,
    "h": 64,
@@ -17206,18 +16610,6 @@
     0.5
    ]
   },
-  "item.flying-robot-frame": {
-   "group": "items",
-   "frames": [
-    "item.flying-robot-frame#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.fuel-can": {
    "group": "items",
    "frames": [
@@ -17294,30 +16686,6 @@
    "group": "items",
    "frames": [
     "item.heavy-armor#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.heavy-oil": {
-   "group": "items",
-   "frames": [
-    "item.heavy-oil#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.heavy-oil-barrel": {
-   "group": "items",
-   "frames": [
-    "item.heavy-oil-barrel#0"
    ],
    "w": 64,
    "h": 64,
@@ -17446,42 +16814,6 @@
     0.5
    ]
   },
-  "item.light-oil": {
-   "group": "items",
-   "frames": [
-    "item.light-oil#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.light-oil-barrel": {
-   "group": "items",
-   "frames": [
-    "item.light-oil-barrel#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.logistic-robot": {
-   "group": "items",
-   "frames": [
-    "item.logistic-robot#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.logistic-science-pack": {
    "group": "items",
    "frames": [
@@ -17498,42 +16830,6 @@
    "group": "items",
    "frames": [
     "item.long-handed-inserter#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.low-density-structure": {
-   "group": "items",
-   "frames": [
-    "item.low-density-structure#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.lubricant": {
-   "group": "items",
-   "frames": [
-    "item.lubricant#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.lubricant-barrel": {
-   "group": "items",
-   "frames": [
-    "item.lubricant-barrel#0"
    ],
    "w": 64,
    "h": 64,
@@ -17566,18 +16862,6 @@
     0.5
    ]
   },
-  "item.modular-armor": {
-   "group": "items",
-   "frames": [
-    "item.modular-armor#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.noise-lure": {
    "group": "items",
    "frames": [
@@ -17594,66 +16878,6 @@
    "group": "items",
    "frames": [
     "item.offshore-pump#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.oil-refinery": {
-   "group": "items",
-   "frames": [
-    "item.oil-refinery#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.passive-provider-chest": {
-   "group": "items",
-   "frames": [
-    "item.passive-provider-chest#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.personal-roboport-equipment": {
-   "group": "items",
-   "frames": [
-    "item.personal-roboport-equipment#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.petroleum-gas": {
-   "group": "items",
-   "frames": [
-    "item.petroleum-gas#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.petroleum-gas-barrel": {
-   "group": "items",
-   "frames": [
-    "item.petroleum-gas-barrel#0"
    ],
    "w": 64,
    "h": 64,
@@ -17710,106 +16934,10 @@
     0.5
    ]
   },
-  "item.plastic-bar": {
-   "group": "items",
-   "frames": [
-    "item.plastic-bar#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.power-armor": {
-   "group": "items",
-   "frames": [
-    "item.power-armor#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.processing-unit": {
-   "group": "items",
-   "frames": [
-    "item.processing-unit#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.production-science-pack": {
-   "group": "items",
-   "frames": [
-    "item.production-science-pack#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.productivity-module": {
-   "group": "items",
-   "frames": [
-    "item.productivity-module#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.productivity-module-2": {
-   "group": "items",
-   "frames": [
-    "item.productivity-module-2#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.productivity-module-3": {
-   "group": "items",
-   "frames": [
-    "item.productivity-module-3#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.pump": {
    "group": "items",
    "frames": [
     "item.pump#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.pumpjack": {
-   "group": "items",
-   "frames": [
-    "item.pumpjack#0"
    ],
    "w": 64,
    "h": 64,
@@ -17846,18 +16974,6 @@
    "group": "items",
    "frames": [
     "item.radio-tower#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.rail": {
-   "group": "items",
-   "frames": [
-    "item.rail#0"
    ],
    "w": 64,
    "h": 64,
@@ -17906,78 +17022,6 @@
    "group": "items",
    "frames": [
     "item.repair-pack#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.requester-chest": {
-   "group": "items",
-   "frames": [
-    "item.requester-chest#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.roboport": {
-   "group": "items",
-   "frames": [
-    "item.roboport#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.rocket-fuel": {
-   "group": "items",
-   "frames": [
-    "item.rocket-fuel#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.rocket-part": {
-   "group": "items",
-   "frames": [
-    "item.rocket-part#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.rocket-silo": {
-   "group": "items",
-   "frames": [
-    "item.rocket-silo#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.satellite": {
-   "group": "items",
-   "frames": [
-    "item.satellite#0"
    ],
    "w": 64,
    "h": 64,
@@ -18070,82 +17114,10 @@
     0.5
    ]
   },
-  "item.solar-panel-equipment": {
-   "group": "items",
-   "frames": [
-    "item.solar-panel-equipment#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.solid-fuel": {
-   "group": "items",
-   "frames": [
-    "item.solid-fuel#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.space-science-pack": {
-   "group": "items",
-   "frames": [
-    "item.space-science-pack#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.spear": {
    "group": "items",
    "frames": [
     "item.spear#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.speed-module": {
-   "group": "items",
-   "frames": [
-    "item.speed-module#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.speed-module-2": {
-   "group": "items",
-   "frames": [
-    "item.speed-module-2#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.speed-module-3": {
-   "group": "items",
-   "frames": [
-    "item.speed-module-3#0"
    ],
    "w": 64,
    "h": 64,
@@ -18298,18 +17270,6 @@
     0.5
    ]
   },
-  "item.storage-chest": {
-   "group": "items",
-   "frames": [
-    "item.storage-chest#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.storage-tank": {
    "group": "items",
    "frames": [
@@ -18346,42 +17306,6 @@
     0.5
    ]
   },
-  "item.sulfur": {
-   "group": "items",
-   "frames": [
-    "item.sulfur#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.sulfuric-acid": {
-   "group": "items",
-   "frames": [
-    "item.sulfuric-acid#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.sulfuric-acid-barrel": {
-   "group": "items",
-   "frames": [
-    "item.sulfuric-acid-barrel#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
   "item.transport-belt": {
    "group": "items",
    "frames": [
@@ -18398,18 +17322,6 @@
    "group": "items",
    "frames": [
     "item.underground-belt#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.utility-science-pack": {
-   "group": "items",
-   "frames": [
-    "item.utility-science-pack#0"
    ],
    "w": 64,
    "h": 64,
@@ -18446,18 +17358,6 @@
    "group": "items",
    "frames": [
     "item.water#0"
-   ],
-   "w": 64,
-   "h": 64,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "item.water-barrel": {
-   "group": "items",
-   "frames": [
-    "item.water-barrel#0"
    ],
    "w": 64,
    "h": 64,
@@ -18524,18 +17424,6 @@
    "anchor": [
     0.5,
     0.6285714285714287
-   ]
-  },
-  "active-provider-chest.nrm": {
-   "group": "normals",
-   "frames": [
-    "active-provider-chest.nrm#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
    ]
   },
   "airdrop.chute.nrm": {
@@ -18632,18 +17520,6 @@
    "anchor": [
     0.5,
     0.6457142857142857
-   ]
-  },
-  "beacon.nrm": {
-   "group": "normals",
-   "frames": [
-    "beacon.nrm#0"
-   ],
-   "w": 224,
-   "h": 288,
-   "anchor": [
-    0.5,
-    0.6111111111111112
    ]
   },
   "bed.nrm": {
@@ -18814,18 +17690,6 @@
     0.6444444444444444
    ]
   },
-  "buffer-chest.nrm": {
-   "group": "normals",
-   "frames": [
-    "buffer-chest.nrm#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
-   ]
-  },
   "bunk.nrm": {
    "group": "normals",
    "frames": [
@@ -18908,18 +17772,6 @@
    "anchor": [
     0.5,
     0.6000000000000001
-   ]
-  },
-  "cargo-landing-pad.nrm": {
-   "group": "normals",
-   "frames": [
-    "cargo-landing-pad.nrm#0"
-   ],
-   "w": 560,
-   "h": 640,
-   "anchor": [
-    0.5,
-    0.5599999999999999
    ]
   },
   "chimney.nrm": {
@@ -21214,18 +20066,6 @@
     0.5666666666666668
    ]
   },
-  "passive-provider-chest.nrm": {
-   "group": "normals",
-   "frames": [
-    "passive-provider-chest.nrm#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
-   ]
-  },
   "phone-booth.v0.nrm": {
    "group": "normals",
    "frames": [
@@ -22102,18 +20942,6 @@
     0.6444444444444444
    ]
   },
-  "requester-chest.nrm": {
-   "group": "normals",
-   "frames": [
-    "requester-chest.nrm#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
-   ]
-  },
   "road-barrier.v0.nrm": {
    "group": "normals",
    "frames": [
@@ -22124,54 +20952,6 @@
    "anchor": [
     0.5,
     0.65
-   ]
-  },
-  "roboport.nrm": {
-   "group": "normals",
-   "frames": [
-    "roboport.nrm#0"
-   ],
-   "w": 304,
-   "h": 384,
-   "anchor": [
-    0.5,
-    0.6
-   ]
-  },
-  "robot.construction-robot.nrm": {
-   "group": "normals",
-   "frames": [
-    "robot.construction-robot.nrm#0"
-   ],
-   "w": 48,
-   "h": 48,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "robot.logistic-robot.nrm": {
-   "group": "normals",
-   "frames": [
-    "robot.logistic-robot.nrm#0"
-   ],
-   "w": 48,
-   "h": 48,
-   "anchor": [
-    0.5,
-    0.5
-   ]
-  },
-  "rocket-silo.nrm": {
-   "group": "normals",
-   "frames": [
-    "rocket-silo.nrm#0"
-   ],
-   "w": 640,
-   "h": 832,
-   "anchor": [
-    0.5,
-    0.6153846153846154
    ]
   },
   "rubble-pile.half.nrm": {
@@ -22580,18 +21360,6 @@
    "anchor": [
     0.5,
     0.7
-   ]
-  },
-  "storage-chest.nrm": {
-   "group": "normals",
-   "frames": [
-    "storage-chest.nrm#0"
-   ],
-   "w": 80,
-   "h": 96,
-   "anchor": [
-    0.5,
-    0.5333333333333333
    ]
   },
   "storage-tank.0.nrm": {

@@ -4,8 +4,7 @@ import { Status } from '../sim/entity';
 import type { Entity } from '../sim/machines';
 
 /** Gebäudearten, die beim Anlaufen kurz wackeln (Maschinen, keine Kleinteile). */
-const WOBBLE_KINDS = new Set(['assembler', 'furnace', 'drill', 'boiler', 'generator', 'lab', 'pumpjack', 'refinery', 'chemical-plant',
-  'reactor', 'heat-exchanger', 'rocket-silo', 'offshore-pump']);
+const WOBBLE_KINDS = new Set(['assembler', 'furnace', 'drill', 'boiler', 'generator', 'lab', 'offshore-pump']);
 
 /**
  * „Leben beim Bauen“ (reine Darstellung): Gebäude springen beim Aufstellen kurz auf (Federn) und wackeln beim

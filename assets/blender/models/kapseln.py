@@ -1,4 +1,4 @@
-"""Wurfgegenstände und Fass: Granate, Klippensprengstoff (Sprengladungen mit Zünder im Fass), leeres Fass."""
+"""Wurfgegenstände: Granate, Klippensprengstoff (Sprengladungen mit Zünder im Fass); dazu Massengreifarm und Militärpaket."""
 import math
 
 import anlagen
@@ -26,16 +26,6 @@ def grenade(m):
     return eisen.parent_all(o, 'grenade')
 
 
-def empty_barrel(m):
-    o = []
-    o.append(eisen.cylinder('barrel', 0.24, 0.55, (0, 0, 0.28), m.steel, segments=28, bevel=0.04))
-    for z in (0.12, 0.44):
-        o.append(eisen.cylinder(f'hoop{z}', 0.25, 0.04, (0, 0, z), m.dark, segments=28))
-    o.append(eisen.cylinder('lid', 0.2, 0.02, (0, 0, 0.56), m.dark, segments=28))
-    o.append(eisen.cylinder('bung', 0.035, 0.03, (0.1, 0, 0.575), m.bright, segments=10))
-    return eisen.parent_all(o, 'ebarrel')
-
-
 def cliff_explosives(m):
     """Fass mit Warnstreifen, obenauf ein Bündel Sprengladungen mit Zündschnur und Granate als Zünder."""
     o = []
@@ -58,22 +48,12 @@ def bulk_inserter_icon():
     return eisen.parent_all([base, arm])
 
 
-# Fässer: Farbe der Flüssigkeit (wie src/data/fluids.ts)
-BARRELS = {'water': '#3a6f9a', 'crude-oil': '#2a2018', 'heavy-oil': '#a04a18', 'light-oil': '#c8a020',
-           'petroleum-gas': '#5a3a6a', 'lubricant': '#2e7a3a', 'sulfuric-acid': '#c8c020'}
-
-
 def render(out):
-    for fluid, hex_ in BARRELS.items():
-        eisen.reset(samples=48)
-        root = anlagen.fluid_barrel(anlagen.Mats(), eisen.srgb(hex_))
-        finish(out, f'item.{fluid}-barrel', root, 1.25, -0.1)
     eisen.reset(samples=48)
     finish(out, 'item.bulk-inserter', bulk_inserter_icon(), 0.92, -0.1)
     eisen.reset(samples=48)
     finish(out, 'item.military-science-pack', anlagen.flask(anlagen.Mats(), (0.18, 0.17, 0.16)), 1.2, -0.08)
-    for name, fn, sc in (('item.grenade', grenade, 1.1), ('item.empty-barrel', empty_barrel, 1.2),
-                         ('item.cliff-explosives', cliff_explosives, 0.95)):
+    for name, fn, sc in (('item.grenade', grenade, 1.1), ('item.cliff-explosives', cliff_explosives, 0.95)):
         eisen.reset(samples=48)
         root = fn(kleinteile.Mats('#5d6248', 2))
         root.rotation_euler = (0, 0, math.radians(25))

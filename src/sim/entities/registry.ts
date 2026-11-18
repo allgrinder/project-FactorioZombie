@@ -5,9 +5,8 @@ import { BeltEntity, ContainerEntity, DrillEntity, FurnaceEntity } from './basic
 import { InserterEntity } from './inserter';
 import { FluidPumpEntity, LampEntity, PipeGroundEntity, TankEntity } from './fluidplus';
 import { SplitterEntity, UndergroundEntity } from './logistics';
-import { AssemblerEntity, BeaconEntity, LabEntity } from './production';
-import { RoboportEntity } from './robots';
-import { CombinatorEntity, RadarEntity } from './rocket';
+import { AssemblerEntity, LabEntity } from './production';
+import { RadarEntity } from './radar';
 import { TurretEntity, WallEntity } from './military';
 import { BedEntity, CampEntity, FireEntity, HazardEntity, LootEntity, PileEntity, ProducerEntity, PropEntity, RadioEntity } from './survival';
 import { AccumulatorEntity, BoilerEntity, GeneratorEntity, PipeEntity, PoleEntity, PumpEntity, SolarEntity } from './power';
@@ -36,10 +35,7 @@ export const ENTITY_CLASSES: Record<EntityDef['kind'], Ctor> = {
   lamp: LampEntity,
   solar: SolarEntity,
   accumulator: AccumulatorEntity,
-  beacon: BeaconEntity,
-  roboport: RoboportEntity,
   radar: RadarEntity,
-  combinator: CombinatorEntity,
   turret: TurretEntity,
   wall: WallEntity,
   wire: HazardEntity,

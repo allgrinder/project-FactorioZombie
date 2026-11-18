@@ -93,11 +93,6 @@ export class InserterEntity extends EntityBase {
    * und im selben Tick den ersten Schritt zurück. Ergibt 2 × halfTurnTicks Ticks je Zyklus (Wiki: 76/70/48).
    */
   override update(w: World): void {
-    // Schaltbedingung: steht still (hält ein gegriffenes Item fest)
-    if (!w.circuit.enabled(this.id)) {
-      this.status = Status.Disabled;
-      return;
-    }
     const { pickup, drop } = this.points();
     const dst = w.entityAt(drop[0], drop[1]);
     // Ziel: Gebäude (außer Greifarm) oder freier Boden

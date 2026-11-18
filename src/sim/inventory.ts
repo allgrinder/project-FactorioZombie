@@ -144,7 +144,8 @@ export class Inventory {
     if (data.length > this.slots.length) this.resize(data.length);
     for (let i = 0; i < this.slots.length; i++) {
       const d = data[i];
-      this.slots[i] = d ? { item: d[0], count: d[1] } : null;
+      // unbekannte Items (gestrichene Systeme in alten Spielständen) fallen weg
+      this.slots[i] = d && ITEMS[d[0]] ? { item: d[0], count: d[1] } : null;
     }
   }
 }

@@ -114,8 +114,6 @@ export class TransportLine {
   readonly lanes: [Lane, Lane] = [new Lane(), new Lane()];
   /** Wird von hinten gerade beliefert (kein offener Anfang). */
   fedStraight = false;
-  /** Durch Schaltbedingung angehalten (nur Linien aus einem einzelnen gesteuerten Band). */
-  stopped = false;
   constructor(readonly startKey: number, readonly speed: number) {}
 }
 
@@ -131,15 +129,6 @@ export class BeltSystem {
   private readonly byId = new Map<number, BeltTile>();
   lines: TransportLine[] = [];
   private dirty = false;
-  /** Bänder mit Schaltbedingung: bilden eine eigene Linie, damit sie einzeln anhalten können. */
-  private stoppers = new Set<number>();
-
-  /** Gesteuerte Bänder setzen (Welt, je Tick); bei Änderung werden die Linien neu gebildet. */
-  setStoppers(ids: Set<number>): void {
-    if (ids.size === this.stoppers.size && [...ids].every((i) => this.stoppers.has(i))) return;
-    this.extractAll();
-    this.stoppers = ids;
-  }
   /** Zwischenspeicher für Items beim Umbau, pro Band-ID. */
   private pending = new Map<number, { lens: [number, number]; items: TileItem[] }>();
 
@@ -361,14 +350,10 @@ export class BeltSystem {
       const line = new TransportLine(tileKey(start.x, start.y), start.speed);
       let cur: BeltTile | undefined = start;
       while (cur && !visited.has(cur)) {
-        // gesteuerte Bänder stehen allein in ihrer Linie
-        const stop = this.stoppers.has(cur.id);
-        if (stop && line.tiles.length) break;
         visited.add(cur);
         cur.line = line;
         cur.idx = line.tiles.length;
         line.tiles.push(cur);
-        if (stop) break;
         cur = this.succ(cur);
       }
       lines.push(line);
@@ -485,7 +470,6 @@ export class BeltSystem {
     // Splitter mit Eingangsvorrang: die nachrangige Seite rückt nach den übrigen Linien vor
     let deferred = false;
     for (const line of this.lines) {
-      if (line.stopped) continue;
       if (this.lowPriority(line)) {
         deferred = true;
         continue;

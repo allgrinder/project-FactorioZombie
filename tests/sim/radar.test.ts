@@ -62,16 +62,4 @@ describe('Radar und Kartenaufdeckung (Wiki „Radar“)', () => {
     expect(w.chart.chunkCharted(-2, -4)).toBe(true);
   });
 
-  it('Radare übertragen Schaltungssignale drahtlos an alle anderen Radare', () => {
-    const w = clearWorld();
-    const c = w.place('constant-combinator', 0, 0, 0)!;
-    const ra = w.place('radar', 2, 0, 0)!;
-    const rb = w.place('radar', 20, 0, 0)!;
-    const lamp = w.place('lamp', 24, 0, 0)!;
-    w.circuit.settings.set(c.id, { signals: [{ signal: 'signal-A', count: 5 }] });
-    expect(w.circuit.toggle(w, { id: c.id, side: 0 }, { id: ra.id, side: 0 }, 'red')).toBe('added');
-    expect(w.circuit.toggle(w, { id: rb.id, side: 0 }, { id: lamp.id, side: 0 }, 'red')).toBe('added');
-    run(w, 5);
-    expect(w.circuit.input(lamp.id, 0).get('signal-A')).toBe(5);
-  });
 });

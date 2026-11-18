@@ -11,7 +11,7 @@ import { compassName } from '../sim/enemies';
 import { GOALS, goalStatus } from '../sim/goals';
 import { WORLD } from '../data/world';
 import { CLIFF_SETTINGS, type CliffSetting, DEATH_SETTINGS, type DeathSetting, DEFAULT_MAP_SETTINGS, ENEMY_SETTINGS, FREQUENCY_SETTINGS, type FrequencySetting, type EnemySetting, RESOURCE_SETTINGS, type ResourceSetting } from '../data/mapgen';
-import { EMPTY_ANY_BARREL, FILL_ANY_BARREL, RECIPES, RECIPE_LIST, isFluidBarrelRecipe } from '../data/recipes';
+import { RECIPE_LIST } from '../data/recipes';
 import { TECHS, TECH_BY_ID, type TechEffect } from '../data/tech';
 import type { Game } from '../game/game';
 import { deleteSave, listSaves, loadWorld, saveWorld } from '../game/save';
@@ -25,16 +25,14 @@ import { bloomEnabled, setBloomEnabled } from '../render/look';
 import { Status } from '../sim/entity';
 import { type Entity, acceptAmount, insertInto, itemId, itemIndex } from '../sim/machines';
 import type { Inventory } from '../sim/inventory';
-import { ARITHMETIC_OPS, COMPARATORS, VIRTUAL_SIGNALS, signalLabel } from '../data/circuit';
 import { FLUIDS } from '../data/fluids';
-import type { Condition } from '../sim/circuit';
 import { MapView, Minimap } from './minimap';
 import { StatsView, fmtPower } from './stats';
 import { powerReport } from '../sim/powerreport';
 import { Tooltip } from './tooltip';
-import { ARMORS, EQUIPMENT } from '../data/armor';
-import { type FluidHolder, UNUSED, fluidSummary, isFluidHolder } from '../sim/fluids';
-import { FLUID_UNIT, isFluid, visibleFluidColor } from '../data/fluids';
+import { ARMORS } from '../data/armor';
+import { type FluidHolder, fluidSummary, isFluidHolder } from '../sim/fluids';
+import { FLUID_UNIT, visibleFluidColor } from '../data/fluids';
 import { CHART } from '../data/chart';
 import { TechTreeView } from './techtree';
 import { HandbookView } from './handbook';
@@ -48,7 +46,6 @@ const STATUS_TEXT: Record<Status, string> = {
   [Status.Depleted]: 'Ressourcen erschöpft',
   [Status.NoTarget]: 'Kein Ziel',
   [Status.NoPower]: 'Kein Strom',
-  [Status.Disabled]: 'Durch Schaltbedingung aus',
 };
 
 /** Flüssigkeitsmenge lesbar (Tausender mit Punkt). */
@@ -68,9 +65,6 @@ function effectText(e: TechEffect): string {
     case 'bullet-damage': return `${pct} Kugelschaden`;
     case 'turret-damage': return `${pct} Geschützturm-Schaden`;
     case 'shooting-speed': return `${pct} Feuerrate`;
-    case 'robot-speed': return `${pct} Robotertempo`;
-    case 'robot-cargo': return `+${e.value} Roboterfracht`;
-    case 'braking': return `${pct} Bremskraft`;
     case 'hand-mining': return `${pct} Abbautempo der Figur`;
     case 'pole-light': return 'Strommasten leuchten nachts';
   }
@@ -98,7 +92,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, parent?
 /** Rezeptreiter wie im Original. */
 const CRAFT_GROUPS = ['Überleben', 'Kampf', 'Logistik', 'Produktion', 'Zwischenprodukte'] as const;
 type CraftGroup = (typeof CRAFT_GROUPS)[number];
-const LOGISTIK_KINDS = new Set(['belt', 'underground', 'splitter', 'inserter', 'container', 'pole', 'pipe', 'pipe-ground', 'pump', 'tank', 'rail', 'train-stop', 'roboport', 'lamp', 'combinator']);
+const LOGISTIK_KINDS = new Set(['belt', 'underground', 'splitter', 'inserter', 'container', 'pole', 'pipe', 'pipe-ground', 'pump', 'tank', 'lamp']);
 const KAMPF = new Set([
   'firearm-magazine', 'piercing-rounds-magazine', 'pistol', 'submachine-gun', 'gun-turret', 'stone-wall', 'repair-pack', 'radar', 'grenade', 'heavy-armor',
   'spear', 'knife', 'baseball-bat', 'axe', 'crowbar', 'wooden-barricade', 'hwall-wood', 'hwall-brick', 'hwin-wood', 'hwin-brick', 'hdoor', 'gate', 'barbed-wire', 'spike-trap', 'noise-lure', 'watchtower',
@@ -112,7 +106,6 @@ function recipeGroup(item: string): CraftGroup {
   if (UEBERLEBEN.has(item)) return 'Überleben';
   const place = ITEMS[item]?.placeResult;
   if (place) return LOGISTIK_KINDS.has(entityDef(place).kind) ? 'Logistik' : 'Produktion';
-  if (item === 'locomotive' || item === 'cargo-wagon' || item.endsWith('-robot')) return 'Logistik';
   return 'Zwischenprodukte';
 }
 
@@ -225,7 +218,6 @@ export class Hud {
 
   setTitle(t: string): void {
     this.title = t;
-    this.rocketsSeen = -1; // neue Welt: Starts nicht erneut melden
   }
 
   icon(name: string, cls = 'icon'): HTMLImageElement {
@@ -300,10 +292,7 @@ export class Hud {
     if (this.frame % 15 === 0 && !this.tradeWin.classList.contains('hidden')) this.buildTrade();
     if (this.frame % 10 === 0) {
       if (!this.invWin.classList.contains('hidden')) this.updateInventory();
-      if (this.openEntityId !== null) {
-        this.buildEntity();
-        this.updateCircuitLive();
-      }
+      if (this.openEntityId !== null) this.buildEntity();
     }
   }
 
@@ -648,17 +637,14 @@ export class Hud {
   private armorEl: HTMLDivElement | null = null;
   private armorKey = '';
 
-  /** Rüstung, Ausrüstungsraster und persönliche Roboter (Inventarfenster). */
+  /** Rüstung (Inventarfenster). */
   private updateArmor(): void {
     const g = this.game;
     const p = g.world.player;
     const box = this.armorEl;
     if (!p || !box) return;
-    const grid = p.grid;
-    const out = p.personalRobotsOut(g.world);
     const armors = Object.keys(ARMORS).filter((a) => p.inventory.count(a) > 0);
-    const equips = Object.keys(EQUIPMENT).filter((a) => p.inventory.count(a) > 0);
-    const key = JSON.stringify([p.armor, grid?.items, Math.round((grid?.energy ?? 0) / 1e5), out, armors, equips, p.personalRobots, p.inventory.count('construction-robot'), p.inventory.count('repair-pack')]);
+    const key = JSON.stringify([p.armor, armors]);
     if (key === this.armorKey) return;
     this.armorKey = key;
     box.replaceChildren();
@@ -679,57 +665,12 @@ export class Hud {
     const info = el('div', 'dim armor-info', row);
     const a = p.armor ? ARMORS[p.armor] : null;
     info.textContent = a
-      ? `${ITEMS[p.armor!].name}: Schaden −${a.flat} und −${Math.round(a.percent * 100)} %${a.inventoryBonus ? `, +${a.inventoryBonus} Inventarplätze` : ''}${a.gridW ? `, Raster ${a.gridW}×${a.gridH}` : ''}`
+      ? `${ITEMS[p.armor!].name}: Schaden −${a.flat} und −${Math.round(a.percent * 100)} %${a.inventoryBonus ? `, +${a.inventoryBonus} Inventarplätze` : ''}`
       : 'Rüstung herstellen und hier anlegen.';
     for (const it of armors) {
       const b = el('button', 'small-btn', box);
       b.textContent = `${ITEMS[it].name} anlegen`;
       b.onclick = () => msg(p.equipArmor(g.world, it));
-    }
-    if (!grid) return;
-    // Raster links, Angaben rechts daneben
-    const cols = el('div', 'armor-cols', box);
-    const side = el('div', 'armor-side', cols);
-    // Raster: Ausrüstung als Rechtecke; Klick nimmt sie heraus
-    const CELL = 26;
-    const gd = el('div', 'equip-grid', cols);
-    cols.insertBefore(gd, side);
-    gd.style.width = `${grid.w * CELL}px`;
-    gd.style.height = `${grid.h * CELL}px`;
-    for (const it of grid.items) {
-      const d = EQUIPMENT[it.item];
-      const c = el('div', `equip ${d.kind}`, gd);
-      c.style.left = `${it.x * CELL}px`;
-      c.style.top = `${it.y * CELL}px`;
-      c.style.width = `${d.w * CELL - 2}px`;
-      c.style.height = `${d.h * CELL - 2}px`;
-      c.appendChild(this.icon(`item.${it.item}`));
-      c.title = `${ITEMS[it.item].name} – Klick: herausnehmen`;
-      c.onclick = () => msg(p.removeEquipment(g.world, it.x, it.y));
-    }
-    for (const it of equips) {
-      const b = el('button', 'small-btn', side);
-      b.textContent = `${ITEMS[it].name} einsetzen`;
-      b.onclick = () => msg(p.insertEquipment(it));
-    }
-    if (grid.capacity > 0) {
-      const r = el('div', 'progress-row stacked', side);
-      el('span', 'label', r).textContent = `Energie ${(grid.energy / 1e6).toFixed(1)} / ${(grid.capacity / 1e6).toFixed(0)} MJ · Solar ${Math.round(grid.solarPerTick * 0.06)} kW (tagsüber)`;
-      const bar = el('div', 'progress power', r);
-      el('div', 'fill', bar).style.width = `${Math.round((grid.energy / grid.capacity) * 100)}%`;
-    }
-    if (grid.roboports > 0) {
-      const area = Math.round(grid.constructionRadius * 2);
-      const info2 = el('div', 'dim armor-info', side);
-      info2.textContent = `Roboter: ${out}/${grid.robotLimit} unterwegs, ${p.inventory.count('construction-robot')} im Inventar · Baufläche ${area}×${area}`;
-      info2.title = 'Persönliche Bauroboter bauen Geister mit Items aus dem Inventar, reißen Markiertes ab (Strg+X, auch Bäume; '
-        + 'Umschalt+Strg+X hebt auf) und reparieren mit Reparatursets aus dem Inventar.';
-      const t = el('button', p.personalRobots ? 'small-btn on' : 'small-btn', side);
-      t.textContent = p.personalRobots ? 'Persönliche Roboter: an' : 'Persönliche Roboter: aus';
-      t.onclick = () => {
-        p.personalRobots = !p.personalRobots;
-        msg(null);
-      };
     }
   }
 
@@ -906,7 +847,7 @@ export class Hud {
     close.onclick = () => this.closeEntity();
     const body = el('div', 'win-body', this.entWin);
     if (e.kind !== 'container' && e.kind !== 'tank' && e.kind !== 'pipe' && e.kind !== 'pipe-ground') el('div', `status s${e.status}`, body).textContent = statusText(e);
-    const row = (label: string, inv: Inventory, ghosts?: { item: string; amount: number }[]) => {
+    const row = (label: string, inv: Inventory, ghosts?: readonly { item: string; amount: number }[]) => {
       // große Inventare (Kisten, Wagen) als Raster mit 10 Spalten wie im Original, sonst eine Zeile
       const big = inv.size > 10;
       let r: HTMLElement;
@@ -964,11 +905,8 @@ export class Hud {
     if (e.kind === 'splitter') this.splitterControls(e, body);
     for (const gs of e.guiSlots()) {
       const rec = e.kind === 'assembler' ? e.recipe : null;
-      // Sammelrezept Fass: die Fass-Sorte steht erst mit der Flüssigkeit fest → dort keinen Platzhalter zeigen
-      const barrel = e.kind === 'assembler' ? e.barrel : null;
       const ghosts = !rec || e.kind !== 'assembler' ? undefined
-        : gs.inv === e.input ? (barrel === 'empty' ? undefined : rec.ingredients.filter((x) => !isFluid(x.item)))
-        : gs.inv === e.output ? (barrel === 'fill' ? undefined : rec.results.filter((x) => !isFluid(x.item))) : undefined;
+        : gs.inv === e.input ? rec.ingredients : gs.inv === e.output ? rec.results : undefined;
       row(gs.label, gs.inv, ghosts);
     }
     if (e.kind === 'inserter' && e.def.filterSlots) this.inserterFilters(e, body);
@@ -980,15 +918,13 @@ export class Hud {
     const en = (e as { energy?: { type?: string; buffer?: number; capacity?: number } }).energy;
     if (en?.type === 'electric') bar('Strom', (en.buffer ?? 0) / Math.max(1, en.capacity ?? 1), 'power');
     if (e.kind === 'pole') this.powerInfo(e.id, body);
-    if (e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || g.world.circuit.isWired(e.id)) this.circuitPanel(e, body);
-    if (e.kind === 'container' && (e.logistic === 'requester' || e.logistic === 'buffer')) this.requestEditor(e, body);
     if (e.kind === 'generator') this.generatorInfo(e, body, bar);
     if (e.kind !== 'generator' && isFluidHolder(e)) this.fluidInfo(e, body);
     if (e.kind === 'radar') {
       bar(`Fernerkundung ${Math.floor((e.scan / CHART.scanEnergy) * 100)} %`, e.scan / CHART.scanEnergy, 'power');
       el('div', 'dim', body).textContent = `Deckt ${CHART.radarNearRadius * 2 + 1}×${CHART.radarNearRadius * 2 + 1} Abschnitte (je 32×32 Felder) ständig auf `
         + `und erkundet bis ${CHART.radarFarRadius} Abschnitte weit – einen alle ${Math.round(CHART.scanEnergy / e.def.energyUsage)} s bei vollem Strom. `
-        + `Aufgedeckt: ${g.world.chart.count} Abschnitte. Mit Draht verbunden: überträgt Signale an alle anderen Radare.`;
+        + `Aufgedeckt: ${g.world.chart.count} Abschnitte.`;
     }
     if (e.kind === 'solar') bar(`Leistung ${Math.round(e.potential() * 0.06)} kW`, e.potential() / 1000, 'power');
     if (e.kind === 'accumulator') bar(`Ladung ${(e.stored / 1e6).toFixed(2)} MJ`, e.fraction, 'power');
@@ -1035,7 +971,7 @@ export class Hud {
   private barControls(e: Entity, inv: Inventory, parent: HTMLElement): void {
     const b = el('button', `bar-btn${this.barMode ? ' on' : ''}`, parent);
     b.textContent = '✕';
-    b.title = 'Plätze sperren (wie das rote X im Original): danach auf den ersten Platz klicken, der gesperrt sein soll. Greifarme und Roboter füllen nur die freien Plätze.';
+    b.title = 'Plätze sperren (wie das rote X im Original): danach auf den ersten Platz klicken, der gesperrt sein soll. Greifarme füllen nur die freien Plätze.';
     b.onclick = () => {
       this.barMode = !this.barMode;
       this.entWin.dataset.key = '';
@@ -1078,26 +1014,12 @@ export class Hud {
     // je Behälter: eigener Füllstand (Balken in der Farbe der Flüssigkeit), darunter das ganze Rohrnetz
     const boxes = e.fluidBoxes();
     const multi = boxes.length > 1;
-    // Maschinen mit Rezept: Anschlüsse nach Lage benennen (Raffinerie wie im Original), unbenutzte ausblenden
-    const defs = e.kind === 'assembler' ? e.def.fluidBoxes ?? [] : [];
-    const side = (i: number): string => {
-      const d = defs[i];
-      if (!d) return `Anschluss ${i + 1}`;
-      const same = defs.filter((x) => x.type === d.type);
-      const k = same.indexOf(d);
-      const pos = same.length === 1 ? '' : same.length === 2 ? [' links', ' rechts'][k] : [' links', ' Mitte', ' rechts'][k] ?? ` ${k + 1}`;
-      return `${d.type === 'input' ? 'Eingang' : 'Ausgang'}${pos}`;
-    };
-    if (defs.length && boxes.some((b) => b.filter !== UNUSED)) {
-      el('div', 'dim', body).textContent = 'Ausgänge vorn (Pfeilrichtung), Eingänge hinten; links/rechts in Pfeilrichtung gesehen. Unbenutzte Anschlüsse sind nicht verbunden.';
-    }
     boxes.forEach((b, i) => {
-      if (b.filter === UNUSED) return;
       const s = fluidSummary(b, FLUID_UNIT);
       const name = s.fluid ? FLUIDS[s.fluid]?.name ?? s.fluid : 'leer';
       const r = el('div', 'progress-row stacked fluid-row', body);
       const lab = el('span', 'label', r);
-      const what = e.kind === 'pipe' || e.kind === 'pipe-ground' ? 'im Rohr' : e.kind === 'tank' ? 'im Tank' : defs.length ? `– ${side(i)}` : multi ? `Anschluss ${i + 1}` : 'im Gebäude';
+      const what = e.kind === 'pipe' || e.kind === 'pipe-ground' ? 'im Rohr' : e.kind === 'tank' ? 'im Tank' : multi ? `Anschluss ${i + 1}` : 'im Gebäude';
       lab.textContent = `${name} ${what}: ${fmtFluid(s.own)} / ${fmtFluid(s.ownCap)}`;
       const pb = el('div', 'progress', r);
       const fill = el('div', 'fill', pb);
@@ -1112,8 +1034,7 @@ export class Hud {
   private entityKey(e: Entity): string {
     const slots = e.guiSlots().map((g) => JSON.stringify(g.inv.slots) + g.inv.bar).join('|') + (e.kind === 'inserter' ? JSON.stringify(e.filters) + e.filterBlacklist : '');
     const prog = e.kind === 'drill' || e.kind === 'furnace' || e.kind === 'assembler' ? e.progress >> 3 : 0;
-    const circ = JSON.stringify([this.game.world.circuit.settings.get(e.id), this.game.world.circuit.conditions.get(e.id), this.game.world.circuit.isWired(e.id)]);
-    const extra = circ + (e.kind === 'container' ? e.requests.map((r) => `${r.item}${r.count}`).join() : e.kind === 'pole' ? `${Math.floor(this.game.world.tick / 60)}` : e.kind === 'accumulator' ? `${e.stored >> 14}` : e.kind === 'solar' ? `${e.potential() >> 4}` : e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '');
+    const extra = (e.kind === 'pole' ? `${Math.floor(this.game.world.tick / 60)}` : e.kind === 'accumulator' ? `${e.stored >> 14}` : e.kind === 'solar' ? `${e.potential() >> 4}` : e.kind === 'splitter' ? `${e.state.inputPriority}${e.state.outputPriority}${e.state.filter}` : e.kind === 'assembler' ? e.recipe?.id ?? '-' : e.kind === 'lab' ? `${this.game.world.research.current}${this.game.world.research.fraction(this.game.world.research.current ?? '') * 100 | 0}` : '');
     const en = (e as { energy?: { type?: string; buffer?: number } }).energy;
     let power = en?.type === 'electric' ? (en.buffer ?? 0) >> 6 : 0;
     if (e.kind === 'radar') power = Math.floor(e.scan / 100_000) * 7 + this.game.world.chart.count * 1009;
@@ -1184,43 +1105,24 @@ export class Hud {
     const g = this.game;
     el('div', 'sub-head', body).textContent = e.recipe ? 'Rezept (Klick zum Wechseln)' : 'Rezept wählen';
     if (e.recipe) {
-      const out = e.barrel ? 'empty-barrel' : e.recipe.results[0].item;
+      const out = e.recipe.results[0].item;
       const hb = el('button', 'small-btn', body);
       hb.textContent = 'Verhältnis im Handbuch (J)';
       hb.title = 'Wie viele Maschinen je Zutat? Öffnet den Rechner für dieses Produkt';
       hb.onclick = () => this.toggleHandbook(out);
     }
     const grid = el('div', 'grid recipes', body);
-    // Fässer: statt eines Rezepts je Flüssigkeit nur „Fass befüllen“ und „Fass entleeren“ (Flüssigkeit erkennt die Maschine)
-    const barrels = g.world.research.recipeUnlocked('fill-water-barrel') && e.canCraft(RECIPES['fill-water-barrel'])
-      ? [{ id: FILL_ANY_BARREL, name: 'Fass befüllen', text: 'Leeres Fass + 50 Einheiten der Flüssigkeit im Rohr → gefülltes Fass (0,2 s). Welche Flüssigkeit, erkennt die Maschine selbst.' },
-        { id: EMPTY_ANY_BARREL, name: 'Fass entleeren', text: 'Gefülltes Fass → leeres Fass + 50 Einheiten ins Rohr (0,2 s). Nimmt jedes gefüllte Fass.' }]
-      : [];
-    const choices: { id: string; icon: string; badge?: string; tip: () => HTMLElement }[] = [];
+    const choices: { id: string; icon: string; tip: () => HTMLElement }[] = [];
     for (const r of RECIPE_LIST) {
-      if (!e.canCraft(r) || !g.world.research.recipeUnlocked(r.id) || isFluidBarrelRecipe(r.id)) continue;
+      if (!e.canCraft(r) || !g.world.research.recipeUnlocked(r.id)) continue;
       choices.push({ id: r.id, icon: `item.${r.results[0].item}`, tip: () => this.tip.recipe(r, e.def.craftingSpeed) });
-      if (r.id === 'empty-barrel') {
-        for (const b of barrels) {
-          choices.push({
-            id: b.id, icon: 'item.empty-barrel', badge: b.id === FILL_ANY_BARREL ? '+' : '−',
-            tip: () => {
-              const box = el('div', 'tt-recipe');
-              el('div', 'tt-head', box).textContent = b.name;
-              el('div', 'tt-sub', box).textContent = b.text;
-              return box;
-            },
-          });
-        }
-      }
     }
     for (const c of choices) {
-      const s = el('div', `slot recipe${e.recipeKey === c.id ? ' active' : ''}`, grid);
+      const s = el('div', `slot recipe${e.recipe?.id === c.id ? ' active' : ''}`, grid);
       s.appendChild(this.icon(c.icon));
-      if (c.badge) el('span', 'recipe-badge', s).textContent = c.badge;
       this.tip.attach(s, c.tip);
       s.addEventListener('click', () => {
-        const back = e.setRecipe(e.recipeKey === c.id ? null : c.id);
+        const back = e.setRecipe(e.recipe?.id === c.id ? null : c.id);
         const p = g.world.player;
         for (const st of back) {
           const n = p ? p.inventory.add(st.item, st.count) : 0;
@@ -1640,192 +1542,6 @@ export class Hud {
     this.prodView.render(body, this.game.world.stats);
   }
 
-  /** Auswahlfeld für ein Signal (virtuell, Items, Flüssigkeiten). */
-  private signalSelect(parent: HTMLElement, value: string | null, onChange: (v: string | null) => void, allowNone = true): HTMLSelectElement {
-    const sel = el('select', 'sig-select', parent);
-    if (allowNone) Object.assign(el('option', '', sel), { value: '', textContent: '–' });
-    const grp = (label: string, list: [string, string][]) => {
-      const og = el('optgroup', '', sel);
-      og.label = label;
-      for (const [v, t] of list) Object.assign(el('option', '', og), { value: v, textContent: t });
-    };
-    grp('Signale', VIRTUAL_SIGNALS.map((v) => [v, `Signal ${signalLabel(v)}`]));
-    grp('Items', Object.values(ITEMS).sort((a, b) => a.order - b.order).map((i) => [i.id, i.name]));
-    grp('Flüssigkeiten', Object.values(FLUIDS).map((f) => [f.id, f.name]));
-    sel.value = value ?? '';
-    sel.onchange = () => onChange(sel.value || null);
-    return sel;
-  }
-
-  /** Schaltungsnetz im Gebäudefenster: Kombinator-Einstellungen, Schaltbedingung, aktuelle Signale. */
-  private circuitPanel(e: Entity, body: HTMLElement): void {
-    const c = this.game.world.circuit;
-    const box = el('div', 'circuit', body);
-    el('div', 'stats-title', box).textContent = 'Schaltungsnetz';
-    const rebuild = () => {
-      this.entWin.dataset.key = '';
-      this.buildEntity();
-    };
-    const opSelect = (parent: HTMLElement, ops: readonly string[], value: string, onChange: (v: string) => void) => {
-      const sel = el('select', 'op-select', parent);
-      for (const o of ops) Object.assign(el('option', '', sel), { value: o, textContent: o });
-      sel.value = value;
-      sel.onchange = () => onChange(sel.value);
-    };
-    const num = (parent: HTMLElement, value: number, onChange: (v: number) => void) => {
-      const n = el('input', 'num', parent);
-      n.type = 'number';
-      n.value = String(value);
-      n.onchange = () => onChange(Math.trunc(Number(n.value) || 0));
-    };
-    /** Zweiter Operand: Signal oder Zahl. */
-    const operand = (parent: HTMLElement, second: string | null, constant: number, set: (s: string | null, k: number) => void) => {
-      this.signalSelect(parent, second, (v) => {
-        set(v, constant);
-        rebuild();
-      });
-      if (!second) num(parent, constant, (v) => set(null, v));
-    };
-    if (e.kind === 'combinator') {
-      const st = c.settings.get(e.id) ?? {};
-      c.settings.set(e.id, st);
-      if (e.def.mode === 'constant') {
-        const list = (st.signals ??= []);
-        list.forEach((x, i) => {
-          const r = el('div', 'circ-row', box);
-          this.signalSelect(r, x.signal, (v) => {
-            if (v) x.signal = v;
-            else list.splice(i, 1);
-            rebuild();
-          });
-          num(r, x.count, (v) => (x.count = v));
-        });
-        const add = el('button', '', box);
-        add.textContent = '+ Signal';
-        add.onclick = () => {
-          list.push({ signal: 'signal-A', count: 1 });
-          rebuild();
-        };
-      } else if (e.def.mode === 'arithmetic') {
-        const a = (st.arith ??= { first: null, op: '*', constant: 1, second: null, output: null });
-        const r = el('div', 'circ-row', box);
-        this.signalSelect(r, a.first, (v) => (a.first = v));
-        opSelect(r, ARITHMETIC_OPS, a.op, (v) => (a.op = v as typeof a.op));
-        operand(r, a.second, a.constant, (s2, k) => {
-          a.second = s2;
-          a.constant = k;
-        });
-        const o = el('div', 'circ-row', box);
-        el('span', 'dim', o).textContent = 'Ausgabe';
-        this.signalSelect(o, a.output, (v) => (a.output = v));
-      } else {
-        const d = (st.decide ??= { first: null, op: '>', constant: 0, second: null, output: null, copyCount: false });
-        const r = el('div', 'circ-row', box);
-        this.signalSelect(r, d.first, (v) => (d.first = v));
-        opSelect(r, COMPARATORS, d.op, (v) => (d.op = v as typeof d.op));
-        operand(r, d.second, d.constant, (s2, k) => {
-          d.second = s2;
-          d.constant = k;
-        });
-        const o = el('div', 'circ-row', box);
-        el('span', 'dim', o).textContent = 'Ausgabe';
-        this.signalSelect(o, d.output, (v) => (d.output = v));
-        const lab = el('label', 'dim', o);
-        const cb = el('input', '', lab);
-        cb.type = 'checkbox';
-        cb.checked = d.copyCount;
-        cb.onchange = () => (d.copyCount = cb.checked);
-        lab.append(' Eingangswert statt 1');
-      }
-    } else if (e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'belt') {
-      const cur: Condition | undefined = c.conditions.get(e.id);
-      const r = el('div', 'circ-row', box);
-      el('span', 'dim', r).textContent = 'Ein, wenn';
-      const cond = cur ?? { first: null, op: '>', constant: 0, second: null };
-      this.signalSelect(r, cond.first, (v) => {
-        cond.first = v;
-        if (v) c.conditions.set(e.id, cond);
-        else c.conditions.delete(e.id);
-      });
-      opSelect(r, COMPARATORS, cond.op, (v) => (cond.op = v as Condition['op']));
-      operand(r, cond.second, cond.constant, (s2, k) => {
-        cond.second = s2;
-        cond.constant = k;
-      });
-      if (!c.isWired(e.id)) el('div', 'dim', box).textContent = 'Nicht verdrahtet (G: Drahtwerkzeug) – die Bedingung wirkt erst mit Draht.';
-    }
-    el('div', 'circuit-live', box);
-    this.updateCircuitLive();
-  }
-
-  /** Aktuelle Signale am geöffneten Gebäude (ohne das Fenster neu aufzubauen). */
-  private updateCircuitLive(): void {
-    const live = this.entWin.querySelector<HTMLElement>('.circuit-live');
-    if (!live || this.openEntityId === null) return;
-    const c = this.game.world.circuit;
-    const id = this.openEntityId;
-    const parts: string[] = [];
-    for (const side of [0, 1] as const) {
-      for (const color of ['red', 'green'] as const) {
-        const net = c.network(id, side, color);
-        if (!net) continue;
-        const sig = [...net].map(([k, v]) => `${ITEMS[k]?.name ?? FLUIDS[k]?.name ?? signalLabel(k)} ${v}`).join(', ') || 'keine Signale';
-        parts.push(`${color === 'red' ? 'Rot' : 'Grün'}${side ? ' (Ausgang)' : ''}: ${sig}`);
-      }
-    }
-    live.textContent = parts.join(' · ');
-  }
-
-  /** Anforderungen einer Anforderungs-/Pufferkiste: Item und Sollmenge (Logistikroboter liefern). */
-  private requestEditor(e: Extract<Entity, { kind: 'container' }>, body: HTMLElement): void {
-    const box = el('div', 'requests', body);
-    el('div', 'stats-title', box).textContent = 'Anforderungen';
-    e.requests.forEach((r, i) => {
-      const row = el('div', 'req-row', box);
-      row.appendChild(this.icon(`item.${r.item}`, 'icon small'));
-      el('span', '', row).textContent = ITEMS[r.item]?.name ?? r.item;
-      const n = el('input', 'req-count', row);
-      n.type = 'number';
-      n.min = '0';
-      n.value = String(r.count);
-      n.onchange = () => {
-        r.count = Math.max(0, Math.floor(Number(n.value) || 0));
-      };
-      const x = el('button', 'bad', row);
-      x.textContent = '×';
-      x.onclick = () => {
-        e.requests.splice(i, 1);
-        this.entWin.dataset.key = '';
-        this.buildEntity();
-      };
-    });
-    if (e.requests.length < 10) {
-      const add = el('div', 'req-row', box);
-      const sel = el('select', 'req-item', add);
-      for (const it of Object.values(ITEMS).sort((a, b) => a.order - b.order)) {
-        const o = el('option', '', sel);
-        o.value = it.id;
-        o.textContent = it.name;
-      }
-      if (this.game.cursorItem) sel.value = this.game.cursorItem;
-      const n = el('input', 'req-count', add);
-      n.type = 'number';
-      n.min = '1';
-      n.value = String(ITEMS[sel.value]?.stackSize ?? 50);
-      sel.onchange = () => (n.value = String(ITEMS[sel.value]?.stackSize ?? 50));
-      const b = el('button', '', add);
-      b.textContent = 'Anfordern';
-      b.onclick = () => {
-        const count = Math.max(1, Math.floor(Number(n.value) || 1));
-        const ex = e.requests.find((r) => r.item === sel.value);
-        if (ex) ex.count = count;
-        else e.requests.push({ item: sel.value, count });
-        this.entWin.dataset.key = '';
-        this.buildEntity();
-      };
-    }
-  }
-
   /** Stromnetz eines Masts: Zufriedenheit, Erzeugung/Verbrauch je Gebäudeart, Akkuladung, Verlauf. */
   private powerInfo(poleId: number, body: HTMLElement): void {
     const w = this.game.world;
@@ -1874,7 +1590,6 @@ export class Hud {
   }
 
   private researchKey = '';
-  private rocketsSeen = -1;
   private updateResearch(): void {
     const r = this.game.world.research;
     if (r.finished.length) {
@@ -1882,13 +1597,6 @@ export class Hud {
       this.game.sound.play('research', 0.8);
       r.finished.length = 0;
       this.refreshAll();
-    }
-    if (this.rocketsSeen < 0) this.rocketsSeen = this.game.world.rocketsLaunched;
-    if (this.game.world.rocketsLaunched > this.rocketsSeen) {
-      if (this.rocketsSeen === 0 && this.game.world.rocketsLaunched === 1) {
-        this.flash('Rakete gestartet! Sieg – die Fabrik darf weiterwachsen.');
-      } else this.flash(`Rakete ${this.game.world.rocketsLaunched} gestartet`);
-      this.rocketsSeen = this.game.world.rocketsLaunched;
     }
     const t = r.currentTech;
     const key = (t ? `${t.id}${Math.floor(r.fraction(t.id) * 200)}` : '-') + r.queue.join(',');

@@ -11,7 +11,6 @@ import { Status } from '../sim/entity';
 import { DX, DY, type Dir, rotateVec } from '../sim/geom';
 import { type Entity, InserterPhase, itemId } from '../sim/machines';
 import { drillAreaTiles, drillOutputPoint } from '../sim/entities/basic';
-import { CircuitSystem } from '../sim/circuit';
 import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
 import { BiomeField } from './biome';
@@ -60,7 +59,7 @@ const ZOMBIE_COLOR: Record<UnitKind, number> = { walker: 0x6f7f4a, runner: 0x9a6
 import { CloudShadows } from './clouds';
 import { bloomEnabled, gradeFilter, lookEnabled } from './look';
 import { NightLayer } from './night';
-import { UNUSED, type FluidBox, fluidSummary, isFluidHolder } from '../sim/fluids';
+import { type FluidBox, fluidSummary, isFluidHolder } from '../sim/fluids';
 import { FLUIDS, FLUID_UNIT, visibleFluidColor } from '../data/fluids';
 import { EntityLife } from './life';
 import { HeatHaze } from './haze';
@@ -85,10 +84,8 @@ export interface RenderUi {
   ghost: Ghost | null;
   /** Weitere Vorschau-Geister (Blaupause im Cursor). */
   ghosts?: Ghost[];
-  /** Auswahlrechteck (Felder, x1/y1 exklusiv); cut = Ausschneiden (rot). */
-  selection?: { x0: number; y0: number; x1: number; y1: number; cut?: boolean } | null;
-  /** Bereiche der Roboterhangars zeigen (Hangar/Logistikkiste im Cursor oder unter der Maus). */
-  robotAreas?: boolean;
+  /** Auswahlrechteck (Felder, x1/y1 exklusiv). */
+  selection?: { x0: number; y0: number; x1: number; y1: number } | null;
   /** Stromnetz zeigen (Mast im Cursor oder unter der Maus): Versorgungsflächen, Kabelvorschau für pole. */
   power?: { pole: Ghost | null } | null;
   /** Bohrer im Cursor oder unter der Maus: Abbaufelder und Ausgabestelle zeigen. */
@@ -99,8 +96,6 @@ export interface RenderUi {
   floorBrush?: { x: number; y: number; n: number } | null;
   /** Wurfgegenstand in der Hand: Reichweite um die Figur, Zielkreis (Wirkradius) an der Maus. */
   throwAim?: { px: number; py: number; range: number; radius: number; x: number; y: number } | null;
-  /** Drahtwerkzeug: Vorschau vom ersten Anschluss zur Maus (Felder). */
-  wire?: { color: 'red' | 'green'; from: { x: number; y: number } | null; to: { x: number; y: number } } | null;
   alt: boolean;
   /** Markierung unter dem Cursor (Feldrechteck). */
   hover: { x: number; y: number; w: number; h: number } | null;
@@ -224,7 +219,7 @@ export class GameRenderer {
       this.gridWorld = world;
       this.visKey = '';
     }
-    const M = 10; // größte Gebäudebreite (Raketensilo 9)
+    const M = 10; // größer als die breiteste Gebäudegrundfläche
     const gx0 = Math.floor((v.x0 - M) / G);
     const gy0 = Math.floor((v.y0 - M) / G);
     const gx1 = Math.floor(v.x1 / G);
@@ -409,7 +404,7 @@ export class GameRenderer {
     this.drawBelts(world, view, alpha);
     this.drawItems(world, view, alpha);
     this.drawEntities(world, view, alpha, ui);
-    this.drawWires(world, view, ui);
+    this.drawWires(world, view);
     this.effects?.update(world, alpha, view);
     this.clouds?.update(world, alpha, view);
     if (this.night) {
@@ -1075,7 +1070,6 @@ export class GameRenderer {
     }
     this.drawWorkers(world, v, alpha);
     this.drawRoofs(world, v);
-    this.drawRobots(world);
     this.drawVehicles(world);
     this.drawEnemies(world, v, alpha);
     this.drawGhost(ui, world);
@@ -1492,13 +1486,11 @@ export class GameRenderer {
     const v = this.viewRect();
     for (const e of this.visibleEntities(world, v)) {
       if (e.kind === 'pipe' || e.kind === 'pipe-ground' || !isFluidHolder(e)) continue;
-      const boxes = e.fluidBoxes();
       for (const p of e.fluidPorts()) {
         const b = p.box;
-        if (b.filter === UNUSED) continue;
         const fluid = (b.filter ?? b.net?.fluid ?? b.fluid) as string | null;
         if (!fluid && e.kind === 'tank') continue;
-        const dir = portDirection(e, boxes.indexOf(b), b);
+        const dir = portDirection(e, b);
         // Randmitte des Anschlussfelds
         const ex = (p.tx + 0.5 + DX[p.dir] * 0.5) * TILE;
         const ey = (p.ty + 0.5 + DY[p.dir] * 0.5) * TILE;
@@ -1529,7 +1521,7 @@ export class GameRenderer {
   }
 
   /** Stromkabel zwischen Masten, leicht durchhängend. */
-  private drawWires(world: World, v: ReturnType<GameRenderer['viewRect']>, ui: RenderUi): void {
+  private drawWires(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
     const g = this.wires;
     g.clear();
     const gs = this.wireShadows;
@@ -1557,28 +1549,6 @@ export class GameRenderer {
       const sbx = pb.cx * TILE + lb * SHX;
       const sby = pb.cy * TILE + lb * SHY;
       gs.moveTo(sax, say).quadraticCurveTo((sax + sbx) / 2 - sag * SHX * 0.5, (say + sby) / 2 - sag * 0.2, sbx, sby).stroke({ width: 2, color: 0x000000, alpha: 0.28 });
-    }
-    // Schaltungsdrähte (rot/grün), leicht versetzt
-    const lift = (e: Entity) => (e.kind === 'pole' ? liftOf(e.name) : 0.35 * TILE);
-    for (const wr of world.circuit.wires) {
-      const ea = world.entities.get(wr.a.id);
-      const eb = world.entities.get(wr.b.id);
-      if (!ea || !eb) continue;
-      const pa = CircuitSystem.pointPos(ea, wr.a.side);
-      const pb = CircuitSystem.pointPos(eb, wr.b.side);
-      if (Math.max(pa.x, pb.x) < v.x0 || Math.min(pa.x, pb.x) > v.x1 || Math.max(pa.y, pb.y) < v.y0 || Math.min(pa.y, pb.y) > v.y1) continue;
-      const off = wr.color === 'red' ? -2 : 2;
-      const ax = pa.x * TILE + off;
-      const ay = pa.y * TILE - lift(ea);
-      const bx = pb.x * TILE + off;
-      const by = pb.y * TILE - lift(eb);
-      const sag = Math.hypot(bx - ax, by - ay) * 0.1;
-      g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + sag, bx, by).stroke({ width: 1.5, color: wr.color === 'red' ? 0xd0342c : 0x3fae4a, alpha: 0.95 });
-    }
-    if (ui.wire?.from) {
-      const { from, to, color } = ui.wire;
-      g.moveTo(from.x * TILE, from.y * TILE - 0.35 * TILE).lineTo(to.x * TILE, to.y * TILE)
-        .stroke({ width: 1.5, color: color === 'red' ? 0xd0342c : 0x3fae4a, alpha: 0.6 });
     }
   }
 
@@ -1818,32 +1788,6 @@ export class GameRenderer {
     }
   }
 
-  /** Roboter im Flug: Sprite (sonst Item-Symbol) mit Flughöhe und Bodenschatten. */
-  private drawRobots(world: World): void {
-    const v = this.viewRect();
-    const s = this.sprites;
-    const lift = 1.1 * TILE;
-    for (const r of world.robots.robots) {
-      if (r.x < v.x0 - 2 || r.x > v.x1 + 2 || r.y < v.y0 - 2 || r.y > v.y1 + 3) continue;
-      const key = s.has(`robot.${r.kind}`) ? `robot.${r.kind}` : `item.${r.kind}`;
-      const bob = Math.sin((world.tick + r.id * 7) * 0.12) * 2;
-      if (!r.charging) {
-        const sh = this.shadows.get(s.frame(s.has(`robot.${r.kind}.shadow`) ? `robot.${r.kind}.shadow` : 'item.shadow'));
-        sh.position.set(r.x * TILE + 10, r.y * TILE + 6);
-      }
-      const sp = this.ents.get(s.frame(key));
-      sp.position.set(r.x * TILE, r.y * TILE - (r.charging ? 0.5 * TILE : lift) + bob);
-      if (!s.has(`robot.${r.kind}`)) sp.scale.set(0.55);
-      sp.zIndex = 1e7 + r.y * TILE;
-      for (const c of r.cargo.slice(0, 1)) {
-        const it = this.ents.get(s.frame(`item.${c.item}`));
-        it.position.set(r.x * TILE, r.y * TILE - lift + bob + 14);
-        it.scale.set(0.3);
-        it.zIndex = 1e7 + r.y * TILE + 1;
-      }
-    }
-  }
-
   // ------------------------------------------------------------------ Overlay
 
   /**
@@ -1919,7 +1863,7 @@ export class GameRenderer {
     const area = drillAreaTiles(def, d.x, d.y);
     for (const [tx, ty] of area) {
       const r = world.map.resourceAt(tx, ty);
-      const has = r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid;
+      const has = r.amount > 0;
       g.rect(tx * TILE, ty * TILE, TILE, TILE).fill({ color: has ? 0x4fb4ff : 0xffffff, alpha: has ? 0.28 : 0.07 });
     }
     const n = def.miningAreaSize;
@@ -1961,16 +1905,6 @@ export class GameRenderer {
     g.clear();
     this.altBg.clear();
     const z = this.camera.zoom;
-    if (ui.robotAreas) {
-      for (const net of world.robots.nets) {
-        for (const p of net.ports) {
-          const L = 25;
-          const C = 55;
-          g.rect((p.px - C) * TILE, (p.py - C) * TILE, 2 * C * TILE, 2 * C * TILE).fill({ color: 0x4fbf4f, alpha: 0.05 }).stroke({ width: 1 / z, color: 0x66ff66, alpha: 0.5 });
-          g.rect((p.px - L) * TILE, (p.py - L) * TILE, 2 * L * TILE, 2 * L * TILE).fill({ color: 0xf98a1d, alpha: 0.07 }).stroke({ width: 1.5 / z, color: 0xf98a1d, alpha: 0.7 });
-        }
-      }
-    }
     if (ui.power) this.drawPowerAreas(world, ui.power.pole, g);
     if (ui.drill) this.drawDrillArea(world, ui.drill, g);
     if (ui.inserter) this.drawInserterReach(world, ui.inserter, g);
@@ -1984,35 +1918,10 @@ export class GameRenderer {
       g.circle(a.px * TILE, a.py * TILE, a.range * TILE).stroke({ width: 1.5 / z, color: 0xffd23a, alpha: 0.5 });
       g.circle(a.x * TILE, a.y * TILE, a.radius * TILE).fill({ color: ok ? 0xff7a3a : 0xff3a3a, alpha: 0.15 }).stroke({ width: 2 / z, color: ok ? 0xffb03a : 0xff4a3a, alpha: 0.9 });
     }
-    // zum Abriss markiert: rotes Kreuz
-    for (const id of world.robots.marked) {
-      const e = world.entities.get(id);
-      if (!e) continue;
-      const x0 = e.x * TILE + 6;
-      const y0 = e.y * TILE + 6;
-      const x1 = (e.x + e.w) * TILE - 6;
-      const y1 = (e.y + e.h) * TILE - 6;
-      g.moveTo(x0, y0).lineTo(x1, y1).moveTo(x1, y0).lineTo(x0, y1).stroke({ width: 3 / z, color: 0xff4030, alpha: 0.85 });
-    }
-    // zum Fällen markierte Bäume
-    for (const t of world.robots.markedTrees.values()) {
-      const cx = t.x * TILE;
-      const cy = (t.y - 0.6) * TILE;
-      const r = TILE * 0.35;
-      g.moveTo(cx - r, cy - r).lineTo(cx + r, cy + r).moveTo(cx + r, cy - r).lineTo(cx - r, cy + r).stroke({ width: 3 / z, color: 0xff4030, alpha: 0.85 });
-    }
-    // Baufläche der persönlichen Roboter (beim Planen: Blaupause im Cursor oder Auswahl)
-    const pl = world.player;
-    if (pl?.grid && pl.grid.roboports > 0 && pl.personalRobots && (ui.selection || (ui.ghosts?.length ?? 0) > 0)) {
-      const R = pl.grid.constructionRadius;
-      const px = pl.px / 256;
-      const py = pl.py / 256;
-      g.rect((px - R) * TILE, (py - R) * TILE, 2 * R * TILE, 2 * R * TILE).stroke({ width: 2 / z, color: 0x7ad0ff, alpha: 0.55 });
-    }
     this.drawCombat(world, g);
     if (ui.selection) {
       const r = ui.selection;
-      const col = r.cut ? 0xff6a5a : 0x8ac8ff;
+      const col = 0x8ac8ff;
       g.rect(r.x0 * TILE, r.y0 * TILE, (r.x1 - r.x0) * TILE, (r.y1 - r.y0) * TILE)
         .fill({ color: col, alpha: 0.12 })
         .stroke({ width: 2 / z, color: col, alpha: 0.95 });
@@ -2127,7 +2036,7 @@ export class GameRenderer {
 
   /**
    * Alt-Ansicht wie im Original: großes Symbol des Produkts auf Maschinen (Rezept, Erz unter dem Bohrer,
-   * Flüssigkeit im Tank), bis zu vier Items über Kisten, Module als kleine Symbole, Statuspunkt.
+   * Flüssigkeit im Tank), bis zu vier Items über Kisten, Statuspunkt.
    */
   private drawAltContents(e: Entity, g: Graphics, world: World): void {
     const s = this.sprites;
@@ -2171,12 +2080,6 @@ export class GameRenderer {
         icon(it, cx + ox, cy + oy - 6, sz);
       });
     }
-    // Module als kleine Symbole am unteren Rand
-    const mods = (e as { modules?: { slots: ({ item: string } | null)[] } | null }).modules;
-    if (mods) {
-      const list = mods.slots.filter((x): x is { item: string } => !!x).map((x) => x.item);
-      list.forEach((it, k) => icon(it, cx + (k - (list.length - 1) / 2) * TILE * 0.32, (e.y + e.h) * TILE - TILE * 0.28, TILE * 0.28));
-    }
     const stat = STATUS_COLORS[e.status];
     if (stat !== undefined) g.circle(cx + e.w * TILE * 0.36, cy - e.h * TILE * 0.36, 5).fill({ color: stat }).stroke({ width: 1, color: 0x000000, alpha: 0.6 });
   }
@@ -2213,9 +2116,8 @@ const STATUS_COLORS: Partial<Record<Status, number>> = {
 export { Shape };
 
 /** Fließrichtung eines Anschlusses: aus Rezept bzw. Gebäudeart; null = unbekannt (nur Symbol). */
-function portDirection(e: Entity, boxIndex: number, b: FluidBox): 'in' | 'out' | null {
+function portDirection(e: Entity, b: FluidBox): 'in' | 'out' | null {
   switch (e.kind) {
-    case 'assembler': return e.def.fluidBoxes?.[boxIndex]?.type === 'output' ? 'out' : 'in';
     case 'boiler': return b === e.water ? 'in' : 'out';
     case 'generator': return 'in';
     case 'offshore-pump': return 'out';

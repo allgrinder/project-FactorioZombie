@@ -10,14 +10,10 @@ export class ElectricSource {
   /** Vom Stromnetz gesetzt: an ein Netz angeschlossen. */
   connected = false;
 
-  /** Nennverbrauch im Betrieb (J/Tick), mit Modulfaktor. */
-  usagePerTick: number;
+  /** Nennverbrauch im Betrieb (J/Tick). */
+  readonly usagePerTick: number;
   /** Puffergröße (J). */
-  capacity: number;
-  private readonly baseUsage: number;
-  private readonly baseCapacity: number;
-  /** Höchste Nachladung je Tick (J), z. B. Roboterhangar 2,1 MW. */
-  maxInput = Infinity;
+  readonly capacity: number;
 
   constructor(
     usagePerTick: number,
@@ -25,19 +21,13 @@ export class ElectricSource {
     readonly drainPerTick: number,
     capacity: number,
   ) {
-    this.usagePerTick = this.baseUsage = usagePerTick;
-    this.capacity = this.baseCapacity = capacity;
-  }
-
-  /** Verbrauchsfaktor durch Module (1 = Grundwert); der Puffer wächst mit. */
-  setFactor(f: number): void {
-    this.usagePerTick = Math.round(this.baseUsage * f);
-    this.capacity = Math.max(this.baseCapacity, this.usagePerTick * 2);
+    this.usagePerTick = usagePerTick;
+    this.capacity = capacity;
   }
 
   /** Wieviel das Netz in diesem Tick nachfüllen soll (inkl. Grundlast). */
   request(): number {
-    return Math.min(this.maxInput, Math.max(0, this.capacity - this.buffer)) + this.drainPerTick;
+    return Math.max(0, this.capacity - this.buffer) + this.drainPerTick;
   }
 
   /** Vom Netz geliefert; die Grundlast wird sofort verbraucht. */

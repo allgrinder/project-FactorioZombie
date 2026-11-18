@@ -63,9 +63,13 @@ Namen der Vorbilder nie im Spiel verwenden.
   im Renderer (`houseOf`, `seasonTint`). Test „Vielfalt“ in `welt.test.ts`.
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
   Feuerschale, Scheinwerfer, Wachturm, Vorratslager.
-- Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).
-  Entfernt (Block F): Züge/Gleise, Raketensilo, Kernkraft/Wärme, Pumpjack/Raffinerie/Chemie samt Modellen. Noch im Code,
-  aber nicht erreichbar: Roboter, Schaltungsnetz, Module (mit Greifarmen/Montage verflochten).
+- Rezepte/Forschung zusammengestrichen: `ORIGINAL` in `src/data/recipes.ts` enthält nur noch die behaltenen Rezepte des
+  Vorgängers, `RAW_TECHS` in `src/data/tech.ts`. Ganz entfernt (Code, Daten, Darstellung, Tests, Modelle): Züge/Gleise,
+  Raketensilo, Kernkraft/Wärme, Öl/Chemie (Pumpjack, Raffinerie, Chemiefabrik, Rohöl/Uran auf der Karte, Öl-Flüssigkeiten),
+  Fässer, Roboter/Roboterhangar/Logistikkisten (auch Strg+X-Abriss), Schaltungsnetz/Kombinatoren (Taste G), Module/Leuchtfeuer,
+  modulare Rüstung mit Ausrüstungsraster. Montagemaschinen haben keine Flüssigkeitsanschlüsse mehr.
+  Alte Spielstände laden weiter: `deserializeWorld` überspringt unbekannte Gebäude, Items, Geister und Ressourcen.
+  Noch als Daten vorhanden, aber ohne Rezept: höhere Band-/Maschinenstufen, Beton, Klippensprengstoff.
 - Modelle: `lib/zombie.py`, `ruinen.py`, `lager.py`, `kram.py`, `truemmer.py`, `basis.py`; `models/zombies.py`, `ruinen.py`,
   `lager.py`, `basis.py`, `boden.py`.
 - Tests: `zombies.test.ts`, `survival.test.ts`, `welt.test.ts`, `basis.test.ts`, `freeplay.test.ts`.
@@ -98,12 +102,10 @@ Namen der Vorbilder nie im Spiel verwenden.
   Auslöser-Forschung), fällbare Bäume/Holz, frühe Phase (Stahl, Masten, Lampe, Montage 2, Motor, Pumpe, Tank,
   Rohr unterirdisch, Landaufschüttung), Tag/Nacht (`DAY` in `src/data/time.ts`, Nachtebene `src/render/night.ts`).
   Tests: `tests/sim/wiki.test.ts`, `trees.test.ts`, `early.test.ts`. Gegner bewusst zurückgestellt.
-- Blöcke 1–4 (Wunsch „1 bis 4 umsetzen“): Öl/Chemie (`entities/fluidplus.ts`, Modelle `models/oil.py`), Solar/Akku
-  (Stromvorrang in `src/sim/power.ts`), Statistik (`src/sim/stats.ts`, `src/ui/stats.ts`), Forschungswarteschlange,
-  Blaupausen/Geister (`src/sim/blueprint.ts`), Module/Leuchtfeuer (`src/sim/modules.ts`, `src/data/modules.ts`),
-  Roboter (`src/sim/robots.ts`, `src/data/robots.ts`), Schaltungsnetz (`src/sim/circuit.ts`, Taste G),
-  Züge (`src/sim/rails.ts`, `src/sim/trains.ts`, Gleise auf 2er-Raster, R wechselt Gleisform), Raketensilo
-  (`entities/rocket.ts`). Vereinfachungen in `docs/WIKI_ABGLEICH.md` Abschnitt 4. Modelle: `lib/spaet.py`, `lib/bahn.py`.
+- Blöcke 1–4 (Wunsch „1 bis 4 umsetzen“): Solar/Akku (Stromvorrang in `src/sim/power.ts`), Statistik
+  (`src/sim/stats.ts`, `src/ui/stats.ts`), Forschungswarteschlange, Blaupausen/Geister (`src/sim/blueprint.ts`).
+  Öl/Chemie, Module/Leuchtfeuer, Roboter, Schaltungsnetz, Züge und Raketensilo gab es hier auch; in Letzte Schicht
+  entfernt. Vereinfachungen in `docs/WIKI_ABGLEICH.md` Abschnitt 4. Modelle: `lib/spaet.py` (nur noch Radar genutzt).
 - Gegner (Phase H): Verschmutzung `src/sim/pollution.ts`, Nester/Krabbler/Angriffe `src/sim/enemies.ts`, Türme/Mauern
   `src/sim/entities/military.ts`, Werte `src/data/enemies.ts`, Modelle `lib/kampf.py`/`models/gegner.py`; Karteneinstellungen
   (Rohstoffe, Gegner) in `src/data/mapgen.ts` und im Spielstand. Leertaste schießt, Reparaturset per Linksklick halten.
@@ -116,13 +118,12 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Phase J: Kleinteile neu (`lib/kleinteile.py`), Klippen (`GameMap.isCliff`, `models/cliffs.py`), Wurfgegenstände
   (`src/sim/capsules.ts`), Bodenbeläge (`src/data/floors.ts`, `GameMap.floorAt`, `models/floors.py`), bewegtes Wasser
   (Reflexe und Uferschaum in `models/water.py`). Klippen nur in neuen Karten (Einstellung `cliffs`).
-- Phase K: Forschungs-Boni/unendliche Forschung, Massen-/Filtergreifarm, Fässer, Leiche, Band im Schaltungsnetz,
-  Kernkraft (`src/sim/heat.ts`, `entities/nuclear.ts`, Modelle `lib/kernkraft.py`), diagonale Gleise (`src/sim/rails.ts`,
-  Tab wechselt Gleisform), Nachtlicht mit Normal-Maps (`src/render/night.ts`; Blender schreibt `<name>.nrm`),
+- Phase K: Forschungs-Boni/unendliche Forschung, Massen-/Filtergreifarm, Leiche (Fässer, Band im Schaltungsnetz,
+  Kernkraft und diagonale Gleise in Letzte Schicht entfernt), Nachtlicht mit Normal-Maps (`src/render/night.ts`; Blender schreibt `<name>.nrm`),
   Hitzeflimmern (`src/render/haze.ts`), Bau-Animationen (`src/render/life.ts`).
 - Handbuch (Taste J): Rezepte, Verwendung, Verhältnis-Rechner und Faustregeln (`src/sim/ratio.ts`, `src/ui/handbook.ts`).
 - Phase L: Radar/Kartenaufdeckung (`src/sim/chart.ts`), Rohstoff-Häufigkeit, Community-Blaupausen (`src/sim/foreignbp.ts`),
-  Rüstung und persönlicher Roboterhangar (`src/data/armor.ts`, `src/sim/armor.ts`, Roboter in `src/sim/robots.ts`).
+  Rüstung (`src/data/armor.ts`, nur noch schwere Rüstung; Ausrüstungsraster und persönliche Roboter entfernt).
 - Weiterer Plan: `docs/ROADMAP.md` (Grafik zuerst, dann Komfort, dann neue Systeme).
 - Offene Messvorschläge siehe `docs/GAME_DATA.md` (Füllgrenzen Greifarm, Spurzuordnung Seiteneinspeisen).
 

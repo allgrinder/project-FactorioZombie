@@ -79,11 +79,7 @@ export class FluidPumpEntity extends EntityBase implements FluidHolder {
     };
     return [port(this.output, 0, 0, 0), port(this.input, 0, 1, 2)];
   }
-  override update(w: World): void {
-    if (!w.circuit.enabled(this.id)) {
-      this.status = Status.Disabled;
-      return;
-    }
+  override update(): void {
     const a = this.input.net;
     const b = this.output.net;
     if (!a || !b || !a.fluid || a.amount === 0) {
@@ -158,7 +154,7 @@ export class LampEntity extends EntityBase {
   }
   /** Nachts eingeschaltet (verbraucht dann Strom). */
   override update(w: World): void {
-    if (w.darkness < DAY.lampOn || !w.circuit.enabled(this.id)) {
+    if (w.darkness < DAY.lampOn) {
       this.status = Status.Idle;
       return;
     }
@@ -171,6 +167,3 @@ export class LampEntity extends EntityBase {
     this.energy.load(d as { eb: number });
   }
 }
-
-// ------------------------------------------------------------------------- Pumpjack
-

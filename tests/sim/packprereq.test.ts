@@ -3,7 +3,7 @@ import { TECHS, TECH_BY_ID } from '../../src/data/tech';
 
 describe('Forschung: Pakete brauchen ihre Freischalt-Forschung (wie im Original)', () => {
   it('Jede Forschung hat die Forschung ihrer Wissenschaftspakete unter den Vorgängern', () => {
-    const packTech = new Map<string, string>([['space-science-pack', 'rocket-silo']]);
+    const packTech = new Map<string, string>();
     for (const t of TECHS) for (const u of t.unlocks) if (u.endsWith('-science-pack') && !packTech.has(u)) packTech.set(u, t.id);
     const ancestors = (id: string, seen = new Set<string>()): Set<string> => {
       for (const p of TECH_BY_ID[id].prerequisites) if (!seen.has(p)) {

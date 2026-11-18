@@ -10,10 +10,8 @@ import { type Ghost, GameRenderer, type RenderUi } from '../render/renderer';
 import { type Dir, dirFromDelta, rotCW } from '../sim/geom';
 import { MAPGEN } from '../data/mapgen';
 import { type Blueprint, placed as bpPlaced, capture as bpCapture, rotate as bpRotate } from '../sim/blueprint';
-import { treeKey } from '../sim/robots';
 import { fluidSummary, isFluidHolder } from '../sim/fluids';
 import { FLUIDS, FLUID_UNIT } from '../data/fluids';
-import { CircuitSystem } from '../sim/circuit';
 import { type Entity, insertInto, itemIndex } from '../sim/machines';
 import type { Tree } from '../sim/trees';
 import type { World } from '../sim/world';
@@ -43,14 +41,12 @@ export class Game {
   readonly sound = new SoundSystem();
   cursorItem: string | null = null;
   /** Drahtwerkzeug (G): Farbe und erster gewählter Anschluss. */
-  wireTool: 'red' | 'green' | null = null;
-  wireFrom: { id: number; side: 0 | 1 } | null = null;
   /** Blaupause im Cursor (Strg+V, Bibliothek); Klick legt Geister ab. */
   cursorBlueprint: Blueprint | null = null;
   /** Zuletzt kopierte Blaupause (Strg+C). */
   clipboard: Blueprint | null = null;
   /** Auswahlrechteck beim Kopieren (Strg+C, dann ziehen). */
-  private selecting: { x0: number; y0: number; x1: number; y1: number; active: boolean; cut: boolean } | null = null;
+  private selecting: { x0: number; y0: number; x1: number; y1: number; active: boolean } | null = null;
   buildDir: Dir = 0;
   alt = false;
   paused = false;
@@ -211,11 +207,9 @@ export class Game {
 
   private handleInput(): void {
     const inp = this.input;
-    if (this.cursorItem && (this.cursorBlueprint || this.selecting || this.wireTool)) {
+    if (this.cursorItem && (this.cursorBlueprint || this.selecting)) {
       this.cursorBlueprint = null;
       this.selecting = null;
-      this.wireTool = null;
-      this.wireFrom = null;
     }
     let pressedThisFrame = false;
     for (const ev of inp.takePressed()) {
@@ -270,7 +264,7 @@ export class Game {
         else if (tree) p.setMineTarget({ kind: 'tree', cx: tree.cx, cy: tree.cy, i: tree.i, x: tree.x, y: tree.y });
         else {
           const r = this.world.map.resourceAt(tx, ty);
-          if (r.amount > 0 && !RESOURCE_BY_INDEX[r.res]?.fluid) p.setMineTarget({ kind: 'resource', x: tx, y: ty, res: r.res });
+          if (r.amount > 0) p.setMineTarget({ kind: 'resource', x: tx, y: ty, res: r.res });
           else if (this.world.map.floorAt(tx, ty)) p.setMineTarget({ kind: 'floor', x: tx, y: ty });
           // leeres Feld unter dem Zeiger: bisheriges Ziel weiter abbauen, solange die Taste gehalten wird
           else if (this.input.rightPressed) p.setMineTarget(null);
@@ -284,11 +278,11 @@ export class Game {
     if (ctrl && k === 's') { void this.hud.saveGame(); return; }
     if (ctrl && k === 'z') { this.undo(); return; }
     if (ctrl && k === 'l') { void this.hud.loadGame(); return; }
-    if (ctrl && (k === 'c' || k === 'x')) {
+    if (ctrl && k === 'c') {
       this.cursorItem = null;
       this.cursorBlueprint = null;
-      this.selecting = { x0: 0, y0: 0, x1: 0, y1: 0, active: false, cut: k === 'x' };
-      this.world.player?.note(k === 'x' ? 'Ausschneiden: Bereich aufziehen (Bauroboter reißen ab)' : 'Kopieren: Bereich mit gedrückter Maustaste aufziehen');
+      this.selecting = { x0: 0, y0: 0, x1: 0, y1: 0, active: false };
+      this.world.player?.note('Kopieren: Bereich mit gedrückter Maustaste aufziehen');
       return;
     }
     if (ctrl && k === 'v') {
@@ -296,19 +290,6 @@ export class Game {
       return;
     }
     if (k === 'b') { this.hud.toggleBlueprints(); return; }
-    if (k === 'g') {
-      this.cursorItem = null;
-      this.cursorBlueprint = null;
-      this.wireTool = this.wireTool === null ? 'red' : this.wireTool === 'red' ? 'green' : null;
-      this.wireFrom = null;
-      this.world.player?.note(this.wireTool ? `${this.wireTool === 'red' ? 'Roter' : 'Grüner'} Draht: zwei Gebäude nacheinander anklicken (G wechselt)` : 'Draht weggelegt');
-      return;
-    }
-    if (k === 'escape' && this.wireTool) {
-      this.wireTool = null;
-      this.wireFrom = null;
-      return;
-    }
     if (this.cursorBlueprint && k === 'r') { this.cursorBlueprint = bpRotate(this.cursorBlueprint); return; }
     if (k === 'escape' && (this.cursorBlueprint || this.selecting)) {
       this.cursorBlueprint = null;
@@ -525,43 +506,9 @@ export class Game {
   private finishCopy(): void {
     const s = this.selecting!;
     this.selecting = null;
-    const ax = Math.min(s.x0, s.x1);
-    const bx = Math.max(s.x0, s.x1);
-    const ay = Math.min(s.y0, s.y1);
-    const by = Math.max(s.y0, s.y1);
-    if (s.cut) {
-      // Ausschneiden/Abreißen (wie der Abrissplaner): Gebäude und Bäume im Bereich für Bauroboter markieren;
-      // mit Umschalt: Markierungen im Bereich aufheben
-      const unmark = this.input.shift;
-      const robots = this.world.robots;
-      let trees = 0;
-      for (let y = ay; y <= by; y++) {
-        for (let x = ax; x <= bx; x++) {
-          const e = this.world.entityAt(x, y);
-          if (e) {
-            if (unmark) robots.marked.delete(e.id);
-            else robots.marked.add(e.id);
-          }
-          const t = this.world.map.trees.treeAt(x, y);
-          if (t) {
-            const k = treeKey(t.cx, t.cy, t.i);
-            if (unmark) robots.markedTrees.delete(k);
-            else if (!robots.markedTrees.has(k)) {
-              robots.markedTrees.set(k, { cx: t.cx, cy: t.cy, i: t.i, x: t.x, y: t.y });
-              trees++;
-            }
-          }
-        }
-      }
-      if (unmark) {
-        this.world.player?.note('Markierungen im Bereich aufgehoben');
-        return;
-      }
-      if (trees) this.world.player?.note(`${trees} Bäume zum Fällen markiert (Bauroboter)`);
-    }
     const bp = bpCapture(this.world, s.x0, s.y0, s.x1, s.y1);
     if (!bp) {
-      if (!s.cut) this.world.player?.note('Keine Gebäude im Bereich');
+      this.world.player?.note('Keine Gebäude im Bereich');
       return;
     }
     this.clipboard = bp;
@@ -590,30 +537,7 @@ export class Game {
     return true;
   }
 
-  /** Anschluss unter der Maus: bei 1×2-Kombinatoren entscheidet das Feld (vorn = Ausgang). */
-  private wirePointAt(tx: number, ty: number): { id: number; side: 0 | 1 } | null {
-    const e = this.world.entityAt(tx, ty);
-    if (!e) return null;
-    if (e.kind === 'combinator' && e.def.height === 2) {
-      const front = CircuitSystem.pointPos(e, 1);
-      return { id: e.id, side: Math.floor(front.x) === tx && Math.floor(front.y) === ty ? 1 : 0 };
-    }
-    return { id: e.id, side: 0 };
-  }
-
   private onLeftPress(tx: number, ty: number, at: { x: number; y: number }): void {
-    if (this.wireTool) {
-      const pt = this.wirePointAt(tx, ty);
-      if (!pt) return;
-      if (!this.wireFrom) {
-        this.wireFrom = pt;
-        return;
-      }
-      const r = this.world.circuit.toggle(this.world, this.wireFrom, pt, this.wireTool);
-      if (r === 'far') this.world.player?.note('Zu weit für einen Draht');
-      this.wireFrom = r === 'far' || r === 'invalid' ? this.wireFrom : pt;
-      return;
-    }
     if (this.selecting) {
       this.selecting = { ...this.selecting, x0: tx, y0: ty, x1: tx, y1: ty, active: true };
       return;
@@ -699,12 +623,12 @@ export class Game {
         if (err) p!.note(err);
         if (!p) target.searched = true;
         this.searchOpen = target.id;
-      } else if (target && hasWindow(target, this.world)) this.hud.openEntity(target.id);
+      } else if (target && hasWindow(target)) this.hud.openEntity(target.id);
       return;
     }
     const g = this.ghostAt(at);
     if (!g) return;
-    if (!g.ok && target && hasWindow(target, this.world) && entityDef(g.name).kind !== 'belt') {
+    if (!g.ok && target && hasWindow(target) && entityDef(g.name).kind !== 'belt') {
       this.hud.openEntity(target.id);
       return;
     }
@@ -859,10 +783,7 @@ export class Game {
       }
     }
     const sel = this.selecting?.active ? this.selecting : null;
-    // Hangarbereiche: Hangar oder Logistikkiste im Cursor bzw. unter der Maus
     const under = this.input.overCanvas ? this.world.entityAt(m.x, m.y) : undefined;
-    const showAreas = /roboport|provider-chest|storage-chest|requester-chest|buffer-chest/.test(this.cursorItem ?? '')
-      || under?.kind === 'roboport' || (under?.kind === 'container' && !!under.logistic);
     // Stromnetz: Mast im Cursor (auch in einer Blaupause) oder Mast unter der Maus
     const cursorPlace = this.cursorItem ? ITEMS[this.cursorItem]?.placeResult : undefined;
     const poleInHand = !!cursorPlace && entityDef(cursorPlace).kind === 'pole';
@@ -897,17 +818,11 @@ export class Game {
       const o = this.floorBrushOrigin(Math.floor(m.x), Math.floor(m.y));
       floorBrush = { x: o.x, y: o.y, n: this.floorBrush };
     }
-    let wire: RenderUi['wire'] = null;
-    if (this.wireTool) {
-      const from = this.wireFrom ? this.world.entities.get(this.wireFrom.id) : undefined;
-      const p = from ? CircuitSystem.pointPos(from, this.wireFrom!.side) : null;
-      wire = { color: this.wireTool, from: p, to: m };
-    }
     return {
-      ghost, ghosts, alt: this.alt, hover, mining, robotAreas: showAreas, wire, power, drill, inserter, throwAim, floorBrush,
+      ghost, ghosts, alt: this.alt, hover, mining, power, drill, inserter, throwAim, floorBrush,
       // Flüssigkeitsanschlüsse zeigen, solange etwas mit Rohranschluss in der Hand ist (wie im Original)
       fluidPorts: !!cursorPlace && FLUID_PLACE_KINDS.has(entityDef(cursorPlace).kind),
-      selection: sel ? { x0: Math.min(sel.x0, sel.x1), y0: Math.min(sel.y0, sel.y1), x1: Math.max(sel.x0, sel.x1) + 1, y1: Math.max(sel.y0, sel.y1) + 1, cut: sel.cut } : null,
+      selection: sel ? { x0: Math.min(sel.x0, sel.x1), y0: Math.min(sel.y0, sel.y1), x1: Math.max(sel.x0, sel.x1) + 1, y1: Math.max(sel.y0, sel.y1) + 1 } : null,
     };
   }
 
@@ -995,22 +910,22 @@ export class Game {
     const r = this.world.map.resourceAt(Math.floor(m.x), Math.floor(m.y));
     if (r.amount > 0) {
       const def = RESOURCE_BY_INDEX[r.res]!;
-      return def.fluid ? `${def.name}: ${(r.amount / 1000).toFixed(1)} % Ergiebigkeit` : `${def.name}: ${r.amount}`;
+      return `${def.name}: ${r.amount}`;
     }
     return '';
   }
 }
 
 /** Gebäudearten mit Rohranschlüssen: in der Hand zeigen sie alle Flüssigkeitsanschlüsse. */
-const FLUID_PLACE_KINDS = new Set(['pipe', 'pipe-ground', 'pump', 'tank', 'offshore-pump', 'boiler', 'generator', 'assembler']);
+const FLUID_PLACE_KINDS = new Set(['pipe', 'pipe-ground', 'pump', 'tank', 'offshore-pump', 'boiler', 'generator']);
 
 const CREATIVE_QUICKBAR: (string | null)[] = [
   'transport-belt', 'burner-inserter', 'burner-mining-drill', 'stone-furnace', null, null, null, null, null, null,
 ];
 
 /** Gebäude mit eigenem Fenster (Bänder, Rohre, Masten haben keins). */
-function hasWindow(e: Entity, w?: World): boolean {
-  // alle Gebäude mit Flüssigkeiten (Tank, Rohr, Pumpen, Kessel, Dampfmaschine, Raffinerie …), Wärme und Radar zeigen Füllstände
+function hasWindow(e: Entity): boolean {
+  // alle Gebäude mit Flüssigkeiten (Tank, Rohr, Pumpen, Kessel, Dampfmaschine) und Radar zeigen Füllstände
   if (isFluidHolder(e) || e.kind === 'radar') return true;
-  return e.guiSlots().length > 0 || (e.kind === 'belt' && !!w?.circuit.isWired(e.id)) || e.kind === 'combinator' || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter' || e.kind === 'solar' || e.kind === 'accumulator' || e.kind === 'pole';
+  return e.guiSlots().length > 0 || e.kind === 'inserter' || e.kind === 'lamp' || e.kind === 'pump' || e.kind === 'assembler' || e.kind === 'lab' || e.kind === 'splitter' || e.kind === 'solar' || e.kind === 'accumulator' || e.kind === 'pole';
 }

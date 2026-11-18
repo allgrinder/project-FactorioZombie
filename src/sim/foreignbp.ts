@@ -18,11 +18,6 @@ const ALIASES: Record<string, string> = {
   'filter-inserter': 'fast-inserter',
   'stack-inserter': 'bulk-inserter',
   'stack-filter-inserter': 'bulk-inserter',
-  'logistic-chest-passive-provider': 'passive-provider-chest',
-  'logistic-chest-active-provider': 'active-provider-chest',
-  'logistic-chest-storage': 'storage-chest',
-  'logistic-chest-requester': 'requester-chest',
-  'logistic-chest-buffer': 'buffer-chest',
 };
 
 /** Gebäude, deren Richtung im Vorbild zur Aufnahmeseite zeigt (bei uns: Ablageseite). */
@@ -35,7 +30,7 @@ export interface ForeignReport {
   imported: number;
   /** Ausgelassene Gebäude je Name. */
   unknown: Map<string, number>;
-  /** Weitere Hinweise (Drähte, Bodenbeläge, Module, Bögen). */
+  /** Weitere Hinweise (Drähte, Bodenbeläge, Module). */
   notes: string[];
 }
 
@@ -138,13 +133,8 @@ function convert(b: FBlueprint, report: ForeignReport, notes: Set<string>): Blue
   if (b.wires?.length || ents.some((e) => e.connections)) notes.add('Schaltungsdrähte ausgelassen');
   const raw: { name: string; cx: number; cy: number; dir: Dir; settings?: Settings; src: FEntity }[] = [];
   for (const e of ents) {
-    let name = ourName(e.name);
+    const name = ourName(e.name);
     let dir = dir4(e.direction, v2);
-    if (name === 'straight-rail') {
-      // nur gerade Gleise (1.1: Richtung 0/2 bzw. 2.0: 0/4); Diagonalen und Bögen haben bei uns andere Formen
-      const d = e.direction ?? 0;
-      if (d % (v2 ? 4 : 2) !== 0) name = null;
-    }
     if (!name) {
       report.unknown.set(e.name, (report.unknown.get(e.name) ?? 0) + 1);
       continue;

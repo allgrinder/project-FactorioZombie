@@ -7,6 +7,7 @@ import { SURVIVAL } from '../../src/data/survival';
 import { TECHS } from '../../src/data/tech';
 import { DAY } from '../../src/data/time';
 import { ITEMS } from '../../src/data/items';
+import { ENTITIES } from '../../src/data/entities';
 import type { ElectricSource } from '../../src/sim/energy';
 import type { LootEntity, ProducerEntity, RadioEntity } from '../../src/sim/machines';
 import { Player } from '../../src/sim/player';
@@ -313,8 +314,11 @@ describe('Spielziel und Inhalt', () => {
   });
 
   it('gestrichene Inhalte sind weg, jede Forschung schaltet vorhandene Rezepte frei, alle Zutaten sind beschaffbar', () => {
-    for (const id of ['oil-refinery', 'locomotive', 'roboport', 'nuclear-reactor', 'rocket-silo', 'assembling-machine-2', 'express-transport-belt', 'speed-module']) {
-      expect(isCraftable(id), id).toBe(false);
+    for (const id of ['assembling-machine-2', 'express-transport-belt', 'electric-mining-drill']) expect(isCraftable(id), id).toBe(false);
+    // Züge, Roboter, Schaltungsnetz, Kernkraft, Öl, Module und Rakete sind ganz entfernt
+    for (const id of ['oil-refinery', 'locomotive', 'rail', 'roboport', 'construction-robot', 'constant-combinator', 'nuclear-reactor', 'rocket-silo', 'speed-module', 'beacon', 'plastic-bar', 'modular-armor']) {
+      expect(ITEMS[id], id).toBeUndefined();
+      expect(ENTITIES[id], id).toBeUndefined();
     }
     for (const t of TECHS) for (const u of t.unlocks) expect(RECIPES[u], `${t.id} → ${u}`).toBeTruthy();
     for (const t of TECHS) for (const pre of t.prerequisites) expect(TECHS.some((x) => x.id === pre), `${t.id} braucht ${pre}`).toBe(true);
@@ -322,6 +326,34 @@ describe('Spielziel und Inhalt', () => {
     const raw = new Set(['iron-ore', 'copper-ore', 'coal', 'stone', 'wood', 'water', 'steam', 'cloth', 'radio-parts', 'vegetables', 'water-bottle']);
     for (const r of RECIPE_LIST) for (const i of r.ingredients) expect(raw.has(i.item) || isCraftable(i.item), `${r.id} braucht ${i.item}`).toBe(true);
     for (const r of RECIPE_LIST) for (const x of [...r.ingredients, ...r.results]) expect(ITEMS[x.item] || x.item === 'water' || x.item === 'steam', x.item).toBeTruthy();
+  });
+
+  it('alte Spielstände mit gestrichenen Systemen laden: unbekannte Felder, Gebäude und Items fallen weg', () => {
+    const w = new World(5);
+    w.player = new Player(0.5, 0.5);
+    const chest = w.place('iron-chest', 3, 3, 0)!;
+    w.step();
+    const d = JSON.parse(JSON.stringify(serializeWorld(w)));
+    const ce = d.entities.find((e: { id: number }) => e.id === chest.id);
+    ce.inv[0] = ['speed-module', 4];
+    ce.inv[1] = ['iron-plate', 7];
+    d.entities.push({ id: 900, name: 'roboport', x: 10, y: 10, dir: 0, st: 1 }, { id: 901, name: 'constant-combinator', x: 20, y: 10, dir: 0, st: 1 });
+    Object.assign(d, { robots: { r: [] }, circuit: { w: [] }, beltStop: [5], rockets: 2 });
+    d.ghosts = { n: 2, g: [[1, 'beacon', 30, 30, 0, null]] };
+    d.ground = [[123, [['rail', 10, 10], ['wood', 20, 20]]]];
+    d.map.push([0, 0, 5, 300, 6]);
+    d.player.inv[0] = ['construction-robot', 10];
+    d.player.ar = 'modular-armor';
+    Object.assign(d.player, { gr: { e: 0, i: [] }, pr: true });
+    const b = deserializeWorld(d);
+    expect([...b.entities.values()].map((e) => e.name)).toEqual(['iron-chest']);
+    const c = b.entities.get(chest.id)!;
+    expect(c.contents()).toEqual([{ item: 'iron-plate', count: 7 }]);
+    expect(b.ghosts.all.size).toBe(0);
+    expect(b.ground.get(123)!.map((g) => g.item)).toEqual(['wood']);
+    expect(b.player!.inventory.count('construction-robot')).toBe(0);
+    expect(b.player!.armor).toBeNull();
+    for (let i = 0; i < 60; i++) b.step();
   });
 
   it('Startausrüstung und neue Runde: satt genug, bewaffnet, verbunden', () => {

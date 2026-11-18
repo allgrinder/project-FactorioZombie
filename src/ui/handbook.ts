@@ -54,19 +54,16 @@ const GROUPS: { title: string; test: (id: string) => boolean }[] = [
   { title: 'Gebäude', test: () => true },
 ];
 
-/** Alle Produkte, die im Handbuch erscheinen (keine Fass-Varianten). */
+/** Alle Produkte, die im Handbuch erscheinen. */
 function allProducts(): string[] {
   const ids = new Set<string>();
-  for (const r of RECIPE_LIST) {
-    if ((r.id.startsWith('empty-') && r.id !== 'empty-barrel') || r.id.startsWith('fill-')) continue;
-    for (const x of [...r.results, ...r.ingredients]) if (!x.item.endsWith('-barrel') || x.item === 'empty-barrel') ids.add(x.item);
-  }
+  for (const r of RECIPE_LIST) for (const x of [...r.results, ...r.ingredients]) ids.add(x.item);
   return [...ids].sort((a, b) => (ITEMS[a]?.order ?? 500) - (ITEMS[b]?.order ?? 500) || nameOf(a).localeCompare(nameOf(b), 'de'));
 }
 
 /**
  * Handbuch (Taste J): links alle Produkte, rechts Rezept, Verwendung und ein Verhältnis-Rechner
- * (wie viele Maschinen je Schritt, bis hinunter zu Bohrern und Pumpjacks), dazu eine Seite mit Faustregeln.
+ * (wie viele Maschinen je Schritt, bis hinunter zu Bohrern), dazu eine Seite mit Faustregeln.
  */
 export class HandbookView {
   readonly root: HTMLDivElement;
@@ -203,9 +200,9 @@ export class HandbookView {
       if (src) {
         const row = el('div', 'hb-row', s);
         row.appendChild(this.host.icon(`item.${src.machine}`, 'icon small'));
-        el('span', '', row, `${nameOf(src.machine)}: ${num(src.perMachine)} ${isFluidId(id) ? 'Einheiten' : 'Stück'}/s je Gebäude${src.note ? ` (${src.note})` : ''}`);
-      } else if (id === 'wood') el('div', 'hb-row', s, 'Bäume fällen (Rechtsklick halten oder Bauroboter mit Strg+X).');
-      else if (id === 'steam') el('div', 'hb-row', s, 'Kessel (Wasser + Brennstoff) oder Wärmetauscher erzeugen Dampf.');
+        el('span', '', row, `${nameOf(src.machine)}: ${num(src.perMachine)} ${isFluidId(id) ? 'Einheiten' : 'Stück'}/s je Gebäude`);
+      } else if (id === 'wood') el('div', 'hb-row', s, 'Bäume fällen (Rechtsklick halten).');
+      else if (id === 'steam') el('div', 'hb-row', s, 'Kessel (Wasser + Brennstoff) erzeugen Dampf.');
       else el('div', 'hb-row dim', s, 'Kein Rezept – Rohstoff bzw. Abfallprodukt.');
     }
     // Rezepte
@@ -251,7 +248,7 @@ export class HandbookView {
     el('span', 'hb-arrow', line, `→ ${num(r.time)} s →`);
     r.results.forEach((x, i) => {
       if (i) el('span', 'dim', line, '+');
-      this.link(x.item, line, `${num(x.amount)}${x.probability !== undefined && x.probability < 1 ? ` (${num(x.probability * 100, 1)} %)` : ''}`);
+      this.link(x.item, line, num(x.amount));
     });
     const info = el('div', 'dim hb-note', box);
     const where: string[] = [];
@@ -259,7 +256,6 @@ export class HandbookView {
     const ms = Object.values(ENTITIES).filter((e) => {
       const d = e as { categories?: readonly string[]; kind: string };
       if (r.category === 'smelting') return d.kind === 'furnace';
-      if (r.category === 'rocket-building') return d.kind === 'rocket-silo';
       return d.categories?.includes(r.category);
     });
     where.push(...ms.map((e) => e.name));
@@ -363,7 +359,6 @@ export class HandbookView {
         el('b', '', m, `${whole} ×`);
         el('span', '', m, nameOf(n.machine));
         if (Math.abs(whole - n.count) > 1e-6) el('span', 'dim', m, ` (${num(n.count)})`);
-        if (n.machine === 'pumpjack') el('span', 'dim', m, ' bei 100 %');
       } else if (n.raw) el('span', 'dim', m, n.item === 'wood' ? 'Bäume fällen' : 'Rohstoff');
       if (n.byproducts.length) {
         el('span', 'dim hb-by', r, `+ ${n.byproducts.map((b) => `${num(b.rate)}/s ${nameOf(b.item)}`).join(', ')}`);
@@ -388,7 +383,7 @@ export class HandbookView {
       const line = el('div', 'hb-row', rs);
       this.link(rid, line, num(c));
     }
-    el('div', 'dim hb-note', s, 'Ohne Module und Produktivitätsboni. Bruchteile = Maschine läuft nur teilweise; aufgerundet steht vorn.');
+    el('div', 'dim hb-note', s, 'Ohne Produktivitätsboni. Bruchteile = Maschine läuft nur teilweise; aufgerundet steht vorn.');
   }
 
   showRules(): void {
