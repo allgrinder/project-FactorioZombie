@@ -684,7 +684,8 @@ const list: EntityDef[] = [
     // Evakuierungs-Sammelstelle (lib/staetten.py)
     ['army-tent', 'Armeezelt', 3, 3, 'tent', 3], ['medical-tent', 'Sanitätszelt', 3, 3, 'medtent', 3],
     ['army-truck', 'Militär-Lastwagen', 4, 2, 'military', 3.5], ['body-bags', 'Leichensäcke', 2, 1, 'bodies', 2.5],
-    ['corpse', 'Leiche', 1, 1, 'bodies', 1.5],
+    ['corpse', 'Leiche', 1, 1, 'bodies', 1.5], ['rowboat', 'Ruderboot', 2, 1, 'boat', 2],
+    ['dome-tent', 'Kuppelzelt', 2, 2, 'camping', 2],
   ] as const).map(([id, name, w, h, table, t]): LootDef => ({
     kind: 'loot', id, name, width: w, height: h, health: w * h * 120, item: w > 2 ? 'iron-plate' : 'wood', itemCount: w * h, mineTime: 2 + w,
     solid: id !== 'corpse', rotatable: false, slots: 8, table, searchTime: t,
@@ -700,6 +701,7 @@ const list: EntityDef[] = [
     ['sandbags', 'Sandsäcke', 2, 1, 'stone', 4, true], ['fallen-log', 'Umgestürzter Baum', 3, 1, 'wood', 10, true],
     ['grave', 'Grab', 1, 1, 'stone', 2, false], ['site-fence', 'Bauzaun', 1, 1, 'iron-stick', 3, true],
     ['porta-potty', 'Dixi-Klo', 1, 1, 'iron-plate', 1, true], ['cot', 'Feldbett', 1, 1, 'cloth', 2, false],
+    ['fire-ring', 'Feuerstelle', 1, 1, 'stone', 3, false],
   ] as const).map(([id, name, w, h, item, n, solid]): PropDef => ({
     kind: 'prop', id, name, width: w, height: h, health: 150, item, itemCount: n, mineTime: 1, solid, rotatable: false,
   })),

@@ -44,6 +44,9 @@ export const AMBIENT = {
   /** Bodennebel morgens und bei Nebel: Schwaden im Bild, Deckkraft. */
   mist: 14,
   mistAlpha: 0.22,
+  /** Hubschrauber-Überflug: Wahrscheinlichkeit je Tick am Tag, Tempo (Felder je Tick). */
+  heliChance: 0.00006,
+  heliSpeed: 0.12,
 } as const;
 
 /** Vignette (Bildränder abgedunkelt): freier Innenbereich in Prozent, Deckkraft am Rand. Aus mit ?look=0. */
@@ -57,3 +60,6 @@ export const HOUSES = { burnt: 0.1, smoulder: 0.35, roofHoles: 0.7, charred: [0x
 
 /** Bodenfarbe je Jahreszeit (multipliziert mit der Landschaftsfarbe): Frühling frisch, Herbst braun, Winter fahl. */
 export const SEASON_GROUND = { spring: 0xe4f6d0, summer: 0xf6f8e8, autumn: 0xfff0d0, winter: 0xe4e8ee } as const;
+
+/** Trampelpfade (nur Darstellung): Abtastung alle every Ticks, Zuwachs je Schritt, Abklingen je Abtastung, ab show sichtbar. */
+export const TRAILS = { every: 6, gain: 0.03, decay: 0.00005, show: 0.3, maxAlpha: 0.75, maxTiles: 20000 } as const;

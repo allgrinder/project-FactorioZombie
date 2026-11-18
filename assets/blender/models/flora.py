@@ -21,16 +21,16 @@ TAN = math.tan(eisen.TILT)
 
 TREES = [
     # (Art, Krone, Höhe, Laubfarbe)
-    ('acer-campestre', 4.6, 7, '#6f7d4b'),
-    ('carpinus-betulus', 4.4, 7.5, '#66764a'),
-    ('quercus-rubra', 5.4, 8, '#5f7045'),
-    ('pinus-sylvestris', 4.4, 8.5, '#55653f'),
+    ('acer-campestre', 4.6, 7, '#87985c'),
+    ('carpinus-betulus', 4.4, 7.5, '#7c905a'),
+    ('quercus-rubra', 5.4, 8, '#748954'),
+    ('pinus-sylvestris', 4.4, 8.5, '#687b4d'),
 ]
 SHRUBS = [
-    ('viburnum', 2.0, 1.8, '#5f7048', 'shrub'),
-    ('cornus', 2.2, 2.0, '#687a4c', 'shrub'),
-    ('spiraea', 1.6, 1.2, '#6c7a48', 'shrub'),
-    ('laurocerasus', 2.0, 1.8, '#4f6240', 'shrub'),
+    ('viburnum', 2.0, 1.8, '#748958', 'shrub'),
+    ('cornus', 2.2, 2.0, '#7f955d', 'shrub'),
+    ('spiraea', 1.6, 1.2, '#849558', 'shrub'),
+    ('laurocerasus', 2.0, 1.8, '#60784e', 'shrub'),
 ]
 
 

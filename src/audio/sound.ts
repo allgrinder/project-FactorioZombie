@@ -51,6 +51,7 @@ export const SOUNDS: Record<string, Params> = {
   crow: [0.16, 0.1, 520, 0.01, 0.08, 0.1, 2, 2.5, -8, , , , 0.08, 1, , 0.2, , 0.5],
   rain: [0.09, 0, 300, 0.1, 0.3, 0.2, 4, 0, , , , , , 3, , , , 0.5],
   thunder: [0.7, 0.2, 40, 0.05, 0.6, 1.8, 4, 0.3, -0.5, , , , , 3, 3, 0.4, 0.2, 0.4, 0.5],
+  heli: [0.35, 0.1, 55, 0.01, 0.05, 0.12, 4, 0.5, , , , , 0.09, 1.5, , , , 0.4, 0.04],
   moan: [0.2, 0.3, 95, 0.12, 0.35, 0.4, 2, 0.6, -0.4, , , , 0.12, 0.3, 2, , , 0.5, 0.15],
 };
 
@@ -143,7 +144,7 @@ export class SoundSystem {
   }
 
   /** Ereignisse der Simulation hörbar machen (Entfernung zur Bildmitte, Zoom). */
-  update(world: World, events: readonly GameEvent[], cam: { x: number; y: number; zoom: number }, viewW: number): void {
+  update(world: World, events: readonly GameEvent[], cam: { x: number; y: number; zoom: number }, viewW: number, heli: { x: number; y: number } | null = null): void {
     if (!this.ctx) return;
     const halfW = viewW / 2 / (64 * cam.zoom);
     const hear = Math.max(12, halfW * 1.3);
@@ -167,6 +168,11 @@ export class SoundSystem {
       if (!s || e.status !== Status.Working) continue;
       const a = atten(e.cx, e.cy);
       if (a > 0) near.push({ name: s, a, x: e.cx });
+    }
+    // Hubschrauber: Rotor-Schlagen, leiser mit der Entfernung
+    if (heli) {
+      const d = Math.hypot(heli.x - cam.x, heli.y - cam.y);
+      if (d < 90) this.play('heli', Math.max(0, 1 - d / 90), (heli.x - cam.x) / Math.max(1, halfW * 2), 330);
     }
     // Zombies: Stöhnen des nächsten wachen Zombies (in Bewegung)
     let moan = 0;

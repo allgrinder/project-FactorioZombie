@@ -17,7 +17,7 @@ import type { World } from '../sim/world';
 import type { SpriteLib } from './assets';
 import { BiomeField } from './biome';
 import { DecorField } from './decor';
-import { HOUSES, LOOK, SEASON_GROUND, VIGNETTE, WIND } from '../data/look';
+import { HOUSES, LOOK, SEASON_GROUND, TRAILS, VIGNETTE, WIND } from '../data/look';
 import { AdvancedBloomFilter } from 'pixi-filters';
 import type { GameEvent } from '../sim/events';
 import { PLAYER_COMBAT, UNITS, type UnitKind } from '../data/enemies';
@@ -50,7 +50,7 @@ const ROOF_TINTS: Record<string, number[]> = {
   tile: [0xffffff, 0xecccb8, 0xdcb2a2, 0xc8a284, 0xf0d8c0],
   slate: [0xffffff, 0xccd4dc, 0xbcbcca, 0xd8d0c8],
   metal: [0xffffff, 0xd4bca4, 0xbccac4, 0xc8b0a0],
-  flat: [0xffffff, 0xe0dcd4, 0xd0d4d8],
+  flat: [0xffffff, 0xe0dcd4, 0xd0d4d8, 0xd8ccb4, 0x9e9a92, 0xc4ccb4, 0xb8b0a4],
 };
 
 /** Kleidung je Aufgabe (Tönung der Arbeiterfigur). */
@@ -121,6 +121,9 @@ const ITEM_OUTLINE = { scale: 1.16, alpha: 0.6 };
 /** Belag „Acker“ (src/data/floors.ts) und Feldfrüchte (models/flur.py). */
 const CROP_FLOOR = 8;
 const CROPS = ['wheat', 'maize', 'sunflower', 'beet'] as const;
+
+/** Anteil der Häuser mit gemaltem Hilferuf auf dem Dach. */
+const PAINT_SHARE = 0.08;
 
 /** Flecken auf Flachdächern. */
 const ROOF_GRIME = ['decal.weeds', 'decal.leaves', 'decal.weeds', 'decal.trash'] as const;
@@ -194,7 +197,7 @@ export class GameRenderer {
   private readonly fxAddPool = new SpritePool();
   private readonly ambientPool = new SpritePool();
   private readonly ambientGlow = new SpritePool();
-  private ambient: AmbientLife | null = null;
+  ambient: AmbientLife | null = null;
   private effects: Effects | null = null;
   private readonly cloudPool = new SpritePool();
   private clouds: CloudShadows | null = null;
@@ -536,7 +539,9 @@ export class GameRenderer {
     g.begin();
     rp.begin();
     const CS = MAPGEN.chunkSize;
-    const sg = SEASON_GROUND[world.settings.plan ? world.weather.season(world.tick) : 'summer'];
+    // Jahreszeit und Nässe: bei Regen und Sturm dunkler, kühler (nasser Boden)
+    const wk = world.settings.plan ? world.weather.kind : 'clear';
+    const sg = mulTint(SEASON_GROUND[world.settings.plan ? world.weather.season(world.tick) : 'summer'], wk === 'rain' ? 0xd2d6da : wk === 'storm' ? 0xc4c8ce : 0xffffff);
     for (let cy = Math.floor(v.y0 / CS); cy <= Math.floor(v.y1 / CS); cy++) {
       for (let cx = Math.floor(v.x0 / CS); cx <= Math.floor(v.x1 / CS); cx++) {
         const chunk = world.map.getChunk(cx, cy);
@@ -782,6 +787,11 @@ export class GameRenderer {
   private drawFloors(world: World, v: ReturnType<GameRenderer['viewRect']>): void {
     const p = this.floorPool;
     p.begin();
+    // nasser Asphalt und Pflaster bei Regen dunkler
+    const wk = world.settings.plan ? world.weather.kind : 'clear';
+    const wetTint = wk === 'rain' ? 0xc6cad0 : wk === 'storm' ? 0xb4b8c0 : 0xffffff;
+    p.container.tint = wetTint;
+    this.roadPool.container.tint = wetTint;
     const s = this.sprites;
     world.map.floorsIn(v.x0 - 1, v.y0 - 1, v.x1 + 1, v.y1 + 1, (x, y, id) => {
       const def = FLOOR_BY_ID[id];
@@ -828,6 +838,25 @@ export class GameRenderer {
       sp.scale.set(k * d.sx, k * d.sy);
       sp.rotation = d.rot;
       n++;
+    }
+    // Trampelpfade: wo Figur und Bewohner oft gehen, wird das Gras zu Erde
+    this.wearTrails(world);
+    if (this.sprites.has('decal.dirt.0')) {
+      for (const [k, wv] of this.wear) {
+        if (wv < TRAILS.show) continue;
+        const tx = Math.floor(k / 65536) - 32768;
+        const ty = (k % 65536) - 32768;
+        if (tx < v.x0 - 1 || tx > v.x1 + 1 || ty < v.y0 - 1 || ty > v.y1 + 1) continue;
+        if (world.map.floorAt(tx, ty)) continue;
+        const hh = ((Math.imul(tx, 73856093) ^ Math.imul(ty, 19349663)) >>> 0);
+        const name = `decal.dirt.${hh % 4}`;
+        const sp = p.get(this.sprites.frame(name));
+        sp.position.set((tx + 0.5) * TILE, (ty + 0.5) * TILE);
+        sp.scale.set((this.sprites.info(name)?.meta?.scale ?? 1) * 0.55);
+        sp.rotation = (hh >> 8) % 7;
+        sp.alpha = Math.min(TRAILS.maxAlpha, (wv - TRAILS.show) * 1.2);
+        n++;
+      }
     }
     // Ausgebrannte Häuser: Ruß und Asche auf dem Boden
     if (this.sprites.has('decal.burnt.0')) {
@@ -939,6 +968,27 @@ export class GameRenderer {
       }
     }
     this.drawCliffs(world, v);
+  }
+
+  /** Abnutzung je Feld (nur Darstellung, nicht gespeichert): wächst unter Füßen, verblasst langsam. */
+  private readonly wear = new Map<number, number>();
+  private wearTick = -1;
+  private wearTrails(world: World): void {
+    if (world.tick - this.wearTick < TRAILS.every && this.wearTick >= 0 && world.tick >= this.wearTick) return;
+    this.wearTick = world.tick;
+    const step = (x: number, y: number) => {
+      const k = (Math.floor(x) + 32768) * 65536 + (Math.floor(y) + 32768);
+      this.wear.set(k, Math.min(1, (this.wear.get(k) ?? 0) + TRAILS.gain));
+    };
+    const p = world.player;
+    if (p && !p.dead && !p.inCar) step(p.x, p.y);
+    for (const k of world.community.workers) if (k.faction === 'ours') step(k.x, k.y);
+    if (this.wear.size > TRAILS.maxTiles) for (const [k, v] of this.wear) if (v < TRAILS.show) this.wear.delete(k);
+    for (const [k, v] of this.wear) {
+      const nv = v - TRAILS.decay;
+      if (nv <= 0) this.wear.delete(k);
+      else this.wear.set(k, nv);
+    }
   }
 
   /** Acker-Ursprung je Feld (Art der Feldfrucht gilt für den ganzen Acker). */
@@ -1629,6 +1679,27 @@ export class GameRenderer {
                 d.zIndex = sp.zIndex + 0.5;
               }
             }
+          }
+        }
+      }
+      // Hilferufe auf Dächern (gemalt, nur Haupthäuser, nicht ausgebrannt)
+      if (h.g === undefined && !burnt && h.w >= 5 && h.h >= 4) {
+        const ph = (((h.x * 2246822519) ^ (h.y * 3266489917)) >>> 0) % 1000;
+        if (ph < PAINT_SHARE * 1000) {
+          const pn = `decal.paint.${ph % 6}`;
+          if (s.has(pn)) {
+            const tex = s.frame(pn);
+            const d = this.ents.get(tex);
+            const ms = s.info(pn)?.meta?.scale ?? 1;
+            const rot = h.h > h.w * 1.3;
+            const aw = ((rot ? h.h : h.w) - 1) * TILE;
+            const ah = ((rot ? h.w : h.h) - 1) * TILE;
+            const sc = Math.min(1, aw / (tex.width * ms), ah / (tex.height * ms));
+            d.position.set(ccx, ccy);
+            d.scale.set(sc * ms);
+            d.rotation = ((ph % 7) - 3) * 0.03 + (rot ? Math.PI / 2 : 0);
+            d.alpha = a * 0.85;
+            d.zIndex = (h.y + h.h) * TILE - 0.5;
           }
         }
       }

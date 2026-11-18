@@ -51,6 +51,8 @@ export class AmbientLife {
   private readonly smokeTex: Texture[] = [];
   private readonly smoke: Mote[] = [];
   private readonly mist: Mote[] = [];
+  /** Hubschrauber auf dem Überflug (Weltlage in Feldern), sonst null. */
+  heli: { x: number; y: number; vx: number; vy: number; dir: number; age: number } | null = null;
   /** Schwelende Ruinen im Bild (vom Renderer je Bild gefüllt). */
   readonly smokers: { x: number; y: number }[] = [];
 
@@ -153,10 +155,45 @@ export class AmbientLife {
       l.position.set(m.x * T, (m.y - m.z * 0.6) * T);
       l.alpha = Math.min(1, (m.life - m.age) / 40);
     }
+    this.updateHeli(world, dt, t, view, pool);
     this.updateSmoke(world, dt, t, pool);
     this.updateMist(world, dt, t, view, pool);
     pool.end();
     glow.end();
+  }
+
+  /** Hubschrauber: selten am Tag ein Überflug quer durchs Bild, hoch oben, mit Schatten am Boden. */
+  private updateHeli(world: World, dt: number, t: number, view: { x0: number; y0: number; x1: number; y1: number }, pool: SpritePool): void {
+    if (!this.sprites.has('heli.0')) return;
+    if (!this.heli && world.darkness < 0.3 && Math.random() < AMBIENT.heliChance * dt) {
+      const a = Math.random() * Math.PI * 2;
+      const cx = (view.x0 + view.x1) / 2;
+      const cy = (view.y0 + view.y1) / 2;
+      const r = Math.max(view.x1 - view.x0, view.y1 - view.y0) * 0.8 + 10;
+      const vx = -Math.cos(a) * AMBIENT.heliSpeed;
+      const vy = -Math.sin(a) * AMBIENT.heliSpeed;
+      const dir = ((Math.round(((Math.atan2(vy, vx) + Math.PI / 2) / (Math.PI * 2)) * 8) % 8) + 8) % 8;
+      this.heli = { x: cx + Math.cos(a) * r + (Math.random() - 0.5) * 20, y: cy + Math.sin(a) * r, vx, vy, dir, age: 0 };
+    }
+    const h = this.heli;
+    if (!h) return;
+    h.x += h.vx * dt;
+    h.y += h.vy * dt;
+    h.age += dt;
+    if (h.age > 60 * 40) {
+      this.heli = null;
+      return;
+    }
+    const T = this.tile;
+    const f = Math.floor(t / 2) % 4;
+    const sh = pool.get(this.sprites.frame(`heli.${h.dir}`, f));
+    sh.position.set((h.x + 4) * T, (h.y + 3) * T);
+    sh.tint = 0x000000;
+    sh.alpha = 0.22;
+    sh.scale.set(0.9);
+    const sp = pool.get(this.sprites.frame(`heli.${h.dir}`, f));
+    sp.position.set(h.x * T, (h.y - 6) * T);
+    sp.scale.set(1.15);
   }
 
   /** Rauchsäulen über schwelenden Ruinen: dunkler Rauch steigt auf und treibt mit dem Wind. */

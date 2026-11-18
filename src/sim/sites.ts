@@ -298,7 +298,7 @@ export class SiteSystem {
           const m = hi(4);
           const mat = hk === 'works' ? (m < 0.6 ? 'concrete' : 'brick') : m < 0.45 ? 'brick' : m < 0.9 ? 'plaster' : 'wood';
           const r = hi(5);
-          const roof: RoofKind = hk === 'store' ? 'flat' : hk === 'works' ? (r < 0.6 ? 'metal' : 'flat') : r < 0.5 ? 'tile' : r < 0.85 ? 'slate' : 'metal';
+          const roof: RoofKind = hk === 'store' ? (r < 0.5 ? 'flat' : r < 0.8 ? 'tile' : 'slate') : hk === 'works' ? (r < 0.6 ? 'metal' : 'flat') : r < 0.5 ? 'tile' : r < 0.85 ? 'slate' : 'metal';
           // Wohnhäuser oft mit Anbau nach hinten (L-Form)
           const back = (doorSide + 2) % 4;
           const span = back % 2 === 0 ? HW : HH;
@@ -575,6 +575,17 @@ export class SiteSystem {
       for (let j = -3; j <= 3; j++) for (let i = -3; i <= 3; i++) if (w.map.trees.treeAt(lx + i, ly + j)) trees++;
       if (trees >= 3 && !this.nearTown(lx, ly, 40)) this.put(w, 'fallen-log', lx, ly);
     }
+    // Ruderboot am Seeufer: Landfeld mit Wasser im Nachbarfeld
+    if (hash01(s, gx, gy, 840) < 0.45) {
+      for (let q = 0; q < 24; q++) {
+        const bx = Math.round((gx + hash01(s, gx, gy, 841 + q)) * c);
+        const by = Math.round((gy + hash01(s, gx, gy, 871 + q)) * c);
+        if (w.map.isWater(bx, by) || w.map.isWater(bx + 1, by)) continue;
+        if (!(w.map.isWater(bx, by + 1) || w.map.isWater(bx, by - 1) || w.map.isWater(bx - 1, by) || w.map.isWater(bx + 2, by))) continue;
+        if (Math.hypot(bx, by) < SITES.startFree * 0.6) continue;
+        if (this.put(w, 'rowboat', bx, by)) break;
+      }
+    }
     if (hash01(s, gx, gy, 811) >= WORLD.wildChance) return;
     const x = Math.round((gx + 0.2 + hash01(s, gx, gy, 812) * 0.6) * c);
     const y = Math.round((gy + 0.2 + hash01(s, gx, gy, 813) * 0.6) * c);
@@ -589,6 +600,18 @@ export class SiteSystem {
       placed += +this.put(w, 'supply-crate', x + 2, y + 1);
       placed += +this.put(w, 'car-wreck', x - 5, y - 1);
       if (placed) this.sites.push({ x, y, r: 6, weight: 1.5, kind: 'camp' });
+    } else if (hash01(s, gx, gy, 814) < 0.75) {
+      // verlassener Zeltplatz: Kuppelzelte um eine kalte Feuerstelle, Holzstapel, manchmal ein Wagen
+      let placed = +this.put(w, 'fire-ring', x, y);
+      for (let q = 0; q < 3; q++) {
+        if (q > 0 && hash01(s, gx, gy, 818 + q) < 0.4) continue;
+        const a = (q / 3) * Math.PI * 2 + hash01(s, gx, gy, 821) * 2;
+        placed += +this.put(w, 'dome-tent', Math.round(x + Math.cos(a) * 3.2 - 0.5), Math.round(y + Math.sin(a) * 3.2 - 0.5));
+      }
+      if (hash01(s, gx, gy, 822) < 0.5) this.put(w, 'wood-pile', x + 2, y + 3);
+      if (hash01(s, gx, gy, 823) < 0.4) this.put(w, 'car-wreck', x - 7, y + 1);
+      if (hash01(s, gx, gy, 824) < 0.4) this.put(w, 'corpse', x + 1, y - 2);
+      if (placed) this.sites.push({ x, y, r: 6, weight: 1.2, kind: 'camp' });
     } else if (this.put(w, hash01(s, gx, gy, 817) < 0.3 ? 'van-wreck' : 'car-wreck', x, y)) this.sites.push({ x, y, r: 5, weight: 0.7, kind: 'wreck' });
   }
 

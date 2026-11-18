@@ -24,34 +24,34 @@ TAN = math.tan(eisen.TILT)
 
 # (Art, Krone, Höhe, Laubfarbe, Frucht) – Index = 8 + Position
 TREES = [
-    ('betula-pendula', 3.4, 7.5, '#7d8a4e', None),
-    ('betula-pendula', 2.8, 6.4, '#869352', None),
-    ('betula-pendula', 3.8, 8.2, '#76844a', None),
-    ('castanea-sativa', 6.4, 8.5, '#5a6b3e', None),
-    ('castanea-sativa', 5.6, 7.6, '#617141', None),
-    ('quercus-rubra', 7.4, 9.5, '#56683f', None),
-    ('quercus-rubra', 6.8, 8.8, '#5d6c42', None),
-    ('aesculus-hippocastanum', 5.8, 8.6, '#5a6e40', None),
-    ('aesculus-hippocastanum', 5.0, 7.8, '#617443', None),
-    ('juglans-regia', 6.0, 7.4, '#66774a', None),
-    ('malus-topaz', 3.8, 4.4, '#6b7c48', '#a8402a'),
-    ('malus-topaz', 3.4, 4.0, '#728248', '#b8902e'),
-    ('pyrus-communis', 3.2, 5.4, '#68784a', '#a89a3a'),
-    ('prunus-avium', 4.0, 5.6, '#647445', '#7a1e22'),
-    ('acer-campestre', 2.4, 3.6, '#7a8a4c', None),
-    ('carpinus-betulus', 2.2, 3.4, '#728548', None),
+    ('betula-pendula', 3.4, 7.5, '#98a85f', None),
+    ('betula-pendula', 2.8, 6.4, '#a3b364', None),
+    ('betula-pendula', 3.8, 8.2, '#90a15a', None),
+    ('castanea-sativa', 6.4, 8.5, '#6e834c', None),
+    ('castanea-sativa', 5.6, 7.6, '#768a4f', None),
+    ('quercus-rubra', 7.4, 9.5, '#697f4d', None),
+    ('quercus-rubra', 6.8, 8.8, '#718451', None),
+    ('aesculus-hippocastanum', 5.8, 8.6, '#6e864e', None),
+    ('aesculus-hippocastanum', 5.0, 7.8, '#768e52', None),
+    ('juglans-regia', 6.0, 7.4, '#7c915a', None),
+    ('malus-topaz', 3.8, 4.4, '#839758', '#cd4e33'),
+    ('malus-topaz', 3.4, 4.0, '#8b9f58', '#e0b038'),
+    ('pyrus-communis', 3.2, 5.4, '#7f925a', '#cdbc47'),
+    ('prunus-avium', 4.0, 5.6, '#7a8e54', '#952529'),
+    ('acer-campestre', 2.4, 3.6, '#95a85d', None),
+    ('carpinus-betulus', 2.2, 3.4, '#8ba258', None),
 ]
 
 SHRUBS = [
     # Brombeeren, Himbeeren, Johannisbeeren, Wildrose, Hartriegel, Flieder (verwildert)
-    ('flora.bramble', [('rubus-idaeus', 1.8, 1.3, '#5d6e42', None, '#3a1630'),
-                       ('rubus-idaeus', 1.5, 1.0, '#66763f', None, '#2e1428'),
-                       ('ribes', 1.4, 1.1, '#62743f', None, '#8a1a1a'),
-                       ('rosa-shrub', 1.7, 1.4, '#5a6c3e', '#d8a0a8', None)]),
-    ('flora.thicket', [('cornus', 2.4, 2.2, '#5f6f44', None, None),
-                       ('syringa', 2.6, 2.6, '#617146', '#9a84b8', None),
-                       ('forsythia', 2.2, 2.0, '#6c7c46', None, None),
-                       ('viburnum', 2.4, 2.0, '#58693f', '#e0dcc8', None)]),
+    ('flora.bramble', [('rubus-idaeus', 1.8, 1.3, '#718651', None, '#471b3b'),
+                       ('rubus-idaeus', 1.5, 1.0, '#7c904d', None, '#381831'),
+                       ('ribes', 1.4, 1.1, '#788e4d', None, '#a82020'),
+                       ('rosa-shrub', 1.7, 1.4, '#6e844c', '#ffc3cd', None)]),
+    ('flora.thicket', [('cornus', 2.4, 2.2, '#748753', None, None),
+                       ('syringa', 2.6, 2.6, '#768a55', '#bca1e0', None),
+                       ('forsythia', 2.2, 2.0, '#849755', None, None),
+                       ('viburnum', 2.4, 2.0, '#6b804d', '#fffff4', None)]),
 ]
 
 PERENNIALS = [

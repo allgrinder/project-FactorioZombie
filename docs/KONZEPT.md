@@ -265,6 +265,16 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
   Hause, Fackeln der Plünderer, Pfützen nur nach Regen satt, Flachdächer mit Unkraut/Laub/Unrat, verkohlte Möbel,
   großräumige Wiesenfarben (grün bis strohgelb, `LOOK.macro.hue*`).
 
+## Feinschliff Welt
+- Laub aller Bäume und Sträucher um gut ein Fünftel aufgehellt (Wälder wirkten fast schwarz).
+- Trampelpfade (nur Darstellung, `TRAILS`): wo Figur und Bewohner oft gehen, wird das Gras zu Erde; verblasst langsam.
+- Hubschrauber-Überflüge (nur Darstellung, `lib/himmel.py`, etwa einmal je Tag) mit Bodenschatten und Rotorgeräusch.
+- Naturgeräusche (ZzFX): Vögel am Tag, Grillen in Sommernächten, Krähen, Regen, Donner bei Sturm, Zombie-Stöhnen.
+- Ruderboote an Seeufern (`rowboat`, Tabelle `boat`, 45 % der Zellen mit Ufer), verlassene Zeltplätze in der Wildnis
+  (Kuppelzelte um eine kalte Feuerstelle, Tabelle `camping`, `lib/ufer.py`).
+- Gemalte Hilferufe (`models/schrift.py`, „SOS“, „HILFE“, „INFIZIERT“, „LEBEN HIER“, „NICHT BETRETEN“) auf 8 % der Dächer.
+- Übersichtskarte zeigt Bäume und damit Wälder; Läden haben öfter Spitzdächer, Flachdächer mehr Farbtöne.
+
 ## Ortsbild 2
 - Zombies in 8 weiteren Kleidungen (`models/zombievolk.py`: Warnweste, Polizei, Kittel, Latzhose, Anzug, Flecktarn …).
 - Ausgebrannte Häuser (10 %, nur Darstellung): verkohlte Wände, Dach mit Löchern, Ruß am Boden (`HOUSES`).

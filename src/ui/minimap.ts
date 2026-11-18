@@ -116,6 +116,19 @@ export class Minimap {
       img.data[i * 4 + 2] = col & 255;
       img.data[i * 4 + 3] = 255;
     }
+    // Bäume: dunkelgrüne Kronen (Wälder werden als Fläche sichtbar)
+    for (const tr of world.map.trees.treesIn(cx, cy)) {
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const lx = tr.tx - cx * CS + dx;
+        const ly = tr.ty - cy * CS + dy;
+        if (lx < 0 || ly < 0 || lx >= CS || ly >= CS || (dx && dy)) continue;
+        const j = (ly * CS + lx) * 4;
+        const k = dx || dy ? 0.82 : 0.62;
+        img.data[j] = Math.round(img.data[j] * k * 0.85);
+        img.data[j + 1] = Math.round(img.data[j + 1] * k);
+        img.data[j + 2] = Math.round(img.data[j + 2] * k * 0.8);
+      }
+    }
     c.putImageData(img, 0, 0);
     if (t) t.frame = this.frame;
     else this.terrain.set(key, (t = { canvas, frame: this.frame }));
