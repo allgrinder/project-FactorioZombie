@@ -1196,7 +1196,7 @@
    ]
   },
   "himmel": {
-   "hash": "9d625e128acb085d",
+   "hash": "30505a9cd5d42760",
    "sprites": [
     "heli.0",
     "heli.0.nrm",
@@ -1213,7 +1213,10 @@
     "heli.6",
     "heli.6.nrm",
     "heli.7",
-    "heli.7.nrm"
+    "heli.7.nrm",
+    "heli-wreck.v0",
+    "heli-wreck.v0.nrm",
+    "heli-wreck.v0.shadow"
    ]
   },
   "icons": {
@@ -11828,6 +11831,33 @@
     0.1875,
     0.1875
    ]
+  },
+  "heli-wreck.v0": {
+   "group": "entities",
+   "frames": [
+    "heli-wreck.v0#0"
+   ],
+   "w": 368,
+   "h": 368,
+   "anchor": [
+    0.5,
+    0.6
+   ]
+  },
+  "heli-wreck.v0.shadow": {
+   "group": "entities",
+   "frames": [
+    "heli-wreck.v0.shadow#0"
+   ],
+   "w": 320,
+   "h": 272,
+   "anchor": [
+    0.275,
+    0.2647058823529412
+   ],
+   "meta": {
+    "scale": 2
+   }
   },
   "heli.0": {
    "group": "entities",
@@ -29733,6 +29763,18 @@
    "anchor": [
     0.5,
     0.7090909090909091
+   ]
+  },
+  "heli-wreck.v0.nrm": {
+   "group": "normals",
+   "frames": [
+    "heli-wreck.v0.nrm#0"
+   ],
+   "w": 368,
+   "h": 368,
+   "anchor": [
+    0.5,
+    0.6
    ]
   },
   "heli.0.nrm": {

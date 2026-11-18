@@ -41,6 +41,12 @@ interface Mote {
  * Feldern und bei Kadavern, die auffliegen, wenn jemand näher kommt; Schmetterlinge über Wiesen; Glühwürmchen in
  * Sommernächten; fallendes Laub im Herbst. Werte in src/data/look.ts (AMBIENT).
  */
+/** Schwelendes Wrack (nur Darstellung): ein fester Anteil der Fahrzeugwracks brennt noch. */
+export function burningWreck(e: { name: string; x: number; y: number }): boolean {
+  if (!e.name.endsWith('-wreck')) return false;
+  return ((((e.x * 2654435761) ^ (e.y * 40503)) >>> 0) % 1000) < AMBIENT.burningWrecks * 1000;
+}
+
 export class AmbientLife {
   private readonly flocks: Flock[] = [];
   private readonly butterflies: Mote[] = [];

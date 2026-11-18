@@ -71,6 +71,8 @@ export const NIGHT = {
   candleRadius: 4,
   candleColor: 0xffc070,
   torchRadius: 6,
+  /** Glut schwelender Fahrzeugwracks (Radius). */
+  wreckFire: 5,
   /** Kameraneigung der Blender-Renders (eisen.TILT) für die Bodennormale. */
   tiltDeg: 30,
   /** Höhe der Lichtquellen über dem Boden (Felder). */

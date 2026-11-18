@@ -4,6 +4,7 @@ import { Status } from '../sim/entity';
 import type { World } from '../sim/world';
 import type { Entity } from '../sim/machines';
 import { DAY } from '../data/time';
+import { burningWreck } from './ambient';
 import type { SpritePool } from './pools';
 import type { Camera } from './renderer';
 import type { SpriteLib } from './assets';
@@ -210,6 +211,9 @@ export class NightLayer {
           const r = e.def.lightRadius;
           add(e.cx, e.cy, r ?? NIGHT.lampRadius, r ? NIGHT.lampStrength * 1.25 : NIGHT.lampStrength, r ? NIGHT.floodColor : NIGHT.lampColor);
         }
+      } else if (e.kind === 'loot' && burningWreck(e)) {
+        const fl = 0.75 + 0.25 * Math.sin(world.tick * 0.29 + e.id) * Math.sin(world.tick * 0.13 + e.id * 5);
+        add(e.cx, e.cy - 0.3, NIGHT.wreckFire * fl, 1.0, NIGHT.fireColor);
       } else if (e.kind === 'fire') {
         // Feuer flackert
         if (e.status === Status.Working) {

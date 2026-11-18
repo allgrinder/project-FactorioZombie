@@ -70,7 +70,7 @@ import { EntityLife } from './life';
 import { HeatHaze } from './haze';
 import { HAZE } from '../data/fx';
 import { Effects } from './effects';
-import { AmbientLife } from './ambient';
+import { AmbientLife, burningWreck } from './ambient';
 import { ParticlePool, SpritePool } from './pools';
 
 export const TILE = 64;
@@ -443,6 +443,7 @@ export class GameRenderer {
     this.root.scale.set(c.zoom);
     this.root.position.set(Math.round(w / 2 - c.x * TILE * c.zoom), Math.round(h / 2 - c.y * TILE * c.zoom));
     const view = this.viewRect();
+    if (this.ambient) this.ambient.smokers.length = 0;
     this.drawGround(world, view);
     this.drawBelts(world, view, alpha);
     this.drawItems(world, view, alpha);
@@ -1568,6 +1569,11 @@ export class GameRenderer {
           const lsp = this.drawNamed(`${e.name}.v${Math.abs(e.x * 7 + e.y * 13) % n}`, cx, cy - lift, z + (lift ? 2000 : 0));
           // Möbel in ausgebrannten Häusern: verkohlt
           if (this.houseOf(world, e.x, e.y)?.burnt) lsp.tint = 0x5a524a;
+          // schwelendes Wrack: verrußt, Rauch steigt auf
+          if (burningWreck(e)) {
+            lsp.tint = 0x6a5a50;
+            this.ambient?.smokers.push({ x: e.cx, y: e.cy });
+          }
         }
         break;
       }
@@ -1683,7 +1689,6 @@ export class GameRenderer {
     const py = p && !p.dead ? p.y : -1e9;
     const lift = ROOF_LIFT * TILE;
     const hs = world.sites.houses;
-    if (this.ambient) this.ambient.smokers.length = 0;
     const snowy = world.settings.plan && world.weather.winter;
     const within = (h: (typeof hs)[number]) => px >= h.x && px < h.x + h.w && py >= h.y - 0.2 && py < h.y + h.h;
     // Haupthaus und Anbau blenden gemeinsam aus

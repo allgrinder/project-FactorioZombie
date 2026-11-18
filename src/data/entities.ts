@@ -688,6 +688,7 @@ const list: EntityDef[] = [
     ['dome-tent', 'Kuppelzelt', 2, 2, 'camping', 2],
     // Bahn (lib/strecke.py)
     ['freight-car', 'Güterwagen', 6, 2, 'freight', 3.5], ['tank-car', 'Kesselwagen', 6, 2, 'drums', 2.5], ['locomotive', 'Diesellok', 7, 2, 'loco', 4],
+    ['heli-wreck', 'Hubschrauberwrack', 5, 4, 'military', 4],
   ] as const).map(([id, name, w, h, table, t]): LootDef => ({
     kind: 'loot', id, name, width: w, height: h, health: w * h * 120, item: w > 2 ? 'iron-plate' : 'wood', itemCount: w * h, mineTime: 2 + w,
     solid: id !== 'corpse', rotatable: false, slots: 8, table, searchTime: t,

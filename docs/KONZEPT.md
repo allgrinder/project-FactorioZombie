@@ -280,6 +280,8 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
   (Kuppelzelte um eine kalte Feuerstelle, Tabelle `camping`, `lib/ufer.py`).
 - Jahreszeiten im Bild: Herbst tauscht 75 % der Laubbäume gegen eigene Herbstbäume (gelb, orange, rot; `models/jahreszeit.py`),
   im Winter stehen alle Laubbäume kahl; Schnee auf den Dächern; Nebelschleier nachts dunkel.
+- Absturzstellen (`WORLD.crashes`, 4 Stück): Hubschrauberwrack mit Militärbeute, Kisten, Gefallene. 7 % der Fahrzeugwracks
+  schwelen noch (Rauch, nachts Glut, `AMBIENT.burningWrecks`).
 - Ortsparks in Dörfern und Städten (Brunnen, Rutsche, Sandkasten, Klettergerüst, Schaukel, Bänke; `lib/park.py`), Bootsstege
   bei Ruderbooten.
 - Freileitungen zwischen den Holzmasten an Landstraßen; ferne Schüsse, Hundegebell, Explosionen; Brocken und Schreier in je zwei

@@ -3,6 +3,7 @@ import math
 
 import eisen
 import himmel
+import ruinen
 
 DIRS = 8
 
@@ -17,3 +18,12 @@ def render(out):
             eisen.camera(8.0, 8.0, anchor=(0.5, 0.5), target=(0, 0, 1.4))
             frames.append(out.render_frame(f'heli.{k}', f))
         out.add(f'heli.{k}', 'entities', frames, (0.5, 0.5), fps=20)
+    # Absturzstelle: Wrack als Fundort mit Schatten
+    canvas, anchor, sh, sha = ruinen.spec(5, 4, 1.6, margin=0.3)
+    eisen.reset(samples=32)
+    himmel.wreck()
+    eisen.camera(*canvas, anchor=anchor)
+    out.add('heli-wreck.v0', 'entities', [out.render_frame('heli-wreck.v0', 0)], anchor)
+    eisen.reset(samples=12)
+    himmel.wreck()
+    eisen.shadow_render(out, 'heli-wreck.v0.shadow', 'entities', sh, sha, half=True)

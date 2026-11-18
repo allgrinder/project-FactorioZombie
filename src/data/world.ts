@@ -70,6 +70,8 @@ export const WORLD = {
   ] as readonly (readonly [number, number])[],
   /** Militärposten: Lager mit Militärkisten, stark bewacht. */
   outposts: [{ name: 'Posten 7', x: 432, y: 262 }] as readonly { name: string; x: number; y: number }[],
+  /** Absturzstellen von Armee-Hubschraubern (Wrack mit Militärbeute, Kisten, Gefallene). */
+  crashes: [[-250, -60], [220, -262], [380, 120], [-40, 260]] as readonly (readonly [number, number])[],
   places: [
     { id: 'jva', kind: 'prison', name: 'JVA Aschland', x: -300, y: 152, gate: 0, blurb: 'Gefängnis: Betonmauern, Wachtürme, Zellentrakt – die sicherste Festung im Kreis' },
     { id: 'kraftwerk', kind: 'powerplant', name: 'Kraftwerk Aschland', x: 270, y: 56, gate: 0, blurb: 'Kühltürme, Turbinenhalle, Kohlenhalde, Trafos' },

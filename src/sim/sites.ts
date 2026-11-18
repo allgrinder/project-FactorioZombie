@@ -552,6 +552,7 @@ export class SiteSystem {
     }
     for (const t of WORLD.towns) if (inCell(t.x, t.y)) this.town(w, t);
     for (const o of WORLD.outposts) if (inCell(o.x, o.y)) this.outpost(w, o.x, o.y);
+    for (const [cx2, cy2] of WORLD.crashes) if (inCell(cx2, cy2)) this.crash(w, cx2, cy2);
     for (const pl of WORLD.places) if (inCell(pl.x, pl.y)) this.place(w, pl);
     WORLD.junkyards.forEach(([x, y], i) => {
       if (inCell(x, y)) this.junkyard(w, x, y, i);
@@ -1137,6 +1138,19 @@ export class SiteSystem {
     });
     this.put(w, 'corpse', RAILWAY.train.x + 3, y + 2, true);
     this.sites.push({ x: RAILWAY.train.x + 22, y, r: 22, weight: 4, kind: 'wreck' });
+  }
+
+  /** Absturzstelle: Hubschrauberwrack in einer Schneise, verstreute Kisten, Gefallene; Bäume ringsum umgeknickt. */
+  private crash(w: World, x: number, y: number): void {
+    this.ground(w, x - 6, y - 5, x + 6, y + 5);
+    this.put(w, 'heli-wreck', x - 2, y - 2, true);
+    this.put(w, 'military-crate', x + 4, y + 1, true);
+    this.put(w, 'supply-crate', x - 5, y + 3, true);
+    this.put(w, 'corpse', x + 3, y - 3, true);
+    this.put(w, 'corpse', x - 4, y - 2, true);
+    this.put(w, 'fallen-log', x + 2, y + 4, true);
+    this.put(w, 'scrap-pile', x - 6, y - 5, true);
+    this.sites.push({ x, y, r: 9, weight: 3, kind: 'wreck' });
   }
 
   private outpost(w: World, x: number, y: number): void {
