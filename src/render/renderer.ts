@@ -1923,6 +1923,28 @@ export class GameRenderer {
       const sby = pb.cy * TILE + lb * SHY;
       gs.moveTo(sax, say).quadraticCurveTo((sax + sbx) / 2 - sag * SHX * 0.5, (say + sby) / 2 - sag * 0.2, sbx, sby).stroke({ width: 2, color: 0x000000, alpha: 0.28 });
     }
+    // Freileitungen zwischen den Holzmasten der alten Welt (je Mast zu seinen zwei nächsten Nachbarn)
+    const poles = this.visibleEntities(world, { x0: v.x0 - 16, y0: v.y0 - 16, x1: v.x1 + 16, y1: v.y1 + 16 }).filter((e) => e.name === 'utility-pole');
+    const POLE_LIFT = 1.44 * TILE;
+    for (const pa of poles) {
+      const near = poles.filter((pb) => pb !== pa && Math.hypot(pb.cx - pa.cx, pb.cy - pa.cy) < 17).sort((x, y) => Math.hypot(x.cx - pa.cx, x.cy - pa.cy) - Math.hypot(y.cx - pa.cx, y.cy - pa.cy)).slice(0, 2);
+      for (const pb of near) {
+        if (pb.id < pa.id && near.length > 0 && poles.some((q) => q === pb)) {
+          // nur einmal je Paar zeichnen: der Mast mit der kleineren ID zeichnet, wenn auch er den anderen als Nachbarn hat
+          const back = poles.filter((q) => q !== pb && Math.hypot(q.cx - pb.cx, q.cy - pb.cy) < 17).sort((x, y) => Math.hypot(x.cx - pb.cx, x.cy - pb.cy) - Math.hypot(y.cx - pb.cx, y.cy - pb.cy)).slice(0, 2);
+          if (back.includes(pa)) continue;
+        }
+        const d = Math.hypot(pb.cx - pa.cx, pb.cy - pa.cy) * TILE;
+        for (const off of [-0.38, 0, 0.38]) {
+          const ax = pa.cx * TILE + off * TILE;
+          const ay = pa.cy * TILE - POLE_LIFT;
+          const bx = pb.cx * TILE + off * TILE;
+          const by = pb.cy * TILE - POLE_LIFT;
+          g.moveTo(ax, ay).quadraticCurveTo((ax + bx) / 2, (ay + by) / 2 + d * 0.06, bx, by).stroke({ width: 1.4, color: 0x1e1c1a, alpha: 0.85 });
+          gs.moveTo(ax + POLE_LIFT * SHX, pa.cy * TILE + POLE_LIFT * SHY).quadraticCurveTo((ax + bx) / 2 + POLE_LIFT * SHX, (pa.cy + pb.cy) / 2 * TILE + POLE_LIFT * SHY, bx + POLE_LIFT * SHX, pb.cy * TILE + POLE_LIFT * SHY).stroke({ width: 1.6, color: 0x000000, alpha: 0.2 });
+        }
+      }
+    }
     // Schaltungsdrähte (rot/grün), leicht versetzt
     const lift = (e: Entity) => (e.kind === 'pole' ? liftOf(e.name) : 0.35 * TILE);
     for (const wr of world.circuit.wires) {

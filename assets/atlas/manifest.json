@@ -3175,7 +3175,7 @@
    ]
   },
   "zombievolk": {
-   "hash": "0ef16a5c706d180d",
+   "hash": "3a0d910f7f528ffe",
    "sprites": [
     "zombie.walker.v1.0",
     "zombie.walker.v1.0.nrm",
@@ -3320,7 +3320,97 @@
     "zombie.runner.v2.7",
     "zombie.runner.v2.7.nrm",
     "zombie.runner.v2.dead",
-    "zombie.runner.v2.dead.nrm"
+    "zombie.runner.v2.dead.nrm",
+    "zombie.runner.v3.0",
+    "zombie.runner.v3.0.nrm",
+    "zombie.runner.v3.1",
+    "zombie.runner.v3.1.nrm",
+    "zombie.runner.v3.2",
+    "zombie.runner.v3.2.nrm",
+    "zombie.runner.v3.3",
+    "zombie.runner.v3.3.nrm",
+    "zombie.runner.v3.4",
+    "zombie.runner.v3.4.nrm",
+    "zombie.runner.v3.5",
+    "zombie.runner.v3.5.nrm",
+    "zombie.runner.v3.6",
+    "zombie.runner.v3.6.nrm",
+    "zombie.runner.v3.7",
+    "zombie.runner.v3.7.nrm",
+    "zombie.runner.v3.dead",
+    "zombie.runner.v3.dead.nrm",
+    "zombie.brute.v1.0",
+    "zombie.brute.v1.0.nrm",
+    "zombie.brute.v1.1",
+    "zombie.brute.v1.1.nrm",
+    "zombie.brute.v1.2",
+    "zombie.brute.v1.2.nrm",
+    "zombie.brute.v1.3",
+    "zombie.brute.v1.3.nrm",
+    "zombie.brute.v1.4",
+    "zombie.brute.v1.4.nrm",
+    "zombie.brute.v1.5",
+    "zombie.brute.v1.5.nrm",
+    "zombie.brute.v1.6",
+    "zombie.brute.v1.6.nrm",
+    "zombie.brute.v1.7",
+    "zombie.brute.v1.7.nrm",
+    "zombie.brute.v1.dead",
+    "zombie.brute.v1.dead.nrm",
+    "zombie.brute.v2.0",
+    "zombie.brute.v2.0.nrm",
+    "zombie.brute.v2.1",
+    "zombie.brute.v2.1.nrm",
+    "zombie.brute.v2.2",
+    "zombie.brute.v2.2.nrm",
+    "zombie.brute.v2.3",
+    "zombie.brute.v2.3.nrm",
+    "zombie.brute.v2.4",
+    "zombie.brute.v2.4.nrm",
+    "zombie.brute.v2.5",
+    "zombie.brute.v2.5.nrm",
+    "zombie.brute.v2.6",
+    "zombie.brute.v2.6.nrm",
+    "zombie.brute.v2.7",
+    "zombie.brute.v2.7.nrm",
+    "zombie.brute.v2.dead",
+    "zombie.brute.v2.dead.nrm",
+    "zombie.screamer.v1.0",
+    "zombie.screamer.v1.0.nrm",
+    "zombie.screamer.v1.1",
+    "zombie.screamer.v1.1.nrm",
+    "zombie.screamer.v1.2",
+    "zombie.screamer.v1.2.nrm",
+    "zombie.screamer.v1.3",
+    "zombie.screamer.v1.3.nrm",
+    "zombie.screamer.v1.4",
+    "zombie.screamer.v1.4.nrm",
+    "zombie.screamer.v1.5",
+    "zombie.screamer.v1.5.nrm",
+    "zombie.screamer.v1.6",
+    "zombie.screamer.v1.6.nrm",
+    "zombie.screamer.v1.7",
+    "zombie.screamer.v1.7.nrm",
+    "zombie.screamer.v1.dead",
+    "zombie.screamer.v1.dead.nrm",
+    "zombie.screamer.v2.0",
+    "zombie.screamer.v2.0.nrm",
+    "zombie.screamer.v2.1",
+    "zombie.screamer.v2.1.nrm",
+    "zombie.screamer.v2.2",
+    "zombie.screamer.v2.2.nrm",
+    "zombie.screamer.v2.3",
+    "zombie.screamer.v2.3.nrm",
+    "zombie.screamer.v2.4",
+    "zombie.screamer.v2.4.nrm",
+    "zombie.screamer.v2.5",
+    "zombie.screamer.v2.5.nrm",
+    "zombie.screamer.v2.6",
+    "zombie.screamer.v2.6.nrm",
+    "zombie.screamer.v2.7",
+    "zombie.screamer.v2.7.nrm",
+    "zombie.screamer.v2.dead",
+    "zombie.screamer.v2.dead.nrm"
    ]
   }
  },
@@ -17870,6 +17960,366 @@
     0.55
    ]
   },
+  "zombie.brute.v1.0": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v1.0#0",
+    "zombie.brute.v1.0#1",
+    "zombie.brute.v1.0#2",
+    "zombie.brute.v1.0#3",
+    "zombie.brute.v1.0#4",
+    "zombie.brute.v1.0#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v1.1": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v1.1#0",
+    "zombie.brute.v1.1#1",
+    "zombie.brute.v1.1#2",
+    "zombie.brute.v1.1#3",
+    "zombie.brute.v1.1#4",
+    "zombie.brute.v1.1#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v1.2": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v1.2#0",
+    "zombie.brute.v1.2#1",
+    "zombie.brute.v1.2#2",
+    "zombie.brute.v1.2#3",
+    "zombie.brute.v1.2#4",
+    "zombie.brute.v1.2#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v1.3": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v1.3#0",
+    "zombie.brute.v1.3#1",
+    "zombie.brute.v1.3#2",
+    "zombie.brute.v1.3#3",
+    "zombie.brute.v1.3#4",
+    "zombie.brute.v1.3#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v1.4": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v1.4#0",
+    "zombie.brute.v1.4#1",
+    "zombie.brute.v1.4#2",
+    "zombie.brute.v1.4#3",
+    "zombie.brute.v1.4#4",
+    "zombie.brute.v1.4#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v1.5": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v1.5#0",
+    "zombie.brute.v1.5#1",
+    "zombie.brute.v1.5#2",
+    "zombie.brute.v1.5#3",
+    "zombie.brute.v1.5#4",
+    "zombie.brute.v1.5#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v1.6": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v1.6#0",
+    "zombie.brute.v1.6#1",
+    "zombie.brute.v1.6#2",
+    "zombie.brute.v1.6#3",
+    "zombie.brute.v1.6#4",
+    "zombie.brute.v1.6#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v1.7": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v1.7#0",
+    "zombie.brute.v1.7#1",
+    "zombie.brute.v1.7#2",
+    "zombie.brute.v1.7#3",
+    "zombie.brute.v1.7#4",
+    "zombie.brute.v1.7#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v1.dead": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v1.dead#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.brute.v2.0": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v2.0#0",
+    "zombie.brute.v2.0#1",
+    "zombie.brute.v2.0#2",
+    "zombie.brute.v2.0#3",
+    "zombie.brute.v2.0#4",
+    "zombie.brute.v2.0#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v2.1": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v2.1#0",
+    "zombie.brute.v2.1#1",
+    "zombie.brute.v2.1#2",
+    "zombie.brute.v2.1#3",
+    "zombie.brute.v2.1#4",
+    "zombie.brute.v2.1#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v2.2": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v2.2#0",
+    "zombie.brute.v2.2#1",
+    "zombie.brute.v2.2#2",
+    "zombie.brute.v2.2#3",
+    "zombie.brute.v2.2#4",
+    "zombie.brute.v2.2#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v2.3": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v2.3#0",
+    "zombie.brute.v2.3#1",
+    "zombie.brute.v2.3#2",
+    "zombie.brute.v2.3#3",
+    "zombie.brute.v2.3#4",
+    "zombie.brute.v2.3#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v2.4": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v2.4#0",
+    "zombie.brute.v2.4#1",
+    "zombie.brute.v2.4#2",
+    "zombie.brute.v2.4#3",
+    "zombie.brute.v2.4#4",
+    "zombie.brute.v2.4#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v2.5": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v2.5#0",
+    "zombie.brute.v2.5#1",
+    "zombie.brute.v2.5#2",
+    "zombie.brute.v2.5#3",
+    "zombie.brute.v2.5#4",
+    "zombie.brute.v2.5#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v2.6": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v2.6#0",
+    "zombie.brute.v2.6#1",
+    "zombie.brute.v2.6#2",
+    "zombie.brute.v2.6#3",
+    "zombie.brute.v2.6#4",
+    "zombie.brute.v2.6#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v2.7": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v2.7#0",
+    "zombie.brute.v2.7#1",
+    "zombie.brute.v2.7#2",
+    "zombie.brute.v2.7#3",
+    "zombie.brute.v2.7#4",
+    "zombie.brute.v2.7#5"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.brute.v2.dead": {
+   "group": "entities",
+   "frames": [
+    "zombie.brute.v2.dead#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
   "zombie.crawler.0": {
    "group": "entities",
    "frames": [
@@ -18951,6 +19401,186 @@
     0.55
    ]
   },
+  "zombie.runner.v3.0": {
+   "group": "entities",
+   "frames": [
+    "zombie.runner.v3.0#0",
+    "zombie.runner.v3.0#1",
+    "zombie.runner.v3.0#2",
+    "zombie.runner.v3.0#3",
+    "zombie.runner.v3.0#4",
+    "zombie.runner.v3.0#5"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.runner.v3.1": {
+   "group": "entities",
+   "frames": [
+    "zombie.runner.v3.1#0",
+    "zombie.runner.v3.1#1",
+    "zombie.runner.v3.1#2",
+    "zombie.runner.v3.1#3",
+    "zombie.runner.v3.1#4",
+    "zombie.runner.v3.1#5"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.runner.v3.2": {
+   "group": "entities",
+   "frames": [
+    "zombie.runner.v3.2#0",
+    "zombie.runner.v3.2#1",
+    "zombie.runner.v3.2#2",
+    "zombie.runner.v3.2#3",
+    "zombie.runner.v3.2#4",
+    "zombie.runner.v3.2#5"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.runner.v3.3": {
+   "group": "entities",
+   "frames": [
+    "zombie.runner.v3.3#0",
+    "zombie.runner.v3.3#1",
+    "zombie.runner.v3.3#2",
+    "zombie.runner.v3.3#3",
+    "zombie.runner.v3.3#4",
+    "zombie.runner.v3.3#5"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.runner.v3.4": {
+   "group": "entities",
+   "frames": [
+    "zombie.runner.v3.4#0",
+    "zombie.runner.v3.4#1",
+    "zombie.runner.v3.4#2",
+    "zombie.runner.v3.4#3",
+    "zombie.runner.v3.4#4",
+    "zombie.runner.v3.4#5"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.runner.v3.5": {
+   "group": "entities",
+   "frames": [
+    "zombie.runner.v3.5#0",
+    "zombie.runner.v3.5#1",
+    "zombie.runner.v3.5#2",
+    "zombie.runner.v3.5#3",
+    "zombie.runner.v3.5#4",
+    "zombie.runner.v3.5#5"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.runner.v3.6": {
+   "group": "entities",
+   "frames": [
+    "zombie.runner.v3.6#0",
+    "zombie.runner.v3.6#1",
+    "zombie.runner.v3.6#2",
+    "zombie.runner.v3.6#3",
+    "zombie.runner.v3.6#4",
+    "zombie.runner.v3.6#5"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.runner.v3.7": {
+   "group": "entities",
+   "frames": [
+    "zombie.runner.v3.7#0",
+    "zombie.runner.v3.7#1",
+    "zombie.runner.v3.7#2",
+    "zombie.runner.v3.7#3",
+    "zombie.runner.v3.7#4",
+    "zombie.runner.v3.7#5"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.runner.v3.dead": {
+   "group": "entities",
+   "frames": [
+    "zombie.runner.v3.dead#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
   "zombie.screamer.0": {
    "group": "entities",
    "frames": [
@@ -19126,6 +19756,366 @@
     "zombie.screamer.dead#1"
    ],
    "w": 160,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.screamer.v1.0": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v1.0#0",
+    "zombie.screamer.v1.0#1",
+    "zombie.screamer.v1.0#2",
+    "zombie.screamer.v1.0#3",
+    "zombie.screamer.v1.0#4",
+    "zombie.screamer.v1.0#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v1.1": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v1.1#0",
+    "zombie.screamer.v1.1#1",
+    "zombie.screamer.v1.1#2",
+    "zombie.screamer.v1.1#3",
+    "zombie.screamer.v1.1#4",
+    "zombie.screamer.v1.1#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v1.2": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v1.2#0",
+    "zombie.screamer.v1.2#1",
+    "zombie.screamer.v1.2#2",
+    "zombie.screamer.v1.2#3",
+    "zombie.screamer.v1.2#4",
+    "zombie.screamer.v1.2#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v1.3": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v1.3#0",
+    "zombie.screamer.v1.3#1",
+    "zombie.screamer.v1.3#2",
+    "zombie.screamer.v1.3#3",
+    "zombie.screamer.v1.3#4",
+    "zombie.screamer.v1.3#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v1.4": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v1.4#0",
+    "zombie.screamer.v1.4#1",
+    "zombie.screamer.v1.4#2",
+    "zombie.screamer.v1.4#3",
+    "zombie.screamer.v1.4#4",
+    "zombie.screamer.v1.4#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v1.5": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v1.5#0",
+    "zombie.screamer.v1.5#1",
+    "zombie.screamer.v1.5#2",
+    "zombie.screamer.v1.5#3",
+    "zombie.screamer.v1.5#4",
+    "zombie.screamer.v1.5#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v1.6": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v1.6#0",
+    "zombie.screamer.v1.6#1",
+    "zombie.screamer.v1.6#2",
+    "zombie.screamer.v1.6#3",
+    "zombie.screamer.v1.6#4",
+    "zombie.screamer.v1.6#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v1.7": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v1.7#0",
+    "zombie.screamer.v1.7#1",
+    "zombie.screamer.v1.7#2",
+    "zombie.screamer.v1.7#3",
+    "zombie.screamer.v1.7#4",
+    "zombie.screamer.v1.7#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v1.dead": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v1.dead#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.screamer.v2.0": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v2.0#0",
+    "zombie.screamer.v2.0#1",
+    "zombie.screamer.v2.0#2",
+    "zombie.screamer.v2.0#3",
+    "zombie.screamer.v2.0#4",
+    "zombie.screamer.v2.0#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v2.1": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v2.1#0",
+    "zombie.screamer.v2.1#1",
+    "zombie.screamer.v2.1#2",
+    "zombie.screamer.v2.1#3",
+    "zombie.screamer.v2.1#4",
+    "zombie.screamer.v2.1#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v2.2": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v2.2#0",
+    "zombie.screamer.v2.2#1",
+    "zombie.screamer.v2.2#2",
+    "zombie.screamer.v2.2#3",
+    "zombie.screamer.v2.2#4",
+    "zombie.screamer.v2.2#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v2.3": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v2.3#0",
+    "zombie.screamer.v2.3#1",
+    "zombie.screamer.v2.3#2",
+    "zombie.screamer.v2.3#3",
+    "zombie.screamer.v2.3#4",
+    "zombie.screamer.v2.3#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v2.4": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v2.4#0",
+    "zombie.screamer.v2.4#1",
+    "zombie.screamer.v2.4#2",
+    "zombie.screamer.v2.4#3",
+    "zombie.screamer.v2.4#4",
+    "zombie.screamer.v2.4#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v2.5": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v2.5#0",
+    "zombie.screamer.v2.5#1",
+    "zombie.screamer.v2.5#2",
+    "zombie.screamer.v2.5#3",
+    "zombie.screamer.v2.5#4",
+    "zombie.screamer.v2.5#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v2.6": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v2.6#0",
+    "zombie.screamer.v2.6#1",
+    "zombie.screamer.v2.6#2",
+    "zombie.screamer.v2.6#3",
+    "zombie.screamer.v2.6#4",
+    "zombie.screamer.v2.6#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v2.7": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v2.7#0",
+    "zombie.screamer.v2.7#1",
+    "zombie.screamer.v2.7#2",
+    "zombie.screamer.v2.7#3",
+    "zombie.screamer.v2.7#4",
+    "zombie.screamer.v2.7#5"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ],
+   "fps": 10,
+   "meta": {
+    "angles": 8
+   }
+  },
+  "zombie.screamer.v2.dead": {
+   "group": "entities",
+   "frames": [
+    "zombie.screamer.v2.dead#0"
+   ],
+   "w": 144,
    "h": 128,
    "anchor": [
     0.5,
@@ -31922,6 +32912,222 @@
     0.55
    ]
   },
+  "zombie.brute.v1.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v1.0.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v1.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v1.1.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v1.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v1.2.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v1.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v1.3.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v1.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v1.4.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v1.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v1.5.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v1.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v1.6.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v1.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v1.7.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v1.dead.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v1.dead.nrm#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.brute.v2.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v2.0.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v2.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v2.1.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v2.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v2.2.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v2.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v2.3.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v2.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v2.4.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v2.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v2.5.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v2.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v2.6.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v2.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v2.7.nrm#0"
+   ],
+   "w": 112,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.7
+   ]
+  },
+  "zombie.brute.v2.dead.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.brute.v2.dead.nrm#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
   "zombie.crawler.0.nrm": {
    "group": "normals",
    "frames": [
@@ -32570,6 +33776,114 @@
     0.55
    ]
   },
+  "zombie.runner.v3.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.runner.v3.0.nrm#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.runner.v3.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.runner.v3.1.nrm#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.runner.v3.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.runner.v3.2.nrm#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.runner.v3.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.runner.v3.3.nrm#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.runner.v3.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.runner.v3.4.nrm#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.runner.v3.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.runner.v3.5.nrm#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.runner.v3.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.runner.v3.6.nrm#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.runner.v3.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.runner.v3.7.nrm#0"
+   ],
+   "w": 80,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.runner.v3.dead.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.runner.v3.dead.nrm#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
   "zombie.screamer.0.nrm": {
    "group": "normals",
    "frames": [
@@ -32672,6 +33986,222 @@
     "zombie.screamer.dead.nrm#0"
    ],
    "w": 160,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.screamer.v1.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v1.0.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v1.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v1.1.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v1.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v1.2.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v1.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v1.3.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v1.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v1.4.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v1.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v1.5.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v1.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v1.6.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v1.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v1.7.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v1.dead.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v1.dead.nrm#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.55
+   ]
+  },
+  "zombie.screamer.v2.0.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v2.0.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v2.1.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v2.1.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v2.2.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v2.2.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v2.3.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v2.3.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v2.4.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v2.4.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v2.5.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v2.5.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v2.6.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v2.6.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v2.7.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v2.7.nrm#0"
+   ],
+   "w": 96,
+   "h": 96,
+   "anchor": [
+    0.5,
+    0.7000000000000001
+   ]
+  },
+  "zombie.screamer.v2.dead.nrm": {
+   "group": "normals",
+   "frames": [
+    "zombie.screamer.v2.dead.nrm#0"
+   ],
+   "w": 144,
    "h": 128,
    "anchor": [
     0.5,

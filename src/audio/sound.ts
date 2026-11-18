@@ -52,6 +52,7 @@ export const SOUNDS: Record<string, Params> = {
   rain: [0.09, 0, 300, 0.1, 0.3, 0.2, 4, 0, , , , , , 3, , , , 0.5],
   thunder: [0.7, 0.2, 40, 0.05, 0.6, 1.8, 4, 0.3, -0.5, , , , , 3, 3, 0.4, 0.2, 0.4, 0.5],
   heli: [0.35, 0.1, 55, 0.01, 0.05, 0.12, 4, 0.5, , , , , 0.09, 1.5, , , , 0.4, 0.04],
+  dog: [0.25, 0.1, 420, 0.01, 0.05, 0.08, 2, 2, -12, , , , 0.12, 0.6, , 0.2, , 0.5],
   moan: [0.2, 0.3, 95, 0.12, 0.35, 0.4, 2, 0.6, -0.4, , , , 0.12, 0.3, 2, , , 0.5, 0.15],
 };
 
@@ -199,6 +200,14 @@ export class SoundSystem {
       if (Math.random() < 0.03) this.play('crow', 0.4 + Math.random() * 0.4, (Math.random() - 0.5) * 1.6, 2500);
     } else if (dark > 0.6 && (season === 'summer' || season === 'spring')) {
       if (Math.random() < 0.6) this.play('cricket', 0.4 + Math.random() * 0.4, (Math.random() - 0.5) * 1.6, 250);
+    }
+    // Ferne Welt: vereinzelte Schüsse, Hundegebell, dumpfe Explosionen (leise, zufällig von links oder rechts)
+    if (Math.random() < 0.004) {
+      const r = Math.random();
+      const pan = Math.random() < 0.5 ? -0.9 : 0.9;
+      if (r < 0.5) this.play('shot', 0.12, pan, 3000);
+      else if (r < 0.8) this.play('dog', 0.18, pan, 6000);
+      else this.play('explode', 0.08, pan, 15000);
     }
     const krabbler = 0;
     near.sort((p, q) => q.a - p.a);

@@ -274,6 +274,8 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
   (Kuppelzelte um eine kalte Feuerstelle, Tabelle `camping`, `lib/ufer.py`).
 - Jahreszeiten im Bild: Herbst tauscht 75 % der Laubbäume gegen eigene Herbstbäume (gelb, orange, rot; `models/jahreszeit.py`),
   im Winter stehen alle Laubbäume kahl; Schnee auf den Dächern; Nebelschleier nachts dunkel.
+- Freileitungen zwischen den Holzmasten an Landstraßen; ferne Schüsse, Hundegebell, Explosionen; Brocken und Schreier in je zwei
+  weiteren Kleidungen, Läufer in drei.
 - Obstbäume (Streuobst, Gärten) geben beim Fällen im Sommer und Herbst 3–6 Obst (`FRUIT_TREE`, Hunger 10, Durst 6).
 - Innenräume: Böden je Haus getönt, Teppiche in Wohnhäusern, Papiere und Glasscherben (`models/innen.py`).
 - 15 % der Wohnhäuser sind schon verrammelt (Bretter vor den Fenstern, `SITES.fortified`), Türen bleiben frei.
