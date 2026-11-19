@@ -1230,6 +1230,34 @@
     "roof.flat.sw.0"
    ]
   },
+  "heide": {
+   "hash": "a789ee3024fae5cf",
+   "sprites": [
+    "flora.heather.0",
+    "flora.heather.0.shadow",
+    "flora.heather.1",
+    "flora.heather.1.shadow",
+    "flora.heather.2",
+    "flora.heather.2.shadow",
+    "flora.heather.3",
+    "flora.heather.3.shadow",
+    "flora.juniper.0",
+    "flora.juniper.0.shadow",
+    "flora.juniper.1",
+    "flora.juniper.1.shadow",
+    "flora.juniper.2",
+    "flora.juniper.2.shadow",
+    "flora.cottongrass.0",
+    "flora.cottongrass.0.shadow",
+    "flora.cottongrass.1",
+    "flora.cottongrass.1.shadow",
+    "flora.cottongrass.2",
+    "flora.cottongrass.2.shadow",
+    "decal.peat.0",
+    "decal.peat.1",
+    "decal.peat.2"
+   ]
+  },
   "himmel": {
    "hash": "30505a9cd5d42760",
    "sprites": [
@@ -5686,6 +5714,42 @@
    ],
    "w": 64,
    "h": 128,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.peat.0": {
+   "group": "decals",
+   "frames": [
+    "decal.peat.0#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.peat.1": {
+   "group": "decals",
+   "frames": [
+    "decal.peat.1#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "decal.peat.2": {
+   "group": "decals",
+   "frames": [
+    "decal.peat.2#0"
+   ],
+   "w": 64,
+   "h": 64,
    "anchor": [
     0.5,
     0.5
@@ -24247,6 +24311,78 @@
     "scale": 2
    }
   },
+  "flora.cottongrass.0": {
+   "group": "flora",
+   "frames": [
+    "flora.cottongrass.0#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.45,
+    0.5376388374866284
+   ]
+  },
+  "flora.cottongrass.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.cottongrass.0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.22499999999999998,
+    0.22499999999999998
+   ]
+  },
+  "flora.cottongrass.1": {
+   "group": "flora",
+   "frames": [
+    "flora.cottongrass.1#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.45,
+    0.5376388374866284
+   ]
+  },
+  "flora.cottongrass.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.cottongrass.1.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.22499999999999998,
+    0.22499999999999998
+   ]
+  },
+  "flora.cottongrass.2": {
+   "group": "flora",
+   "frames": [
+    "flora.cottongrass.2#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.45,
+    0.5376388374866284
+   ]
+  },
+  "flora.cottongrass.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.cottongrass.2.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.22499999999999998,
+    0.22499999999999998
+   ]
+  },
   "flora.deadtree.0": {
    "group": "flora",
    "frames": [
@@ -24521,6 +24657,174 @@
    "anchor": [
     0.22499999999999998,
     0.22499999999999998
+   ]
+  },
+  "flora.heather.0": {
+   "group": "flora",
+   "frames": [
+    "flora.heather.0#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.475,
+    0.5049038105676658
+   ]
+  },
+  "flora.heather.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.heather.0.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.2375,
+    0.2375
+   ]
+  },
+  "flora.heather.1": {
+   "group": "flora",
+   "frames": [
+    "flora.heather.1#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.425,
+    0.42603629710818447
+   ]
+  },
+  "flora.heather.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.heather.1.shadow#0"
+   ],
+   "w": 192,
+   "h": 192,
+   "anchor": [
+    0.2833333333333333,
+    0.2833333333333333
+   ]
+  },
+  "flora.heather.2": {
+   "group": "flora",
+   "frames": [
+    "flora.heather.2#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.5154700538379251
+   ]
+  },
+  "flora.heather.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.heather.2.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.25,
+    0.25
+   ]
+  },
+  "flora.heather.3": {
+   "group": "flora",
+   "frames": [
+    "flora.heather.3#0"
+   ],
+   "w": 128,
+   "h": 128,
+   "anchor": [
+    0.45,
+    0.46547005383792517
+   ]
+  },
+  "flora.heather.3.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.heather.3.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.22499999999999998,
+    0.22499999999999998
+   ]
+  },
+  "flora.juniper.0": {
+   "group": "flora",
+   "frames": [
+    "flora.juniper.0#0"
+   ],
+   "w": 128,
+   "h": 192,
+   "anchor": [
+    0.475,
+    0.5579201435678004
+   ]
+  },
+  "flora.juniper.0.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.juniper.0.shadow#0"
+   ],
+   "w": 288,
+   "h": 352,
+   "anchor": [
+    0.2111111111111111,
+    0.17272727272727273
+   ]
+  },
+  "flora.juniper.1": {
+   "group": "flora",
+   "frames": [
+    "flora.juniper.1#0"
+   ],
+   "w": 160,
+   "h": 224,
+   "anchor": [
+    0.42000000000000004,
+    0.5892673043709183
+   ]
+  },
+  "flora.juniper.1.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.juniper.1.shadow#0"
+   ],
+   "w": 352,
+   "h": 384,
+   "anchor": [
+    0.19090909090909092,
+    0.17500000000000002
+   ]
+  },
+  "flora.juniper.2": {
+   "group": "flora",
+   "frames": [
+    "flora.juniper.2#0"
+   ],
+   "w": 160,
+   "h": 256,
+   "anchor": [
+    0.45999999999999996,
+    0.6127776749732567
+   ]
+  },
+  "flora.juniper.2.shadow": {
+   "group": "flora",
+   "frames": [
+    "flora.juniper.2.shadow#0"
+   ],
+   "w": 384,
+   "h": 448,
+   "anchor": [
+    0.19166666666666665,
+    0.16428571428571428
    ]
   },
   "flora.mushroom.0": {

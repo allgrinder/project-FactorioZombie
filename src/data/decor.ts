@@ -136,4 +136,6 @@ export const TREE_PATCH = { scale: 34, young: 0.14, water: 0.82 } as const;
  * Landschaftsregionen (nur Darstellung): großräumiges Rauschen teilt das Land in Heide (trocken, offen, Heidekraut und
  * Wacholder, bräunlich-lila Boden) und Moor (feucht, Wollgras, Torfmoos, olivbraun). Dazwischen normales Grünland.
  */
-export const REGIONS = { scale: 150, heath: 0.3, moor: 0.72, moorFertility: 0.5, heathFertility: 0.62, heathTint: 0xf0dcd8, moorTint: 0xc8c8a8 } as const;
+export const REGIONS = { scale: 150, heath: 0.3, moor: 0.72, moorFertility: 0.5, heathFertility: 0.62, heathTint: 0xf0dcd8, moorTint: 0xc8c8a8,
+  /** Faktor auf die Baumwahrscheinlichkeit je Art (Laub, Nadel, tot). */
+  trees: { heath: [0.08, 0.6, 1.5], moor: [0.2, 0.3, 4] } } as const;

@@ -279,7 +279,8 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
 ## Landschaftsregionen (`REGIONS` in `src/data/decor.ts`, `models/heide.py`)
 - Großräumiges Rauschen (Maßstab 150 Felder) teilt das Land: Heide auf trockenem Boden (Heidekraut-Teppiche, Wacholder,
   bräunlich-lila Boden) und Moor auf feuchtem Boden (Wollgras, Torfmoos mit Wasserlöchern, Schilf, olivbrauner Boden);
-  weicher Farbübergang in der Bodenfarbe. Nur Darstellung.
+  weicher Farbübergang in der Bodenfarbe. Bäume je Region (`REGIONS.trees`, `src/sim/regions.ts`): Heide fast nur Kiefern,
+  Moor licht mit vielen toten Bäumen.
 
 ## Feinschliff Welt
 - Laub aller Bäume und Sträucher um gut ein Fünftel aufgehellt (Wälder wirkten fast schwarz).

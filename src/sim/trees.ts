@@ -1,6 +1,8 @@
 import { BIOME } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import { hash01, valueNoise } from './rng';
+import { regionAt } from './regions';
+import { REGIONS } from '../data/decor';
 
 /** Ein Baum auf der Karte (fällbar). x/y: Stammfuß in Feldern, tx/ty: Feld des Stammes. */
 export interface Tree {
@@ -207,6 +209,9 @@ export class TreeField {
           let p = kind.chance;
           const f = this.fertility(tx, ty);
           if (kind.fertility) p *= Math.max(0.05, 1 + kind.fertility * (2 * f - 1));
+          // Regionen: Heide offen mit einzelnen Kiefern, Moor licht mit toten Bäumen
+          const reg = regionAt(seed, x, y, f);
+          if (reg) p *= (REGIONS.trees[reg] as readonly number[])[ki] ?? 1;
           if (kind.groveBoost) {
             const g = valueNoise(seed + 4242, x / T.grove.scale, y / T.grove.scale) + (f - 0.5) * 0.35;
             if (g > T.grove.threshold) p *= kind.groveBoost * ((g - T.grove.threshold) / (1 - T.grove.threshold) + 0.3);

@@ -1,15 +1,10 @@
-import { DECOR, type DecorKind, GROVE, REGIONS, WATER_NEAR } from '../data/decor';
+import { DECOR, type DecorKind, GROVE, WATER_NEAR } from '../data/decor';
 import { MAPGEN } from '../data/mapgen';
 import type { GameMap } from '../sim/map';
 import { hash01, valueNoise } from '../sim/rng';
 
-/** Landschaftsregion an (x, y): Heide, Moor oder normales Land. */
-export function regionAt(seed: number, x: number, y: number, fertility: number): 'heath' | 'moor' | null {
-  const n = valueNoise(seed + 9191, x / REGIONS.scale, y / REGIONS.scale);
-  if (n < REGIONS.heath && fertility < REGIONS.heathFertility) return 'heath';
-  if (n > REGIONS.moor && fertility > REGIONS.moorFertility) return 'moor';
-  return null;
-}
+export { regionAt } from '../sim/regions';
+import { regionAt } from '../sim/regions';
 
 export interface DecorItem {
   kind: DecorKind;
