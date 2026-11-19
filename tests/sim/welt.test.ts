@@ -210,6 +210,8 @@ describe('Vielfalt', () => {
     w.run(61);
     const names = [...w.entities.values()].filter((e) => Math.hypot(e.cx - t.x, e.cy - t.y) < 80).map((e) => e.name);
     expect(names.filter((n) => n === 'grave').length).toBeGreaterThanOrEqual(10);
+    expect(names).toContain('altar');
+    expect(names.filter((n) => n === 'pew').length).toBeGreaterThanOrEqual(4);
     expect(names).toContain('hedge');
     const ev = WORLD.places.find((p) => p.id === 'notlager')!;
     w.player.px = ev.x * 256;
