@@ -889,6 +889,8 @@ export class GameRenderer {
         const rx = Math.floor(h.x + h.w / 2);
         const ry = Math.floor(h.y + h.h / 2);
         if (world.map.floorAt(rx, ry) !== 11) continue;
+        // nur Wohnhäuser: in Kirchen, Büros usw. steht ein Möbel bzw. eine Bank in der Mitte
+        if (world.entityAt(rx, ry) || world.entityAt(rx - 1, ry) || world.entityAt(rx, ry + 1)) continue;
         const rh = ((Math.imul(h.x, 2654435761) ^ Math.imul(h.y, 40503)) >>> 0) % 100;
         if (rh >= 70) continue;
         const name = `decal.rug.${rh % 4}`;

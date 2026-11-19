@@ -666,13 +666,16 @@ const list: EntityDef[] = [
     ['wardrobe', 'Kleiderschrank', 1, 1, 'wardrobe', 1.5], ['shelf', 'Bücherregal', 1, 1, 'shelf', 1.5], ['bathroom', 'Bad', 1, 1, 'bathroom', 1.2],
     ['desk', 'Schreibtisch', 1, 1, 'desk', 1.5], ['store-shelf', 'Ladenregal', 2, 1, 'store', 2], ['locker', 'Spind', 1, 1, 'locker', 1.5],
     ['workbench', 'Werkbank', 1, 1, 'workbench', 1.5],
+    // mehr Möbel (lib/moebel.py)
+    ['washer', 'Waschmaschine', 1, 1, 'bathroom', 1.2], ['bookshelf', 'Bücherwand', 1, 1, 'shelf', 1.8], ['tv', 'Fernseher', 1, 1, 'desk', 1.2],
   ] as const).map(([id, name, w, h, table, t]): LootDef => ({
     kind: 'loot', id, name, width: w, height: h, health: 120, item: 'wood', itemCount: 2, mineTime: 1.5, solid: true, rotatable: false,
     slots: 6, table, searchTime: t, salvage: [{ item: id === 'fridge' || id === 'stove' || id === 'locker' || id === 'store-shelf' ? 'iron-plate' : 'wood', amount: 3 }],
   })),
   { kind: 'bed', id: 'house-bed', name: 'Bett', width: 1, height: 2, health: 100, item: 'wood', itemCount: 4, mineTime: 1, solid: true, walkable: true, rotatable: false },
   { kind: 'bed', id: 'bunk', name: 'Pritsche', width: 1, height: 2, health: 120, item: 'iron-plate', itemCount: 2, mineTime: 1, solid: true, walkable: true, rotatable: false },
-  ...([['sofa', 'Sofa', 2, 1, 'cloth', 4], ['table', 'Tisch', 1, 1, 'wood', 3]] as const).map(([id, name, w, h, item, n]): PropDef => ({
+  ...([['sofa', 'Sofa', 2, 1, 'cloth', 4], ['table', 'Tisch', 1, 1, 'wood', 3], ['pew', 'Kirchenbank', 2, 1, 'wood', 6], ['altar', 'Altar', 2, 1, 'stone', 8],
+    ['armchair', 'Sessel', 1, 1, 'cloth', 3], ['piano', 'Klavier', 2, 1, 'wood', 8], ['bathtub', 'Badewanne', 1, 2, 'iron-plate', 4]] as const).map(([id, name, w, h, item, n]): PropDef => ({
     kind: 'prop', id, name, width: w, height: h, health: 100, item, itemCount: n, mineTime: 1, solid: true, rotatable: false,
   })),
   // Vielfalt (lib/vielfalt.py): Fahrzeugwracks und Kram mit Beute

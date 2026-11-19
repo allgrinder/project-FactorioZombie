@@ -303,6 +303,8 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
 - Freileitungen zwischen den Holzmasten an Landstraßen; ferne Schüsse, Hundegebell, Explosionen; Brocken und Schreier in je zwei
   weiteren Kleidungen, Läufer in drei.
 - Obstbäume (Streuobst, Gärten) geben beim Fällen im Sommer und Herbst 3–6 Obst (`FRUIT_TREE`, Hunger 10, Durst 6).
+- Mehr Möbel (`lib/moebel.py`): Kirchen mit Altar und Bankreihen, Wohnzimmer mit Sessel, Fernseher, Bücherwand, Klavier,
+  Bäder mit Badewanne und Waschmaschine. Kirche wird vor der Hauptstraße angelegt (Platz frei).
 - Innenräume: Böden je Haus getönt, Teppiche in Wohnhäusern, Papiere und Glasscherben (`models/innen.py`).
 - 15 % der Wohnhäuser sind schon verrammelt (Bretter vor den Fenstern, `SITES.fortified`), Türen bleiben frei.
 - Gemalte Hilferufe (`models/schrift.py`, „SOS“, „HILFE“, „INFIZIERT“, „LEBEN HIER“, „NICHT BETRETEN“) auf 8 % der Dächer.

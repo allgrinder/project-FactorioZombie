@@ -1820,6 +1820,35 @@
     "express-splitter.3.shadow"
    ]
   },
+  "moebel": {
+   "hash": "a0e2977c775d6eb1",
+   "sprites": [
+    "pew",
+    "pew.nrm",
+    "pew.shadow",
+    "altar",
+    "altar.nrm",
+    "altar.shadow",
+    "armchair",
+    "armchair.nrm",
+    "armchair.shadow",
+    "tv",
+    "tv.nrm",
+    "tv.shadow",
+    "piano",
+    "piano.nrm",
+    "piano.shadow",
+    "bathtub",
+    "bathtub.nrm",
+    "bathtub.shadow",
+    "washer",
+    "washer.nrm",
+    "washer.shadow",
+    "bookshelf",
+    "bookshelf.nrm",
+    "bookshelf.shadow"
+   ]
+  },
   "montage": {
    "hash": "be6142595dfced8b",
    "sprites": [
@@ -7967,6 +7996,30 @@
     0.22727272727272727
    ]
   },
+  "altar": {
+   "group": "entities",
+   "frames": [
+    "altar#0"
+   ],
+   "w": 144,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.7244444444444444
+   ]
+  },
+  "altar.shadow": {
+   "group": "entities",
+   "frames": [
+    "altar.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
+   ]
+  },
   "ambulance-wreck.v0": {
    "group": "entities",
    "frames": [
@@ -8819,6 +8872,30 @@
     0.6
    ]
   },
+  "armchair": {
+   "group": "entities",
+   "frames": [
+    "armchair#0"
+   ],
+   "w": 80,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
+   ]
+  },
+  "armchair.shadow": {
+   "group": "entities",
+   "frames": [
+    "armchair.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
   "army-tent.v0": {
    "group": "entities",
    "frames": [
@@ -9096,6 +9173,30 @@
    "anchor": [
     0.1875,
     0.1875
+   ]
+  },
+  "bathtub": {
+   "group": "entities",
+   "frames": [
+    "bathtub#0"
+   ],
+   "w": 80,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5927272727272727
+   ]
+  },
+  "bathtub.shadow": {
+   "group": "entities",
+   "frames": [
+    "bathtub.shadow#0"
+   ],
+   "w": 256,
+   "h": 352,
+   "anchor": [
+    0.1875,
+    0.22727272727272727
    ]
   },
   "beacon": {
@@ -9525,6 +9626,30 @@
    "meta": {
     "scale": 2
    }
+  },
+  "bookshelf": {
+   "group": "entities",
+   "frames": [
+    "bookshelf#0"
+   ],
+   "w": 80,
+   "h": 160,
+   "anchor": [
+    0.5,
+    0.752
+   ]
+  },
+  "bookshelf.shadow": {
+   "group": "entities",
+   "frames": [
+    "bookshelf.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
   },
   "brazier": {
    "group": "entities",
@@ -14767,6 +14892,30 @@
     0.19999999999999998
    ]
   },
+  "pew": {
+   "group": "entities",
+   "frames": [
+    "pew#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
+   ]
+  },
+  "pew.shadow": {
+   "group": "entities",
+   "frames": [
+    "pew.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
+    0.1875
+   ]
+  },
   "phone-booth.v0": {
    "group": "entities",
    "frames": [
@@ -14788,6 +14937,30 @@
    "h": 256,
    "anchor": [
     0.1875,
+    0.1875
+   ]
+  },
+  "piano": {
+   "group": "entities",
+   "frames": [
+    "piano#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
+   ]
+  },
+  "piano.shadow": {
+   "group": "entities",
+   "frames": [
+    "piano.shadow#0"
+   ],
+   "w": 352,
+   "h": 256,
+   "anchor": [
+    0.22727272727272727,
     0.1875
    ]
   },
@@ -18400,6 +18573,30 @@
     "scale": 2
    }
   },
+  "tv": {
+   "group": "entities",
+   "frames": [
+    "tv#0"
+   ],
+   "w": 80,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
+   ]
+  },
+  "tv.shadow": {
+   "group": "entities",
+   "frames": [
+    "tv.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
   "underground-belt.in.0": {
    "group": "entities",
    "frames": [
@@ -18608,6 +18805,30 @@
    "group": "entities",
    "frames": [
     "wardrobe.shadow#0"
+   ],
+   "w": 256,
+   "h": 256,
+   "anchor": [
+    0.1875,
+    0.1875
+   ]
+  },
+  "washer": {
+   "group": "entities",
+   "frames": [
+    "washer#0"
+   ],
+   "w": 80,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
+   ]
+  },
+  "washer.shadow": {
+   "group": "entities",
+   "frames": [
+    "washer.shadow#0"
    ],
    "w": 256,
    "h": 256,
@@ -28487,6 +28708,18 @@
     0.6000000000000001
    ]
   },
+  "altar.nrm": {
+   "group": "normals",
+   "frames": [
+    "altar.nrm#0"
+   ],
+   "w": 144,
+   "h": 144,
+   "anchor": [
+    0.5,
+    0.7244444444444444
+   ]
+  },
   "ambulance-wreck.v0.nrm": {
    "group": "normals",
    "frames": [
@@ -29111,6 +29344,18 @@
     0.6
    ]
   },
+  "armchair.nrm": {
+   "group": "normals",
+   "frames": [
+    "armchair.nrm#0"
+   ],
+   "w": 80,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
+   ]
+  },
   "army-tent.v0.nrm": {
    "group": "normals",
    "frames": [
@@ -29217,6 +29462,18 @@
    "anchor": [
     0.5,
     0.6457142857142857
+   ]
+  },
+  "bathtub.nrm": {
+   "group": "normals",
+   "frames": [
+    "bathtub.nrm#0"
+   ],
+   "w": 80,
+   "h": 176,
+   "anchor": [
+    0.5,
+    0.5927272727272727
    ]
   },
   "beacon.nrm": {
@@ -29409,6 +29666,18 @@
    "anchor": [
     0.5,
     0.5647058823529412
+   ]
+  },
+  "bookshelf.nrm": {
+   "group": "normals",
+   "frames": [
+    "bookshelf.nrm#0"
+   ],
+   "w": 80,
+   "h": 160,
+   "anchor": [
+    0.5,
+    0.752
    ]
   },
   "brazier.nrm": {
@@ -32663,6 +32932,18 @@
     0.5333333333333333
    ]
   },
+  "pew.nrm": {
+   "group": "normals",
+   "frames": [
+    "pew.nrm#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
+   ]
+  },
   "phone-booth.v0.nrm": {
    "group": "normals",
    "frames": [
@@ -32673,6 +32954,18 @@
    "anchor": [
     0.5,
     0.72
+   ]
+  },
+  "piano.nrm": {
+   "group": "normals",
+   "frames": [
+    "piano.nrm#0"
+   ],
+   "w": 144,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
    ]
   },
   "pickup-wreck.v0.nrm": {
@@ -34499,6 +34792,18 @@
     0.7785714285714286
    ]
   },
+  "tv.nrm": {
+   "group": "normals",
+   "frames": [
+    "tv.nrm#0"
+   ],
+   "w": 80,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
+   ]
+  },
   "underground-belt.in.0.nrm": {
    "group": "normals",
    "frames": [
@@ -34647,6 +34952,18 @@
    "group": "normals",
    "frames": [
     "wardrobe.nrm#0"
+   ],
+   "w": 80,
+   "h": 128,
+   "anchor": [
+    0.5,
+    0.69
+   ]
+  },
+  "washer.nrm": {
+   "group": "normals",
+   "frames": [
+    "washer.nrm#0"
    ],
    "w": 80,
    "h": 128,

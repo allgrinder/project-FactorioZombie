@@ -72,6 +72,9 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Bahnstrecke (`RAILWAY`, Belag 14, `SiteSystem.station/train`, `lib/strecke.py`, Renderer in `drawRoads`); Jahreszeit-Bäume
   (`models/jahreszeit*.py`: Herbst, kahl, Obstblüte, Sträucher), Hubschrauber (`lib/himmel.py`), Ufer/Zeltplätze (`lib/ufer.py`),
   Innenräume (`models/innen.py`), Hilferufe (`models/schrift.py`), Trampelpfade (`TRAILS`), Freileitungen (`drawWires`).
+- Ortsparks (`SiteSystem.park`, `lib/park.py`), Absturzstellen (`WORLD.crashes`), Landmarken (Windpark, Hochspannung,
+  Campingplatz, Sägewerk; `lib/landmarken.py`), Kulturlandschaft (Hochsitze, Vogelscheuchen, Feldsteinmauern; `lib/flurstuecke.py`),
+  Wasserleben/Enten (`ambient.ts`), fressende Zombies (`ZOMBIE.feeders`), Regionen Heide/Moor (`src/sim/regions.ts`, `REGIONS`).
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
   Feuerschale, Scheinwerfer, Wachturm, Vorratslager.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).

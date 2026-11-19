@@ -700,6 +700,42 @@ export class SiteSystem {
     const horizontal = t.axis === 'x';
     const len = WORLD.mainLength[t.size - 1];
     const weight = 2 + t.size * 1.5;
+    // Dorfplatz mit Kirche (ab Dorfgröße) an einer zufälligen Stelle der Hauptstraße
+    let parkTry: (() => void) | null = null;
+    if (t.size >= 2) {
+      const a = Math.round((hs(50)(1) - 0.5) * len * 0.5);
+      const side = hs(50)(2) < 0.5 ? -1 : 1;
+      const px = t.x + (horizontal ? a - 6 : side < 0 ? -15 : 4);
+      const py = t.y + (horizontal ? (side < 0 ? -13 : 4) : a - 6);
+      for (let y = py; y < py + (horizontal ? 10 : 12); y++) for (let x = px; x < px + (horizontal ? 12 : 10); x++) this.paint(w, x, y, PAVEMENT);
+      this.tree(w, px + 5.5, py + 5.5, 0, 'oak');
+      const cw = 9;
+      const ch = 12;
+      // Bauplatz der Kirche freiräumen (Straßenkram, Gartenzeug), Häuser bleiben
+      {
+        const cx0 = horizontal ? px + 13 : px;
+        const cy0 = horizontal ? py + (side < 0 ? -3 : 1) : py + 13;
+        const cww = horizontal ? cw : ch;
+        const chh = horizontal ? ch : cw;
+        for (let y = cy0 - 1; y <= cy0 + chh; y++) for (let x = cx0 - 1; x <= cx0 + cww; x++) {
+          const e = w.entityAt(x, y);
+          if (e && e.kind !== 'wall' && e.kind !== 'bed') w.remove(e.id);
+        }
+      }
+      const okc = this.house(w, horizontal ? px + 13 : px, horizontal ? py + (side < 0 ? -3 : 1) : py + 13, horizontal ? cw : ch, horizontal ? ch : cw,
+        'church', horizontal ? (side < 0 ? 2 : 0) : side < 0 ? 1 : 3, 'plaster', 'slate', hs(51), true);
+      void okc;
+      this.cemetery(w, horizontal ? px : px + (side < 0 ? -13 : 11), horizontal ? py + (side < 0 ? -13 : 11) : py, horizontal, hs(52));
+      // Park auf der anderen Seite der Hauptstraße: Wege, Brunnen, Spielplatz, Bänke, Bäume
+      parkTry = () => { for (const shift of [0, 16, -16, 30, -30, 44, -44]) {
+        for (const sd of [-side, side]) {
+          const qx = t.x + (horizontal ? a - 6 + shift : sd < 0 ? 4 : -17);
+          const qy = t.y + (horizontal ? (sd < 0 ? 4 : -13) : a - 6 + shift);
+          if (this.park(w, qx, qy, horizontal ? 13 : 10, horizontal ? 10 : 13, hs(53), t.id)) break;
+        }
+        if (this.parks.has(t.id)) break;
+      } };
+    }
     this.street(w, t.x, t.y, horizontal, len, t.size === 1 ? 'village' : 'center', hs(0), true);
     // besondere Gebäude hinter dem Ortsende (Hauptstraße verlängert)
     (t.special ?? []).forEach((name, i) => {
@@ -731,30 +767,6 @@ export class SiteSystem {
     for (let a = -len / 2 + 9; a < len / 2; a += 18) this.sites.push({ x: t.x + (horizontal ? a : 0), y: t.y + (horizontal ? 0 : a), r: 11, weight, kind: 'town' });
     const n = WORLD.crossStreets[t.size - 1];
     const cl = WORLD.crossLength[t.size - 1];
-    // Dorfplatz mit Kirche (ab Dorfgröße) an einer zufälligen Stelle der Hauptstraße
-    let parkTry: (() => void) | null = null;
-    if (t.size >= 2) {
-      const a = Math.round((hs(50)(1) - 0.5) * len * 0.5);
-      const side = hs(50)(2) < 0.5 ? -1 : 1;
-      const px = t.x + (horizontal ? a - 6 : side < 0 ? -15 : 4);
-      const py = t.y + (horizontal ? (side < 0 ? -13 : 4) : a - 6);
-      for (let y = py; y < py + (horizontal ? 10 : 12); y++) for (let x = px; x < px + (horizontal ? 12 : 10); x++) this.paint(w, x, y, PAVEMENT);
-      this.tree(w, px + 5.5, py + 5.5, 0, 'oak');
-      const cw = 9;
-      const ch = 12;
-      this.house(w, horizontal ? px + 13 : px, horizontal ? py + (side < 0 ? -3 : 1) : py + 13, horizontal ? cw : ch, horizontal ? ch : cw,
-        'church', horizontal ? (side < 0 ? 2 : 0) : side < 0 ? 1 : 3, 'plaster', 'slate', hs(51), true);
-      this.cemetery(w, horizontal ? px : px + (side < 0 ? -13 : 11), horizontal ? py + (side < 0 ? -13 : 11) : py, horizontal, hs(52));
-      // Park auf der anderen Seite der Hauptstraße: Wege, Brunnen, Spielplatz, Bänke, Bäume
-      parkTry = () => { for (const shift of [0, 16, -16, 30, -30, 44, -44]) {
-        for (const sd of [-side, side]) {
-          const qx = t.x + (horizontal ? a - 6 + shift : sd < 0 ? 4 : -17);
-          const qy = t.y + (horizontal ? (sd < 0 ? 4 : -13) : a - 6 + shift);
-          if (this.park(w, qx, qy, horizontal ? 13 : 10, horizontal ? 10 : 13, hs(53), t.id)) break;
-        }
-        if (this.parks.has(t.id)) break;
-      } };
-    }
     for (let k = 0; k < n; k++) {
       // Querstraßen an unregelmäßigen Stellen, zu beiden Seiten nach Los, unterschiedlich lang
       const a = Math.round(-len / 2 + ((k + 0.25 + hs(60)(k) * 0.5) * len) / n);
@@ -1540,7 +1552,7 @@ export class SiteSystem {
       for (const name of list) {
         while (s < xs.length && !free(xs[s], r.y)) s++;
         if (s >= xs.length) return;
-        const fw = name === 'sofa' || name === 'store-shelf' ? 2 : 1;
+        const fw = name === 'sofa' || name === 'store-shelf' || name === 'piano' ? 2 : 1;
         if (fw === 2 && !free(xs[s] + 1, r.y)) {
           s++;
           continue;
@@ -1553,7 +1565,12 @@ export class SiteSystem {
       const hr = (m: number) => h(700 + ri * 13 + m);
       switch (r.type) {
         case 'kitchen': along(r, hr(1) < 0.5 ? ['kitchen', 'stove', 'kitchen', 'fridge'] : ['fridge', 'kitchen', 'stove'], 701 + ri); break;
-        case 'bath': along(r, ['bathroom'], 702 + ri); break;
+        case 'bath': {
+          along(r, hr(7) < 0.5 ? ['bathroom', 'washer'] : ['bathroom'], 702 + ri);
+          const ys = north(r);
+          if (r.h >= 3 && ys.length > 1 && hr(8) < 0.6) put('bathtub', r.x + r.w - 1, r.y + 1, 1, 2);
+          break;
+        }
         case 'bed': {
           const xs = north(r);
           if (xs.length) put('house-bed', xs[Math.floor(hr(2) * xs.length)], r.y, 1, 2);
@@ -1561,7 +1578,8 @@ export class SiteSystem {
           break;
         }
         case 'living': {
-          along(r, hr(4) < 0.6 ? ['shelf', 'sofa', 'shelf'] : ['sofa', 'desk'], 704 + ri);
+          const lv = hr(4);
+          along(r, lv < 0.3 ? ['shelf', 'sofa', 'shelf'] : lv < 0.55 ? ['bookshelf', 'tv', 'armchair'] : lv < 0.75 ? ['sofa', 'tv', 'bookshelf'] : lv < 0.88 ? ['piano', 'armchair'] : ['sofa', 'desk'], 704 + ri);
           const cx = r.x + Math.floor(r.w / 2);
           const cy = r.y + Math.floor(r.h / 2) + 1;
           if (r.w >= 3 && r.h >= 3) put('table', cx, Math.min(cy, r.y + r.h - 1));
@@ -1576,9 +1594,13 @@ export class SiteSystem {
         }
         case 'store-back': case 'works-back': along(r, ['shelf', 'locker', 'shelf'], 707 + ri); break;
         case 'church': {
-          // Bankreihen (Tische) und der Altar (Schreibtisch) an der Nordwand
-          along(r, ['shelf', 'desk', 'shelf'], 710 + ri);
-          for (let j = r.y + 2; j < r.y + r.h - 1; j += 2) for (let i = r.x + 1; i < r.x + r.w - 1; i++) if (i !== r.x + Math.floor(r.w / 2)) put('table', i, j);
+          // Altar an der Nordwand, Bankreihen links und rechts des Mittelgangs
+          const mid = r.x + Math.floor(r.w / 2);
+          put('altar', mid - 1, r.y, 2);
+          for (let j = r.y + 2; j < r.y + r.h - 1; j += 2) {
+            for (let i = r.x + 1; i + 1 < mid; i += 2) if (hr(40 + i + j * 3) < 0.9) put('pew', i, j, 2);
+            for (let i = mid + 1; i + 1 < r.x + r.w; i += 2) if (hr(60 + i + j * 3) < 0.9) put('pew', i, j, 2);
+          }
           break;
         }
         case 'works': {
