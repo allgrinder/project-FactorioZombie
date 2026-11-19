@@ -75,6 +75,8 @@ Namen der Vorbilder nie im Spiel verwenden.
 - Ortsparks (`SiteSystem.park`, `lib/park.py`), Absturzstellen (`WORLD.crashes`), Landmarken (Windpark, Hochspannung,
   Campingplatz, Sägewerk; `lib/landmarken.py`), Kulturlandschaft (Hochsitze, Vogelscheuchen, Feldsteinmauern; `lib/flurstuecke.py`),
   Wasserleben/Enten (`ambient.ts`), fressende Zombies (`ZOMBIE.feeders`), Regionen Heide/Moor (`src/sim/regions.ts`, `REGIONS`).
+- Spielmechanik 2 (`player.ts`, Werte in `src/data/survival.ts`): Puste/Sprint (Umschalt), Schleichen und lautloser Kill (C,
+  `Player.visibility` in der Zombie-Wahrnehmung), Körperwärme (`WARMTH`), Können (`SKILLS`, `gainXp`), Angeln (U). Test `mechanik.test.ts`.
 - Neue Gebäude: Holzbarrikade, Tor, Stacheldraht, Nagelfalle, Feldbett, Gemüsebeet, Regentonne, Funkturm, Lagerfeuer,
   Feuerschale, Scheinwerfer, Wachturm, Vorratslager.
 - Rezepte/Forschung zusammengestrichen (`KEPT` in `src/data/recipes.ts`, `RAW_TECHS` in `src/data/tech.ts`).

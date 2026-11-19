@@ -276,6 +276,19 @@ Requisiten (`kind: 'prop'`) blockieren, werden aber von Zombies nicht angegriffe
   nach Nordwesten (Gittermasten alle 26 Felder, Seile im Renderer), Campingplatz am See bei Moorbrück (Wohnwagen als Fundorte,
   Kuppelzelte, Feuerstellen, Waschhaus), Sägewerk im Wald (offene Halle, Stammstapel, Traktor).
 
+## Spielmechanik 2 (`src/sim/player.ts`, Werte `STAMINA/SNEAK/WARMTH/SKILLS/FISHING` in `src/data/survival.ts`)
+- Puste (Ausdauer): Umschalt halten = sprinten (×1,45, kostet 0,32/Tick, Schritte hörbar r 9, Figur auffälliger ×1,25);
+  Schläge kosten 7; unter 20 dauern Schläge 60 % länger; leer gesperrt bis 25.
+- Schleichen (C): Tempo ×0,55, Zombies sehen die Figur nur auf 42 % der Sichtweite (neben Bäumen 32 %), Schläge leiser.
+  Geduckter Schlag gegen einen Zombie, der nicht verfolgt, tötet lautlos (Brocken: dreifacher Schaden).
+- Körperwärme (feste Welt): Kälte = Dunkelheit·0,7 + Jahreszeit (Herbst 0,45, Winter 1,2) + Wetter (Regen 0,6, Sturm/Schnee 0,9);
+  Verlust 0,2 je Kälte und Sekunde, drinnen (Hausboden, Wagen) ×0,4, Wintermantel ×0,5; am brennenden Feuer (6 Felder) +2/s.
+  Unter 35 langsamer, bei 0 Schaden („erfroren“). Wintermantel aus 2 Fell + 6 Stoff.
+- Können: Nahkampf (Treffer 1, Erledigt 3), Plündern (Durchsuchen 2), Überleben (Jagen 5, Fisch 4); Stufe ⌊√(EP/6)⌋ bis 5.
+  Je Stufe +10 % Nahkampfschaden, ~12 % schneller durchsuchen, +2,5 % Bisschance, 4 % weniger Hunger.
+- Angeln (U, Angel aus 2 Holz, 3 Kabel, 1 Eisenstab; Wasser in 2,5 Feldern): je Sekunde 6 % Biss, höchstens 90 s; nicht bei Eis.
+  Fisch roh (Hunger 6) oder mit Holz zu Bratfisch (Hunger 30).
+
 ## Landschaftsregionen (`REGIONS` in `src/data/decor.ts`, `models/heide.py`)
 - Großräumiges Rauschen (Maßstab 150 Felder) teilt das Land: Heide auf trockenem Boden (Heidekraut-Teppiche, Wacholder,
   bräunlich-lila Boden) und Moor auf feuchtem Boden (Wollgras, Torfmoos mit Wasserlöchern, Schilf, olivbrauner Boden);

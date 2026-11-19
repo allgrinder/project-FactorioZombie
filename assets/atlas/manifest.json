@@ -4,6 +4,15 @@
  "generator": "blender",
  "blender": "bpy 5.2.4 LTS",
  "models": {
+  "ausruestung": {
+   "hash": "916beac633ae1eeb",
+   "sprites": [
+    "item.fishing-rod",
+    "item.raw-fish",
+    "item.cooked-fish",
+    "item.warm-coat"
+   ]
+  },
   "basis": {
    "hash": "fd6ecc7e7dcccb87",
    "sprites": [
@@ -26980,6 +26989,18 @@
     0.5
    ]
   },
+  "item.cooked-fish": {
+   "group": "items",
+   "frames": [
+    "item.cooked-fish#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.cooked-meat": {
    "group": "items",
    "frames": [
@@ -27296,6 +27317,18 @@
    "group": "items",
    "frames": [
     "item.first-aid-kit#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.fishing-rod": {
+   "group": "items",
+   "frames": [
+    "item.fishing-rod#0"
    ],
    "w": 64,
    "h": 64,
@@ -28012,6 +28045,18 @@
     0.5
    ]
   },
+  "item.raw-fish": {
+   "group": "items",
+   "frames": [
+    "item.raw-fish#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
   "item.raw-meat": {
    "group": "items",
    "frames": [
@@ -28568,6 +28613,18 @@
    "group": "items",
    "frames": [
     "item.vegetables#0"
+   ],
+   "w": 64,
+   "h": 64,
+   "anchor": [
+    0.5,
+    0.5
+   ]
+  },
+  "item.warm-coat": {
+   "group": "items",
+   "frames": [
+    "item.warm-coat#0"
    ],
    "w": 64,
    "h": 64,

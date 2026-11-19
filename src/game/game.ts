@@ -201,6 +201,8 @@ export class Game {
     p.pickingUp = d.has('f');
     // Leertaste: Nahkampf bzw. Schuss (X wechselt) auf den nächsten Zombie in Reichweite
     p.shooting = d.has(' ') || d.has('space');
+    // Umschalt halten: sprinten (kostet Ausdauer)
+    p.sprinting = d.has('shift');
   }
 
   // ------------------------------------------------------------ Eingabe
@@ -392,8 +394,17 @@ export class Game {
         break;
       }
       case 'c':
-        if (this.debug) this.debugItem('stone');
+        // C: schleichen (im Testmodus mit Umschalt: Stein)
+        if (this.debug && this.input.shift) this.debugItem('stone');
+        else this.world.player?.toggleCrouch();
         break;
+      case 'u': {
+        // U: angeln (Angel im Inventar, Wasser in Reichweite)
+        const p = this.world.player;
+        const err = p?.startFishing(this.world);
+        if (err) p!.note(err);
+        break;
+      }
       default:
         if (/^[0-9]$/.test(k)) {
           const slot = k === '0' ? 9 : Number(k) - 1;

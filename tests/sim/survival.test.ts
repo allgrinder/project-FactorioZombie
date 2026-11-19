@@ -319,7 +319,7 @@ describe('Spielziel und Inhalt', () => {
     for (const t of TECHS) for (const u of t.unlocks) expect(RECIPES[u], `${t.id} → ${u}`).toBeTruthy();
     for (const t of TECHS) for (const pre of t.prerequisites) expect(TECHS.some((x) => x.id === pre), `${t.id} braucht ${pre}`).toBe(true);
     // Rohstoffe und reine Beute (Fleisch und Fell aus der Jagd)
-    const raw = new Set(['iron-ore', 'copper-ore', 'coal', 'stone', 'wood', 'water', 'steam', 'cloth', 'radio-parts', 'vegetables', 'water-bottle', 'raw-meat', 'hide']);
+    const raw = new Set(['iron-ore', 'copper-ore', 'coal', 'stone', 'wood', 'water', 'steam', 'cloth', 'radio-parts', 'vegetables', 'water-bottle', 'raw-meat', 'hide', 'raw-fish']);
     for (const r of RECIPE_LIST) for (const i of r.ingredients) expect(raw.has(i.item) || isCraftable(i.item), `${r.id} braucht ${i.item}`).toBe(true);
     for (const r of RECIPE_LIST) for (const x of [...r.ingredients, ...r.results]) expect(ITEMS[x.item] || x.item === 'water' || x.item === 'steam', x.item).toBeTruthy();
   });

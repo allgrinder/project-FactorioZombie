@@ -469,6 +469,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1d1b17; col
 .surv-row.hunger .fill { background: linear-gradient(#e0a24a, #b0742a); }
 .surv-row.thirst .fill { background: linear-gradient(#5aa8e0, #2a70b0); }
 .surv-row.rest .fill { background: linear-gradient(#a58ae0, #6a4ab0); }
+.surv-row.warm .fill { background: linear-gradient(#f0b060, #c86a3a); }
+.surv-row.stam .fill { background: linear-gradient(#9ad86a, #5a9a3a); }
 .surv-row.low .label { color: #ff7a5a; font-weight: 700; }
 .surv-tags { color: #ff7a5a; font-weight: 700; }
 .surv-line { color: var(--dim); }

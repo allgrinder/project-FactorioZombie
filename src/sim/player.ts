@@ -5,12 +5,13 @@ import { entityDef } from '../data/entities';
 import { ITEMS, ITEM_IDS } from '../data/items';
 import { MAPGEN } from '../data/mapgen';
 import { AMMO, FISTS, HAZARD, MELEE, type MeleeDef, NOISE, PLAYER_COMBAT, REPAIR, type UnitDef, WEAPONS, ZOMBIE } from '../data/enemies';
-import { FRUIT_TREE, CONSUMABLES, SURVIVAL, perTick } from '../data/survival';
+import { FISHING, FRUIT_TREE, CONSUMABLES, SKILLS, SNEAK, STAMINA, SURVIVAL, type SkillId, WARMTH, perTick } from '../data/survival';
 import { WINTER } from '../data/weather';
 import { CROWBAR_FACTOR } from '../data/scavenge';
 import { CAR } from '../data/vehicles';
 import { DAY } from '../data/time';
 import { hash01 } from './rng';
+import { Status } from './entity';
 import { GOD, PLAYER, START_INVENTORY } from '../data/player';
 import { RECIPES, type RecipeDef, craftingRecipeFor } from '../data/recipes';
 import { RESOURCE_BY_INDEX } from '../data/resources';
@@ -76,10 +77,24 @@ export class Player {
   /** Infektion 0…1 (null = gesund); bei 1 tödlich. */
   infection: number | null = null;
   sleeping = false;
+  /** Ausdauer (Puste), Sprinten (Eingabe: Umschalt), gesperrt bis sprintResume nach Erschöpfung. */
+  stamina: number = STAMINA.max;
+  sprinting = false;
+  private sprintLock = false;
+  /** Schleichen (Taste C, umschaltbar). */
+  crouching = false;
+  /** Körperwärme 0 … 100. */
+  warmth: number = WARMTH.start;
+  /** Erfahrung je Fertigkeit. */
+  skills: Record<SkillId, number> = { melee: 0, loot: 0, survival: 0 };
+  /** Angeln: verbleibende Sekunden (null = angelt nicht). */
+  fishing: number | null = null;
+  /** Sichtbarkeit für Zombies (Faktor auf deren Sichtweite), je Tick berechnet. */
+  visibility = 1;
   /** Schläft im Bett (schnellere Erholung). */
   private inBed = false;
   /** Zuletzt gemeldete Warnstufen (Hunger, Durst, Müdigkeit, Fieber), damit Meldungen nicht wiederholt werden. */
-  private warned = [0, 0, 0, 0];
+  private warned = [0, 0, 0, 0, 0];
   /** Angreifen (Leertaste halten): Nahkampf bzw. Schuss auf das nächste Ziel in Reichweite. */
   shooting = false;
   /** Schusswaffe statt Nahkampfwaffe benutzen (Taste X). */
@@ -187,11 +202,15 @@ export class Player {
     this.updateCombat(world);
     if (this.inCar) {
       this.walking = false;
+      this.fishing = null;
       this.updateCrafting(world);
       return;
     }
     this.updateSearch(world);
+    this.updateStamina(world);
     this.updateMovement(world);
+    this.updateVisibility(world);
+    this.updateFishing(world);
     this.updateMining(world);
     this.updateCrafting(world);
     if (this.pickingUp && world.tick % PLAYER.pickupInterval === 0) {
@@ -345,7 +364,7 @@ export class Player {
       return;
     }
     const work = this.sleeping ? 0.5 : this.walking || this.mineTarget ? S.workFactor : 1;
-    this.hunger = Math.max(0, this.hunger - perTick(S.hungerDays) * work * (world.weather.winter ? WINTER.hunger : 1));
+    this.hunger = Math.max(0, this.hunger - perTick(S.hungerDays) * work * (world.weather.winter ? WINTER.hunger : 1) * (1 - SKILLS.perLevel.hunger * this.skillLevel('survival')));
     this.thirst = Math.max(0, this.thirst - perTick(S.thirstDays) * work);
     if (this.sleeping) {
       this.fatigue = Math.max(0, this.fatigue - (this.inBed ? S.sleepRestBed : S.sleepRestGround));
@@ -371,6 +390,7 @@ export class Player {
       this.hp -= 0.3;
       cause ||= 'vor Erschöpfung zusammengebrochen';
     }
+    if (world.settings.plan) cause = this.updateWarmth(world) || cause;
     this.wounds = this.wounds.filter((t) => t > world.tick);
     if (this.wounds.length) {
       this.hp -= S.bleedPerSecond * this.wounds.length;
@@ -409,7 +429,129 @@ export class Player {
     if (this.fatigue >= SURVIVAL.tiredFrom) f *= SURVIVAL.tiredSpeed;
     if ((this.infection ?? 0) >= SURVIVAL.feverFrom) f *= SURVIVAL.feverSpeed;
     if (this.hunger <= 0 || this.thirst <= 0) f *= 0.85;
+    if (this.warmth < WARMTH.coldFrom) f *= WARMTH.coldSpeed;
     return f;
+  }
+
+  /** Fertigkeitsstufe 0 … SKILLS.max. */
+  skillLevel(id: SkillId): number {
+    return Math.min(SKILLS.max, Math.floor(Math.sqrt(this.skills[id] / SKILLS.step)));
+  }
+
+  /** Erfahrung sammeln; Meldung beim Stufenaufstieg. */
+  gainXp(id: SkillId, n: number): void {
+    const before = this.skillLevel(id);
+    this.skills[id] += n;
+    const after = this.skillLevel(id);
+    if (after > before) this.note(`${SKILLS.names[id]} verbessert: Stufe ${after}`);
+  }
+
+  /** Schleichen an/aus. */
+  toggleCrouch(): void {
+    if (this.dead || this.inCar) return;
+    this.crouching = !this.crouching;
+    this.note(this.crouching ? 'Du schleichst – leiser und schwerer zu sehen (C: aufrichten)' : 'Du richtest dich auf');
+  }
+
+  /** Angeln beginnen (Angel im Inventar, Wasser in Reichweite). Liefert eine Meldung, wenn es nicht geht. */
+  startFishing(world: World): string | null {
+    if (this.dead || this.inCar) return null;
+    if (this.fishing !== null) {
+      this.fishing = null;
+      return 'Angel eingeholt';
+    }
+    if (this.inventory.count('fishing-rod') < 1 && !this.god) return 'Dafür brauchst du eine Angel';
+    const r = Math.ceil(FISHING.reach);
+    let water = false;
+    for (let dy = -r; dy <= r && !water; dy++) for (let dx = -r; dx <= r && !water; dx++) {
+      if (Math.hypot(dx, dy) <= FISHING.reach && world.map.isWater(Math.floor(this.x) + dx, Math.floor(this.y) + dy)) water = true;
+    }
+    if (!water) return 'Kein Wasser in der Nähe';
+    if (world.weather.winter && world.settings.plan) return 'Der See ist zugefroren';
+    this.fishing = FISHING.maxSeconds;
+    this.note('Du wirfst die Angel aus … (Bewegen bricht ab)');
+    return null;
+  }
+
+  private updateFishing(world: World): void {
+    if (this.fishing === null) return;
+    if (this.walking || this.mineTarget || this.shooting) {
+      this.fishing = null;
+      return;
+    }
+    if (world.tick % 60 !== 0) return;
+    const chance = FISHING.chance + SKILLS.perLevel.fish * this.skillLevel('survival');
+    if (hash01(world.seed, world.tick, Math.floor(this.x * 7 + this.y * 13), 4711) < chance) {
+      this.fishing = null;
+      if (this.inventory.add('raw-fish', 1) < 1) world.spill(this.x, this.y, 'raw-fish');
+      world.stats.made('raw-fish', 1);
+      this.gainXp('survival', SKILLS.xp.fish);
+      world.events.push('use', this.x, this.y, { item: 'raw-fish' });
+      this.note('Ein Fisch hat angebissen!');
+      return;
+    }
+    if (--this.fishing <= 0) {
+      this.fishing = null;
+      this.note('Nichts gefangen');
+    }
+  }
+
+  /** Sichtbarkeit für Zombies: Schleichen (in Deckung noch besser), Sprinten auffälliger. */
+  private updateVisibility(world: World): void {
+    let v = 1;
+    if (this.crouching) {
+      v = SNEAK.visibility;
+      const tx = Math.floor(this.x);
+      const ty = Math.floor(this.y);
+      if (world.tick % 10 === 0 || this.visibility === 1) {
+        let cover = false;
+        for (let dy = -1; dy <= 1 && !cover; dy++) for (let dx = -1; dx <= 1 && !cover; dx++) if (world.map.trees.treeAt(tx + dx, ty + dy)) cover = true;
+        this.inCover = cover;
+      }
+      if (this.inCover) v *= SNEAK.coverVisibility;
+    } else if (this.sprinting && this.walking) v = SNEAK.sprintVisibility;
+    this.visibility = v;
+  }
+  private inCover = false;
+
+  /** Ausdauer: Sprinten kostet, Stehen und Gehen erholt. */
+  private updateStamina(world: World): void {
+    const sprint = this.sprinting && this.walking && !this.crouching && !this.sprintLock && !this.god;
+    if (sprint) {
+      this.stamina = Math.max(0, this.stamina - STAMINA.sprintCost);
+      if (this.stamina <= 0) this.sprintLock = true;
+      if (world.tick % STAMINA.sprintNoiseEvery === 0) world.noise.emit(this.x, this.y, STAMINA.sprintNoise);
+    } else this.stamina = Math.min(STAMINA.max, this.stamina + (this.walking ? STAMINA.regenWalk : STAMINA.regenStand));
+    if (this.sprintLock && this.stamina >= STAMINA.sprintResume) this.sprintLock = false;
+    this.sprintActive = sprint;
+  }
+  /** Sprintet gerade wirklich (Eingabe, genug Ausdauer, nicht geduckt). */
+  sprintActive = false;
+
+  /** Körperwärme (nur feste Welt mit Bedürfnissen): je Sekunde aus Nacht, Jahreszeit, Wetter, Feuer und Obdach. */
+  private updateWarmth(world: World): string {
+    const W = WARMTH;
+    let cold = world.darkness * W.night + (W.season[world.weather.season(world.tick)] ?? 0) + (W.weather[world.weather.kind] ?? 0);
+    const tx = Math.floor(this.x);
+    const ty = Math.floor(this.y);
+    const floor = world.map.floorAt(tx, ty);
+    if (this.inCar || floor === 11 || floor === 12) cold *= W.shelter;
+    if (this.inventory.count('warm-coat') > 0) cold *= W.coat;
+    let fire = false;
+    const r = W.fireRadius;
+    for (let dy = -r; dy <= r && !fire; dy += 2) for (let dx = -r; dx <= r && !fire; dx += 2) {
+      const e = world.entityAt(tx + dx, ty + dy);
+      if (e && (e.kind === 'fire' || e.kind === 'furnace') && e.status === Status.Working && Math.hypot(e.cx - this.x, e.cy - this.y) <= r) fire = true;
+    }
+    if (fire) this.warmth = Math.min(100, this.warmth + W.fireGain);
+    else if (cold > 0.05) this.warmth = Math.max(0, this.warmth - cold * W.lossPerCold);
+    else this.warmth = Math.min(100, this.warmth + W.regen);
+    this.warn(4, 100 - this.warmth, ['Dir ist kalt – ein Feuer, ein Haus oder ein Mantel helfen', 'Du bist völlig ausgekühlt!']);
+    if (this.warmth <= 0) {
+      this.hp -= W.freezeDamage;
+      return 'erfroren';
+    }
+    return '';
   }
 
   /** Schlafen legen (im Feldbett daneben oder auf dem Boden). Liefert eine Meldung, wenn es nicht geht. */
@@ -500,10 +642,13 @@ export class Player {
       this.searchTarget = null;
       return;
     }
-    if (++e.searchProgress >= (this.god ? 1 : e.searchTicks)) {
+    const lv = this.skillLevel('loot');
+    e.searchProgress += 1 + (lv > 0 && world.tick % Math.max(2, Math.round(1 / (SKILLS.perLevel.loot * lv))) === 0 ? 1 : 0);
+    if (e.searchProgress >= (this.god ? 1 : e.searchTicks)) {
       e.searched = true;
       this.searchTarget = null;
       world.stats.made(`search.${e.name}`, 1);
+      this.gainXp('loot', SKILLS.xp.search);
       world.events.push('search', e.cx, e.cy, { id: e.id });
       this.note(e.inventory.isEmpty() ? `${e.def.name}: nichts Brauchbares` : `${e.def.name} durchsucht`);
     }
@@ -519,6 +664,7 @@ export class Player {
     return {
       hu: this.hunger, th: this.thirst, fa: this.fatigue, wo: [...this.wounds], inf: this.infection, sl: this.sleeping, bed: this.inBed,
       bp: this.hasBackpack, car: this.inCar, dead: this.dead, dt: this.deathTick, dc: this.deathCause, mw: { ...this.meleeWear }, ug: this.useGun, wa: [...this.warned], st: this.searchTarget,
+      sta: this.stamina, sl2: this.sprintLock, cr: this.crouching, wm: this.warmth, sk: { ...this.skills }, fi: this.fishing,
     };
   }
 
@@ -545,6 +691,13 @@ export class Player {
     this.useGun = d.ug;
     this.warned = [...d.wa];
     this.searchTarget = d.st;
+    this.stamina = d.sta ?? STAMINA.max;
+    this.sprintLock = d.sl2 ?? false;
+    this.crouching = d.cr ?? false;
+    this.warmth = d.wm ?? WARMTH.start;
+    this.skills = d.sk ? { ...d.sk } : { melee: 0, loot: 0, survival: 0 };
+    this.fishing = d.fi ?? null;
+    while (this.warned.length < 5) this.warned.push(0);
   }
 
   private updateRepair(world: World): void {
@@ -613,6 +766,7 @@ export class Player {
     world.events.push('shot', this.x, this.y);
     world.noise.emit(this.x, this.y, W.noise);
     world.enemies.damageTarget(world, t, AMMO[this.roundsItem!].damage * (1 + world.research.bonus('bullet-damage')), { x: this.x, y: this.y });
+    if (t.kind === 'animal' && !world.wildlife.get(t.id)) this.gainXp('survival', SKILLS.xp.hunt);
     if (this.rounds === 0) this.roundsItem = null;
   }
 
@@ -623,12 +777,23 @@ export class Player {
     const M: MeleeDef = item ? MELEE[item] : FISTS;
     const t = world.foe(this.x, this.y, M.reach + 0.35) ?? world.prey(this.x, this.y, M.reach + 0.6);
     if (!t) return;
-    this.meleeCd = Math.round(M.cooldown / this.condition);
+    const tired = this.stamina < STAMINA.tiredAt && !this.god;
+    this.meleeCd = Math.round((M.cooldown * (tired ? STAMINA.tiredCooldown : 1)) / this.condition);
+    if (!this.god) this.stamina = Math.max(0, this.stamina - STAMINA.meleeCost);
     this.lastMelee = world.tick;
     this.meleeAngle = Math.atan2(t.y - this.y, t.x - this.x);
     world.events.push('melee', t.x, t.y);
-    world.noise.emit(this.x, this.y, NOISE.melee);
-    world.enemies.damageTarget(world, t, M.damage, { x: this.x, y: this.y }, ZOMBIE.stunTicks);
+    world.noise.emit(this.x, this.y, NOISE.melee * (this.crouching ? SNEAK.meleeNoise : 1));
+    let dmg = M.damage * (1 + SKILLS.perLevel.melee * this.skillLevel('melee'));
+    // Lautloser Angriff: geduckt gegen einen Zombie, der dich nicht verfolgt
+    const unit = t.kind === 'unit' ? world.enemies.units.get(t.id) : undefined;
+    if (unit && this.crouching && unit.mode !== 'chase') {
+      dmg = unit.kind === 'brute' ? dmg * SNEAK.bruteFactor : unit.hp + 1;
+      this.lastStealth = world.tick;
+    }
+    const animal = t.kind === 'animal';
+    world.enemies.damageTarget(world, t, dmg, { x: this.x, y: this.y }, ZOMBIE.stunTicks);
+    this.creditKill(world, t, animal);
     if (item && !this.god) {
       const used = (this.meleeWear[item] ?? 0) + 1;
       if (used >= M.durability) {
@@ -638,6 +803,19 @@ export class Player {
         this.note(`${ITEMS[item].name} ist zerbrochen`);
       } else this.meleeWear[item] = used;
     }
+  }
+
+  /** Letzter lautloser Angriff (Anzeige). */
+  lastStealth = -100;
+
+  /** Erfahrung für Treffer und Erlegtes (Zombie bzw. Wildtier verschwunden). */
+  private creditKill(world: World, t: { kind: string; id: number }, animal: boolean): void {
+    if (animal) {
+      if (!world.wildlife.get(t.id)) this.gainXp('survival', SKILLS.xp.hunt);
+      return;
+    }
+    if (t.kind !== 'unit') return;
+    this.gainXp('melee', world.enemies.units.has(t.id) ? SKILLS.xp.hit : SKILLS.xp.kill);
   }
 
   /** Nächstes Bodenitem im Umkreis aufheben. */
@@ -695,7 +873,8 @@ export class Player {
     const fs = floor ? FLOOR_BY_ID[floor].speed : 1;
     // eigener Stacheldraht bremst auch die Figur
     const wire = world.entityAt(this.x, this.y)?.kind === 'wire' ? HAZARD.wire.slow + 0.2 : 1;
-    const speed = Math.round(PLAYER.runningSpeed * SUB * fs * wire * this.condition * (this.god ? GOD.runningFactor : 1));
+    const gait = this.crouching ? SNEAK.speed : this.sprintActive ? STAMINA.sprintFactor : 1;
+    const speed = Math.round(PLAYER.runningSpeed * SUB * fs * wire * gait * this.condition * (this.god ? GOD.runningFactor : 1));
     // Diagonal: 181/256 ≈ 1/√2
     const diag = mx !== 0 && my !== 0;
     const step = diag ? Math.round((speed * 181) / 256) : speed;

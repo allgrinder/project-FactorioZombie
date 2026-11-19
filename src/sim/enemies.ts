@@ -320,7 +320,7 @@ export class EnemySystem {
     }
     // Wahrnehmung: Figur (vorrangig) oder Sammler in Sichtweite → Verfolgung
     if ((u.mode !== 'chase' || u.prey !== 0) && (w.tick + u.id) % ZOMBIE.senseInterval === 0) {
-      if (p && pd < sight) {
+      if (p && pd < sight * p.visibility) {
         if (u.mode !== 'chase') this.startChase(w, u);
         u.prey = 0;
       } else if (u.mode !== 'chase') {

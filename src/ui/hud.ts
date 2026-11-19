@@ -1,7 +1,9 @@
 import { entityDef } from '../data/entities';
 import { ITEMS } from '../data/items';
 import { MELEE, PLAYER_COMBAT, UNITS } from '../data/enemies';
-import { SURVIVAL, isConsumable } from '../data/survival';
+import { SKILLS, STAMINA, SURVIVAL, type SkillId, WARMTH, isConsumable } from '../data/survival';
+
+const SKILL_IDS: readonly SkillId[] = ['melee', 'loot', 'survival'];
 import { PLAYER } from '../data/player';
 import { DAY, dayNumber } from '../data/time';
 import { CAR } from '../data/vehicles';
@@ -333,6 +335,9 @@ export class Hud {
     if (p.infection !== null) tags.push(p.infection >= SURVIVAL.feverFrom ? 'Fieber' : 'Gebissen');
     if (needs && p.fatigue >= SURVIVAL.tiredFrom) tags.push('Erschöpft');
     if (p.sleeping) tags.push('Schläft');
+    if (p.crouching) tags.push('Schleicht');
+    if (p.fishing !== null) tags.push('Angelt');
+    if (needs && w.settings.plan && p.warmth < WARMTH.coldFrom) tags.push(p.warmth <= 0 ? 'Erfriert' : 'Friert');
     const gun = p.weapon;
     const weapon = p.useGun && gun && p.hasAmmo
       ? `${ITEMS[gun].name} (${p.rounds + [...p.inventory.contents()].filter((c) => c.item.endsWith('magazine')).reduce((a, c) => a + c.count * 10, 0)} Schuss)`
@@ -346,7 +351,7 @@ export class Hud {
     const horde = w.settings.enemies === 'aus' ? '' : w.daytime < DAY.dusk && today > 0
       ? `Horde heute Abend: ~${today} (in ${Math.ceil(untilDusk / 3600)} min)`
       : w.enemies.lastHorde && w.tick - w.enemies.lastHorde.tick < DAY.ticks * 0.45 ? `Horde aus ${compassName(w.enemies.lastHorde.angle)}: ${w.enemies.lastHorde.size}` : '';
-    const key = [Math.round(p.x / 8), Math.round(p.y / 8), day, this.clock(), night, Math.round(p.hp), Math.round(p.hunger), Math.round(p.thirst), Math.round(p.fatigue), tags.join(), weapon, noiseTxt, near, horde, needs].join('|');
+    const key = [Math.round(p.x / 8), Math.round(p.y / 8), day, this.clock(), night, Math.round(p.hp), Math.round(p.hunger), Math.round(p.thirst), Math.round(p.fatigue), Math.round(p.stamina / 4), Math.round(p.warmth / 4), SKILL_IDS.map((k) => p.skillLevel(k)).join(), tags.join(), weapon, noiseTxt, near, horde, needs].join('|');
     if (key === this.survKey) return;
     this.survKey = key;
     this.survEl.replaceChildren();
@@ -364,10 +369,14 @@ export class Hud {
     if (needs) {
       bar('Hunger', p.hunger / 100, 'hunger', 'Essen: Konserven, Gemüse, Eintopf (Rechtsklick im Inventar)');
       bar('Durst', p.thirst / 100, 'thirst', 'Trinken: Wasserflasche; leere Flaschen am See oder in der Regentonne füllen');
-      bar('Ausdauer', 1 - p.fatigue / 100, 'rest', 'Schlafen: Taste N (im Feldbett erholsamer). Schlaf nur ohne Zombies in der Nähe');
+      bar('Wachheit', 1 - p.fatigue / 100, 'rest', 'Schlafen: Taste N (im Feldbett erholsamer). Schlaf nur ohne Zombies in der Nähe');
+      if (w.settings.plan) bar('Wärme', p.warmth / 100, 'warm', 'Kälte aus Nacht, Winter und Regen. Wärmt: Feuer, Häuser, der Wagen, ein Wintermantel');
     }
+    bar('Puste', p.stamina / STAMINA.max, 'stam', 'Umschalt halten: sprinten (laut). Schläge kosten Puste. C: schleichen, U: angeln');
     if (tags.length) el('div', 'surv-tags', this.survEl).textContent = tags.join(' · ');
     el('div', 'surv-line', this.survEl).textContent = `Waffe: ${weapon} · X wechselt`;
+    const sk = SKILL_IDS.filter((k) => p.skillLevel(k) > 0).map((k) => `${SKILLS.names[k]} ${p.skillLevel(k)}`);
+    if (sk.length) el('div', 'surv-line', this.survEl).textContent = `Können: ${sk.join(' · ')}`;
     el('div', `surv-line${noise >= 24 ? ' warn' : ''}`, this.survEl).textContent = `Lärm im Lager: ${noiseTxt} · Zombies in der Nähe: ${near}`;
     if (horde) el('div', 'surv-line warn', this.survEl).textContent = horde;
     this.sleepEl.classList.toggle('hidden', !p.sleeping);
@@ -1982,6 +1991,7 @@ export class Hud {
       <div class="win-body help-body">
         <p><b>Ziel:</b> überleben. Plündere die Reste der alten Welt, baue ein befestigtes Lager mit einer kleinen Produktion (Munition, Mauern, Türme) und rufe am Ende mit dem <b>Funkturm</b> die Rettung.</p>
         <p><b>WASD</b> laufen · <b>Mausrad</b> zoomen · <b>Leertaste</b> halten: angreifen (Nahkampf leise, Schusswaffe laut) · <b>X</b> Waffe wechseln · <b>N</b> schlafen/aufstehen</p>
+        <p><b>Umschalt</b> halten: sprinten (kostet Puste, ist laut) · <b>C</b> schleichen (schwer zu sehen; Schlag gegen ahnungslose Zombies tötet lautlos) · <b>U</b> angeln (Angel nötig, am Wasser) · Kälte: Feuer, Häuser und ein Wintermantel wärmen · Können (Nahkampf, Plündern, Überleben) wächst mit der Übung</p>
         <p><b>Lärm</b> lockt Zombies an: Schüsse, Bohrer, Dampfmaschinen, Montagemaschinen. Solarstrom ist leise. Jede Nacht ab Tag 2 zieht eine <b>Horde</b> zum Lager – jede 7. Nacht eine große.</p>
         <p><b>Kein Bergbau:</b> Material liegt als <b>Schrotthaufen</b> (Schrott, Schutt, Kohle, Holz, Autoteile, Elektroschrott) in Höfen, Orten und auf eingezäunten <b>Schrottplätzen</b> – <b>Rechtsklick halten</b> schlachtet aus, mit Brecheisen doppelt so schnell. Der Rucksack bringt 20 Plätze.</p>
         <p><b>Gemeinschaft (K):</b> In Orten warten <b>Überlebende</b> (blau auf der Karte). Geh hin, sie folgen dir; am Lagerfeuer werden sie Bewohner. Jeder hat eine <b>Aufgabe</b>: Sammeln (schlachtet Haufen im Umkreis aus), Wache (schießt mit Magazinen aus dem Vorrat), Gärtnern (Beete, Wildkräuter), Ausbessern (Mauern, Türme), Sanitäter (heilt dich am Lager). ★ = früherer Beruf, arbeitet besser. Morgens isst jeder ein Essen aus dem <b>Vorratslager</b> bzw. aus Kisten am Feuer. Zombies jagen Bewohner – das Lager will bewacht sein.</p>

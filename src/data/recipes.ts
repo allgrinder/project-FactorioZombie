@@ -578,6 +578,9 @@ const SURVIVAL: RecipeDef[] = [
   // Jagd: Fleisch über dem Feuer braten (Holz als Brennstoff), Fell zu Stoff schneiden
   { id: 'cooked-meat', category: 'crafting', time: 4, ingredients: [I('raw-meat', 2), I('wood', 1)], results: [I('cooked-meat', 2)] },
   { id: 'cloth', category: 'crafting', time: 2, ingredients: [I('hide', 1)], results: [I('cloth', 3)] },
+  { id: 'cooked-fish', category: 'crafting', time: 3, ingredients: [I('raw-fish', 1), I('wood', 1)], results: [I('cooked-fish', 1)] },
+  craft('fishing-rod', 2, [I('wood', 2), I('copper-cable', 3), I('iron-stick', 1)]),
+  craft('warm-coat', 4, [I('hide', 2), I('cloth', 6)]),
   craft('bed', 2, [I('wood', 6), I('cloth', 3)]),
   craft('garden', 3, [I('wood', 8), I('vegetables', 2)]),
   craft('rain-barrel', 2, [I('wood', 6), I('iron-plate', 4)]),
